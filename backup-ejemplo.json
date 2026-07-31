@@ -1,0 +1,1376 @@
+{
+  "appName": "Fútbol XL Studio",
+  "backupVersion": 3,
+  "schemaVersion": 3,
+  "exportedAt": "2026-07-30T19:00:10.393Z",
+  "data": {
+    "videos": [
+      {
+        "id": "5384e05c-8582-465d-aef6-70c4b839697b",
+        "title": "Por qué Zidane nunca dirigió a la Selección Francesa",
+        "altTitle": "",
+        "description": "",
+        "stateId": "60077e5d-c6e6-4539-82a8-f69b76bf12c6",
+        "seriesId": "0b82bb9b-cf36-42e2-9995-058d297e9b8b",
+        "formatId": "b7c521fb-5055-4307-adfb-d706f5f7952e",
+        "contentTypeId": "35fbc7e6-a7ac-4a63-a5f5-d83bf6ecce48",
+        "priorityId": "9ba5b0b1-ea99-438f-8c75-410325bc4030",
+        "targetDate": "2026-08-04",
+        "publishDate": null,
+        "estimatedDuration": "",
+        "finalDuration": "",
+        "owner": "",
+        "favorite": false,
+        "archived": false,
+        "tagIds": [
+          "899cf5af-6034-4d87-bc80-c2e3aadfc8cf"
+        ],
+        "driveLinks": {
+          "mainFolder": {
+            "url": "",
+            "label": "Carpeta principal"
+          },
+          "script": {
+            "url": "",
+            "label": "Guion"
+          },
+          "premiere": {
+            "url": "",
+            "label": "Premiere"
+          },
+          "raw": {
+            "url": "",
+            "label": "Brutos"
+          },
+          "inserts": {
+            "url": "",
+            "label": "Inserts"
+          },
+          "thumbnail": {
+            "url": "",
+            "label": "Miniatura"
+          },
+          "finalExport": {
+            "url": "",
+            "label": "Exportación final"
+          },
+          "published": {
+            "url": "",
+            "label": "Video publicado"
+          }
+        },
+        "additionalLinks": [],
+        "idea": "Explorar los motivos tácticos y políticos detrás de la ausencia de Zidane en Les Bleus.",
+        "hook": "",
+        "script": "",
+        "researchNotes": "",
+        "editNotes": "",
+        "thumbnailNotes": "",
+        "descriptionText": "",
+        "titleIdeas": "",
+        "thumbnailIdeas": "",
+        "checklist": [],
+        "thumbnail": null,
+        "images": [],
+        "comments": [],
+        "history": [
+          {
+            "id": "56d1b9cc-4a1f-4d64-8254-ad90fe942e7d",
+            "type": "created",
+            "message": "Video de ejemplo creado",
+            "date": "2026-07-30T04:05:27.452Z"
+          }
+        ],
+        "createdAt": "2026-07-30T04:05:27.452Z",
+        "updatedAt": "2026-07-30T04:05:27.452Z",
+        "isSample": true,
+        "libraryItemIds": [
+          "43ab332b-38f2-48b4-97fe-7ea1329db354"
+        ]
+      },
+      {
+        "id": "6c0a4082-9dd4-433c-b210-1aa04780155c",
+        "title": "La camiseta que Independiente nunca usó",
+        "altTitle": "",
+        "description": "",
+        "stateId": "34d59fe5-0b85-4905-a5ff-e20da8467764",
+        "seriesId": "cb35d254-b503-48b9-aef4-12a2e2597970",
+        "formatId": "24d8d944-7d89-4b8a-9627-958161708f29",
+        "contentTypeId": "08d32d3e-a00e-4185-a049-58bd6debe7bc",
+        "priorityId": "6586620e-8179-4710-a691-8e29f55146b3",
+        "targetDate": "2026-08-11",
+        "publishDate": null,
+        "estimatedDuration": "",
+        "finalDuration": "",
+        "owner": "",
+        "favorite": false,
+        "archived": false,
+        "tagIds": [
+          "899cf5af-6034-4d87-bc80-c2e3aadfc8cf",
+          "e59d4852-548f-4207-a1f9-c73013d7bc5c"
+        ],
+        "driveLinks": {
+          "mainFolder": {
+            "url": "",
+            "label": "Carpeta principal"
+          },
+          "script": {
+            "url": "",
+            "label": "Guion"
+          },
+          "premiere": {
+            "url": "",
+            "label": "Premiere"
+          },
+          "raw": {
+            "url": "",
+            "label": "Brutos"
+          },
+          "inserts": {
+            "url": "",
+            "label": "Inserts"
+          },
+          "thumbnail": {
+            "url": "",
+            "label": "Miniatura"
+          },
+          "finalExport": {
+            "url": "",
+            "label": "Exportación final"
+          },
+          "published": {
+            "url": "",
+            "label": "Video publicado"
+          }
+        },
+        "additionalLinks": [],
+        "idea": "",
+        "hook": "",
+        "script": "",
+        "researchNotes": "",
+        "editNotes": "",
+        "thumbnailNotes": "",
+        "descriptionText": "",
+        "titleIdeas": "",
+        "thumbnailIdeas": "",
+        "checklist": [],
+        "thumbnail": null,
+        "images": [],
+        "comments": [],
+        "history": [
+          {
+            "id": "4d6c53f3-a283-46de-8877-2938a3d60de7",
+            "type": "created",
+            "message": "Video de ejemplo creado",
+            "date": "2026-07-30T04:05:27.452Z"
+          }
+        ],
+        "createdAt": "2026-07-30T04:05:27.452Z",
+        "updatedAt": "2026-07-30T04:05:27.452Z",
+        "isSample": true
+      },
+      {
+        "id": "0cb2261e-3809-4b65-bbb7-264e3252070f",
+        "title": "El fichaje que Boca rechazó por $2M",
+        "altTitle": "",
+        "description": "",
+        "stateId": "92dff73f-e100-4935-9e8d-c540a2d1f146",
+        "seriesId": "6bee0a8d-b0a4-4ce7-8b7a-8b2f644421bd",
+        "formatId": "b7c521fb-5055-4307-adfb-d706f5f7952e",
+        "contentTypeId": "08d32d3e-a00e-4185-a049-58bd6debe7bc",
+        "priorityId": "aa29b746-bb34-4e8b-80da-6ace0a8b4fb3",
+        "targetDate": "2026-07-28",
+        "publishDate": null,
+        "estimatedDuration": "",
+        "finalDuration": "",
+        "owner": "",
+        "favorite": false,
+        "archived": false,
+        "tagIds": [
+          "6e8a77eb-b53d-4a06-9bd6-53593308b3e1"
+        ],
+        "driveLinks": {
+          "mainFolder": {
+            "url": "",
+            "label": "Carpeta principal"
+          },
+          "script": {
+            "url": "",
+            "label": "Guion"
+          },
+          "premiere": {
+            "url": "",
+            "label": "Premiere"
+          },
+          "raw": {
+            "url": "",
+            "label": "Brutos"
+          },
+          "inserts": {
+            "url": "",
+            "label": "Inserts"
+          },
+          "thumbnail": {
+            "url": "",
+            "label": "Miniatura"
+          },
+          "finalExport": {
+            "url": "",
+            "label": "Exportación final"
+          },
+          "published": {
+            "url": "",
+            "label": "Video publicado"
+          }
+        },
+        "additionalLinks": [],
+        "idea": "",
+        "hook": "",
+        "script": "",
+        "researchNotes": "",
+        "editNotes": "",
+        "thumbnailNotes": "",
+        "descriptionText": "",
+        "titleIdeas": "",
+        "thumbnailIdeas": "",
+        "checklist": [],
+        "thumbnail": null,
+        "images": [],
+        "comments": [],
+        "history": [
+          {
+            "id": "725fe986-0f7c-4151-bcb4-7dd9f899eeb8",
+            "type": "created",
+            "message": "Video de ejemplo creado",
+            "date": "2026-07-30T04:05:27.452Z"
+          }
+        ],
+        "createdAt": "2026-07-30T04:05:27.452Z",
+        "updatedAt": "2026-07-30T04:05:27.452Z",
+        "isSample": true
+      },
+      {
+        "id": "9ec0209c-347a-467a-89ad-38d9626389ab",
+        "title": "Entrevista con un ex-utilero de la Selección",
+        "altTitle": "",
+        "description": "",
+        "stateId": "cc905702-2f64-4fc9-9624-4a69b33fbaa7",
+        "seriesId": "26d49772-dd01-4f32-a117-2c4089d138a0",
+        "formatId": "e7930a23-6b29-4ff6-9d2f-60a7030bcd29",
+        "contentTypeId": "b716bbc6-b3e1-452f-b117-23365f04b313",
+        "priorityId": "6586620e-8179-4710-a691-8e29f55146b3",
+        "targetDate": "2026-08-02",
+        "publishDate": "2026-08-06",
+        "estimatedDuration": "",
+        "finalDuration": "",
+        "owner": "",
+        "favorite": true,
+        "archived": false,
+        "tagIds": [
+          "5bb73b8b-6802-4792-8c26-6beec2c9eadf"
+        ],
+        "driveLinks": {
+          "mainFolder": {
+            "url": "",
+            "label": "Carpeta principal"
+          },
+          "script": {
+            "url": "",
+            "label": "Guion"
+          },
+          "premiere": {
+            "url": "",
+            "label": "Premiere"
+          },
+          "raw": {
+            "url": "",
+            "label": "Brutos"
+          },
+          "inserts": {
+            "url": "",
+            "label": "Inserts"
+          },
+          "thumbnail": {
+            "url": "",
+            "label": "Miniatura"
+          },
+          "finalExport": {
+            "url": "",
+            "label": "Exportación final"
+          },
+          "published": {
+            "url": "",
+            "label": "Video publicado"
+          }
+        },
+        "additionalLinks": [],
+        "idea": "",
+        "hook": "",
+        "script": "",
+        "researchNotes": "",
+        "editNotes": "",
+        "thumbnailNotes": "",
+        "descriptionText": "",
+        "titleIdeas": "",
+        "thumbnailIdeas": "",
+        "checklist": [],
+        "thumbnail": null,
+        "images": [],
+        "comments": [],
+        "history": [
+          {
+            "id": "7b8c2991-3eb1-48f6-86c4-5d244bd6ecae",
+            "type": "created",
+            "message": "Video de ejemplo creado",
+            "date": "2026-07-30T04:05:27.452Z"
+          }
+        ],
+        "createdAt": "2026-07-30T04:05:27.452Z",
+        "updatedAt": "2026-07-30T04:05:27.452Z",
+        "isSample": true
+      },
+      {
+        "id": "1e0f66b8-54b4-4c1a-9048-73846b2e8b05",
+        "title": "5 películas que todo fanático del fútbol debe ver",
+        "altTitle": "",
+        "description": "",
+        "stateId": "9a294443-fadd-4e0f-825c-ac0e3834cd2d",
+        "seriesId": "42455dc8-ec9a-4529-a547-fa4369d9b20c",
+        "formatId": "77bec11d-acb9-4e7b-b177-5b04b5dc8826",
+        "contentTypeId": "866e69f5-0d38-429f-8505-c072325c8bce",
+        "priorityId": "2569d03c-216c-405e-8f91-19e578c7abc5",
+        "targetDate": "2026-07-10",
+        "publishDate": "2026-07-12",
+        "estimatedDuration": "",
+        "finalDuration": "",
+        "owner": "",
+        "favorite": false,
+        "archived": false,
+        "tagIds": [
+          "b009c6dc-2675-4bda-b092-a2dc96ec9e4b"
+        ],
+        "driveLinks": {
+          "mainFolder": {
+            "url": "",
+            "label": "Carpeta principal"
+          },
+          "script": {
+            "url": "",
+            "label": "Guion"
+          },
+          "premiere": {
+            "url": "",
+            "label": "Premiere"
+          },
+          "raw": {
+            "url": "",
+            "label": "Brutos"
+          },
+          "inserts": {
+            "url": "",
+            "label": "Inserts"
+          },
+          "thumbnail": {
+            "url": "",
+            "label": "Miniatura"
+          },
+          "finalExport": {
+            "url": "",
+            "label": "Exportación final"
+          },
+          "published": {
+            "url": "",
+            "label": "Video publicado"
+          }
+        },
+        "additionalLinks": [],
+        "idea": "",
+        "hook": "",
+        "script": "",
+        "researchNotes": "",
+        "editNotes": "",
+        "thumbnailNotes": "",
+        "descriptionText": "",
+        "titleIdeas": "",
+        "thumbnailIdeas": "",
+        "checklist": [],
+        "thumbnail": null,
+        "images": [],
+        "comments": [],
+        "history": [
+          {
+            "id": "9d088b99-fdfd-4841-bba9-fb60f6913ad0",
+            "type": "created",
+            "message": "Video de ejemplo creado",
+            "date": "2026-07-30T04:05:27.452Z"
+          }
+        ],
+        "createdAt": "2026-07-30T04:05:27.452Z",
+        "updatedAt": "2026-07-30T04:05:27.452Z",
+        "isSample": true
+      }
+    ],
+    "series": [
+      {
+        "id": "42455dc8-ec9a-4529-a547-fa4369d9b20c",
+        "name": "El fútbol y el cine",
+        "description": "Cruces entre el mundo del fútbol y el cine.",
+        "color": "#a3a3a3",
+        "icon": "⚽",
+        "image": null,
+        "defaultChecklistTemplateId": null,
+        "defaultFormatId": null,
+        "order": 0,
+        "archived": false
+      },
+      {
+        "id": "cb35d254-b503-48b9-aef4-12a2e2597970",
+        "name": "Historias de camisetas",
+        "description": "El origen y la historia detrás de camisetas icónicas.",
+        "color": "#737373",
+        "icon": "⚽",
+        "image": null,
+        "defaultChecklistTemplateId": null,
+        "defaultFormatId": null,
+        "order": 1,
+        "archived": false
+      },
+      {
+        "id": "6bee0a8d-b0a4-4ce7-8b7a-8b2f644421bd",
+        "name": "Fichajes frustrados",
+        "description": "Pases que casi ocurren y cambiaron la historia.",
+        "color": "#8a8a8a",
+        "icon": "⚽",
+        "image": null,
+        "defaultChecklistTemplateId": null,
+        "defaultFormatId": null,
+        "order": 2,
+        "archived": false
+      },
+      {
+        "id": "0b82bb9b-cf36-42e2-9995-058d297e9b8b",
+        "name": "Escuela de DT",
+        "description": "Análisis táctico y de dirección técnica.",
+        "color": "#6b6b6b",
+        "icon": "⚽",
+        "image": null,
+        "defaultChecklistTemplateId": null,
+        "defaultFormatId": null,
+        "order": 3,
+        "archived": false
+      },
+      {
+        "id": "26d49772-dd01-4f32-a117-2c4089d138a0",
+        "name": "Entrevistas",
+        "description": "Charlas con protagonistas del mundo del fútbol.",
+        "color": "#9c9c9c",
+        "icon": "⚽",
+        "image": null,
+        "defaultChecklistTemplateId": null,
+        "defaultFormatId": null,
+        "order": 4,
+        "archived": false
+      }
+    ],
+    "formats": [
+      {
+        "id": "b7c521fb-5055-4307-adfb-d706f5f7952e",
+        "name": "Video largo",
+        "color": "#737373",
+        "icon": "🎬",
+        "aspectRatio": "16:9",
+        "durationHint": "8-15 min",
+        "exportNotes": "1920x1080",
+        "defaultChecklistTemplateId": null,
+        "suggestedStateIds": [],
+        "order": 0,
+        "archived": false
+      },
+      {
+        "id": "77bec11d-acb9-4e7b-b177-5b04b5dc8826",
+        "name": "Reel",
+        "color": "#525252",
+        "icon": "🎬",
+        "aspectRatio": "9:16",
+        "durationHint": "60-90 seg",
+        "exportNotes": "1080x1920",
+        "defaultChecklistTemplateId": null,
+        "suggestedStateIds": [],
+        "order": 1,
+        "archived": false
+      },
+      {
+        "id": "24d8d944-7d89-4b8a-9627-958161708f29",
+        "name": "Short",
+        "color": "#a3a3a3",
+        "icon": "🎬",
+        "aspectRatio": "9:16",
+        "durationHint": "30-60 seg",
+        "exportNotes": "1080x1920",
+        "defaultChecklistTemplateId": null,
+        "suggestedStateIds": [],
+        "order": 2,
+        "archived": false
+      },
+      {
+        "id": "826bce16-f9a3-40c2-843b-86d74e3efbe7",
+        "name": "Podcast",
+        "color": "#78716c",
+        "icon": "🎬",
+        "aspectRatio": "16:9",
+        "durationHint": "30-60 min",
+        "exportNotes": "1920x1080 / audio 48kHz",
+        "defaultChecklistTemplateId": null,
+        "suggestedStateIds": [],
+        "order": 3,
+        "archived": false
+      },
+      {
+        "id": "e7930a23-6b29-4ff6-9d2f-60a7030bcd29",
+        "name": "Entrevista",
+        "color": "#57534e",
+        "icon": "🎬",
+        "aspectRatio": "16:9",
+        "durationHint": "10-20 min",
+        "exportNotes": "1920x1080",
+        "defaultChecklistTemplateId": null,
+        "suggestedStateIds": [],
+        "order": 4,
+        "archived": false
+      },
+      {
+        "id": "42242f6c-7d7c-4560-93d4-87cd40d618d9",
+        "name": "Directo",
+        "color": "#404040",
+        "icon": "🎬",
+        "aspectRatio": "16:9",
+        "durationHint": "Variable",
+        "exportNotes": "Streaming 1080p",
+        "defaultChecklistTemplateId": null,
+        "suggestedStateIds": [],
+        "order": 5,
+        "archived": false
+      }
+    ],
+    "contentTypes": [
+      {
+        "id": "35fbc7e6-a7ac-4a63-a5f5-d83bf6ecce48",
+        "name": "Análisis",
+        "color": "#71717a",
+        "icon": "🏷️",
+        "order": 0,
+        "archived": false
+      },
+      {
+        "id": "08d32d3e-a00e-4185-a049-58bd6debe7bc",
+        "name": "Historia",
+        "color": "#71717a",
+        "icon": "🏷️",
+        "order": 1,
+        "archived": false
+      },
+      {
+        "id": "b716bbc6-b3e1-452f-b117-23365f04b313",
+        "name": "Entrevista",
+        "color": "#71717a",
+        "icon": "🏷️",
+        "order": 2,
+        "archived": false
+      },
+      {
+        "id": "baf54f5a-4ac5-4fe1-ae47-13e45c95a830",
+        "name": "Noticia",
+        "color": "#71717a",
+        "icon": "🏷️",
+        "order": 3,
+        "archived": false
+      },
+      {
+        "id": "05ea6544-99f7-4559-b71f-fd4928c7edb8",
+        "name": "Opinión",
+        "color": "#71717a",
+        "icon": "🏷️",
+        "order": 4,
+        "archived": false
+      },
+      {
+        "id": "ae52fe28-25ff-4cd4-9360-d0ee38c41236",
+        "name": "Tutorial",
+        "color": "#71717a",
+        "icon": "🏷️",
+        "order": 5,
+        "archived": false
+      },
+      {
+        "id": "866e69f5-0d38-429f-8505-c072325c8bce",
+        "name": "Top",
+        "color": "#71717a",
+        "icon": "🏷️",
+        "order": 6,
+        "archived": false
+      },
+      {
+        "id": "ea0fd308-4d49-449c-9b9f-96daec6da1d5",
+        "name": "Reacción",
+        "color": "#71717a",
+        "icon": "🏷️",
+        "order": 7,
+        "archived": false
+      },
+      {
+        "id": "65f6ace8-8f70-4015-9e87-4c743df9335e",
+        "name": "Documental",
+        "color": "#71717a",
+        "icon": "🏷️",
+        "order": 8,
+        "archived": false
+      }
+    ],
+    "states": [
+      {
+        "id": "34d59fe5-0b85-4905-a5ff-e20da8467764",
+        "name": "Ideas",
+        "color": "#8b8b8b",
+        "icon": "💡",
+        "order": 0,
+        "isInitial": true,
+        "isFinal": false,
+        "showInKanban": true,
+        "archived": false
+      },
+      {
+        "id": "98c9fc34-385d-491e-a69b-5fed8dece0dd",
+        "name": "Investigación",
+        "color": "#6b7280",
+        "icon": "🔎",
+        "order": 1,
+        "isInitial": false,
+        "isFinal": false,
+        "showInKanban": true,
+        "archived": false
+      },
+      {
+        "id": "60077e5d-c6e6-4539-82a8-f69b76bf12c6",
+        "name": "Guion",
+        "color": "#64748b",
+        "icon": "📝",
+        "order": 2,
+        "isInitial": false,
+        "isFinal": false,
+        "showInKanban": true,
+        "archived": false
+      },
+      {
+        "id": "224a01f8-7ef3-4461-8643-6c60db1c840c",
+        "name": "Grabación",
+        "color": "#57534e",
+        "icon": "🎥",
+        "order": 3,
+        "isInitial": false,
+        "isFinal": false,
+        "showInKanban": true,
+        "archived": false
+      },
+      {
+        "id": "92dff73f-e100-4935-9e8d-c540a2d1f146",
+        "name": "Edición",
+        "color": "#525252",
+        "icon": "✂️",
+        "order": 4,
+        "isInitial": false,
+        "isFinal": false,
+        "showInKanban": true,
+        "archived": false
+      },
+      {
+        "id": "005fe0e4-a39a-4155-9032-7c98ac138598",
+        "name": "Miniatura",
+        "color": "#44403c",
+        "icon": "🖼️",
+        "order": 5,
+        "isInitial": false,
+        "isFinal": false,
+        "showInKanban": true,
+        "archived": false
+      },
+      {
+        "id": "cc905702-2f64-4fc9-9624-4a69b33fbaa7",
+        "name": "Programado",
+        "color": "#3f3f46",
+        "icon": "📅",
+        "order": 6,
+        "isInitial": false,
+        "isFinal": false,
+        "showInKanban": true,
+        "archived": false
+      },
+      {
+        "id": "9a294443-fadd-4e0f-825c-ac0e3834cd2d",
+        "name": "Publicado",
+        "color": "#16a34a",
+        "icon": "✅",
+        "order": 7,
+        "isInitial": false,
+        "isFinal": true,
+        "showInKanban": true,
+        "archived": false
+      }
+    ],
+    "priorities": [
+      {
+        "id": "2569d03c-216c-405e-8f91-19e578c7abc5",
+        "name": "Baja",
+        "color": "#737373",
+        "order": 0
+      },
+      {
+        "id": "6586620e-8179-4710-a691-8e29f55146b3",
+        "name": "Media",
+        "color": "#a1a1aa",
+        "order": 1
+      },
+      {
+        "id": "9ba5b0b1-ea99-438f-8c75-410325bc4030",
+        "name": "Alta",
+        "color": "#d4a017",
+        "order": 2
+      },
+      {
+        "id": "aa29b746-bb34-4e8b-80da-6ace0a8b4fb3",
+        "name": "Urgente",
+        "color": "#dc2626",
+        "order": 3
+      }
+    ],
+    "tags": [
+      {
+        "id": "6a5db8a9-abc5-46b3-b526-2f1ded80d67a",
+        "name": "Messi",
+        "color": "#60a5fa"
+      },
+      {
+        "id": "47036efa-de00-453a-aea2-b3f568d999ca",
+        "name": "FIFA",
+        "color": "#34d399"
+      },
+      {
+        "id": "b009c6dc-2675-4bda-b092-a2dc96ec9e4b",
+        "name": "Mundial 2026",
+        "color": "#fbbf24"
+      },
+      {
+        "id": "e59d4852-548f-4207-a1f9-c73013d7bc5c",
+        "name": "Camisetas",
+        "color": "#f472b6"
+      },
+      {
+        "id": "6e8a77eb-b53d-4a06-9bd6-53593308b3e1",
+        "name": "Mercado de pases",
+        "color": "#c084fc"
+      },
+      {
+        "id": "899cf5af-6034-4d87-bc80-c2e3aadfc8cf",
+        "name": "Historia",
+        "color": "#38bdf8"
+      },
+      {
+        "id": "5bb73b8b-6802-4792-8c26-6beec2c9eadf",
+        "name": "Entrevista",
+        "color": "#f87171"
+      }
+    ],
+    "checklistTemplates": [
+      {
+        "id": "b60fc631-a762-4036-bfe3-71a301eb5026",
+        "name": "Video largo (completo)",
+        "items": [
+          {
+            "id": "6d2d7296-8f9a-423b-b627-3414c8b4d90c",
+            "text": "Investigación terminada",
+            "done": false,
+            "subtasks": []
+          },
+          {
+            "id": "cec2d019-27d3-43f6-b491-22e31fec162a",
+            "text": "Guion terminado",
+            "done": false,
+            "subtasks": []
+          },
+          {
+            "id": "bec3c792-6145-4761-8300-1d32e0bad572",
+            "text": "Grabación terminada",
+            "done": false,
+            "subtasks": []
+          },
+          {
+            "id": "ad223cde-72bd-44a1-8506-6ac4ea5e486d",
+            "text": "Edición terminada",
+            "done": false,
+            "subtasks": []
+          },
+          {
+            "id": "a090c71b-dda9-4fe8-8c9e-f0e32db814be",
+            "text": "Miniatura realizada",
+            "done": false,
+            "subtasks": []
+          },
+          {
+            "id": "e1235ea9-1a61-44f2-85bf-6a5174c213ba",
+            "text": "Descripción completada",
+            "done": false,
+            "subtasks": []
+          },
+          {
+            "id": "95678151-878b-4c5d-95d0-670d15ddf859",
+            "text": "Video subido",
+            "done": false,
+            "subtasks": []
+          },
+          {
+            "id": "affa590d-ba73-4fb4-8726-ac13faad9bea",
+            "text": "Video programado",
+            "done": false,
+            "subtasks": []
+          },
+          {
+            "id": "f64ab731-84c2-42e8-b791-5a8c773623e7",
+            "text": "Video publicado",
+            "done": false,
+            "subtasks": []
+          }
+        ],
+        "linkedFormatIds": [],
+        "linkedSeriesIds": []
+      },
+      {
+        "id": "22a44e12-9a36-4785-a4fa-1330d709108e",
+        "name": "Short / Reel rápido",
+        "items": [
+          {
+            "id": "62b31212-73f2-47fb-9ba3-6a715bfa0491",
+            "text": "Idea definida",
+            "done": false,
+            "subtasks": []
+          },
+          {
+            "id": "0df11a98-0d6f-4119-84b2-7992ecec3f7a",
+            "text": "Grabación",
+            "done": false,
+            "subtasks": []
+          },
+          {
+            "id": "858ccfdd-9c77-4649-a5a6-e46913f8920c",
+            "text": "Edición",
+            "done": false,
+            "subtasks": []
+          },
+          {
+            "id": "8d2e00e1-ee95-4208-9d6b-2e4571b167a3",
+            "text": "Miniatura",
+            "done": false,
+            "subtasks": []
+          },
+          {
+            "id": "cc020b21-f29e-45aa-b553-e5491b69d08b",
+            "text": "Publicado",
+            "done": false,
+            "subtasks": []
+          }
+        ],
+        "linkedFormatIds": [],
+        "linkedSeriesIds": []
+      }
+    ],
+    "settings": [
+      {
+        "key": "app",
+        "appName": "Fútbol XL Studio",
+        "logoDisplay": "both",
+        "showLogoInSidebar": true,
+        "theme": "dark",
+        "accentColor": "#3b82f6",
+        "defaultView": "kanban",
+        "cardsPerColumnLimit": 0,
+        "cardSize": "normal",
+        "showThumbnails": true,
+        "dateFormat": "dd/mm/yyyy",
+        "weekStart": "monday",
+        "confirmBeforeDelete": true,
+        "fileSizeLimitMB": 2,
+        "autosave": true,
+        "autosaveIntervalSec": 5,
+        "showFutureModules": true,
+        "libraryDefaultView": "grid",
+        "libraryCardSize": "normal",
+        "libraryShowThumbnails": true,
+        "libraryFileSizeLimitMB": 3,
+        "librarySortBy": "name-asc",
+        "libraryConfirmBeforeDelete": true,
+        "libraryDeleteBehavior": "archive",
+        "libraryCompressThumbnails": true,
+        "libraryThumbnailQuality": 0.72,
+        "libraryDefaultFolderId": null,
+        "libraryShowArchived": false,
+        "libraryPageSize": 60,
+        "costsDefaultCurrencyCode": "ARS",
+        "costsUpcomingDaysThreshold": 7,
+        "costsConfirmBeforeDelete": true,
+        "costsDefaultExpenseTab": "summary"
+      }
+    ],
+    "meta": [
+      {
+        "key": "schemaVersion",
+        "value": 1
+      },
+      {
+        "key": "logo",
+        "dataUrl": null
+      }
+    ],
+    "libraryFolders": [
+      {
+        "id": "381b02d9-c2da-4d12-8fd9-97aa210d993b",
+        "name": "Inserts Messi",
+        "parentId": null,
+        "description": "Clips y placas reutilizables para videos de Messi.",
+        "icon": "⚽",
+        "color": "#60a5fa",
+        "favorite": false,
+        "archived": false,
+        "isSample": true,
+        "createdAt": "2026-07-30T05:06:59.210Z",
+        "updatedAt": "2026-07-30T05:06:59.210Z",
+        "position": 0
+      },
+      {
+        "id": "aacc97c5-2356-46df-85d5-fba0ad683236",
+        "name": "Logos",
+        "parentId": null,
+        "description": "Variantes del logo del canal.",
+        "icon": "🏷️",
+        "color": "#a3a3a3",
+        "favorite": false,
+        "archived": false,
+        "isSample": true,
+        "createdAt": "2026-07-30T05:06:59.210Z",
+        "updatedAt": "2026-07-30T05:06:59.210Z",
+        "position": 1
+      },
+      {
+        "id": "2e3af935-4f47-433c-8377-c77c22838c20",
+        "name": "Documentos",
+        "parentId": null,
+        "description": "Guiones y referencias en texto.",
+        "icon": "📄",
+        "color": "#737373",
+        "favorite": false,
+        "archived": false,
+        "isSample": true,
+        "createdAt": "2026-07-30T05:06:59.210Z",
+        "updatedAt": "2026-07-30T05:06:59.210Z",
+        "position": 2
+      },
+      {
+        "id": "b95e8470-13cd-4bf4-bd57-634896dbcf01",
+        "name": "Mundial 2026",
+        "parentId": null,
+        "description": "Material relacionado al Mundial 2026.",
+        "icon": "🏆",
+        "color": "#fbbf24",
+        "favorite": true,
+        "archived": false,
+        "isSample": true,
+        "createdAt": "2026-07-30T05:06:59.210Z",
+        "updatedAt": "2026-07-30T05:06:59.210Z",
+        "position": 3
+      },
+      {
+        "id": "3af1ada8-2e0c-476d-a1c5-910e072821e0",
+        "name": "Highlights",
+        "parentId": "b95e8470-13cd-4bf4-bd57-634896dbcf01",
+        "description": "Jugadas destacadas.",
+        "icon": "🎬",
+        "color": "#fbbf24",
+        "favorite": false,
+        "archived": false,
+        "isSample": true,
+        "createdAt": "2026-07-30T05:06:59.210Z",
+        "updatedAt": "2026-07-30T05:06:59.210Z",
+        "position": 0
+      }
+    ],
+    "libraryItems": [
+      {
+        "id": "13a7243a-9deb-4931-a72f-4a93edbe3808",
+        "folderId": "aacc97c5-2356-46df-85d5-fba0ad683236",
+        "name": "Escudo FXL (ejemplo)",
+        "description": "Logo de muestra guardado como archivo local en IndexedDB (SVG liviano, sin archivos pesados en este respaldo de ejemplo).",
+        "resourceType": "logo",
+        "storageMode": "file",
+        "url": "",
+        "fileData": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNDAiIGhlaWdodD0iMjQwIj48cmVjdCB3aWR0aD0iMjQwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iIzFmMjAyMyIvPjxjaXJjbGUgY3g9IjEyMCIgY3k9IjEyMCIgcj0iNzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2YyZjJmMiIgc3Ryb2tlLXdpZHRoPSI4Ii8+PHRleHQgeD0iMTIwIiB5PSIxMzIiIGZvbnQtc2l6ZT0iMjgiIGZpbGw9IiNmMmYyZjIiIGZvbnQtZmFtaWx5PSJBcmlhbCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RlhMPC90ZXh0Pjwvc3ZnPg==",
+        "mimeType": "image/svg+xml",
+        "fileSize": 430,
+        "thumbnailData": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNDAiIGhlaWdodD0iMjQwIj48cmVjdCB3aWR0aD0iMjQwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iIzFmMjAyMyIvPjxjaXJjbGUgY3g9IjEyMCIgY3k9IjEyMCIgcj0iNzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2YyZjJmMiIgc3Ryb2tlLXdpZHRoPSI4Ii8+PHRleHQgeD0iMTIwIiB5PSIxMzIiIGZvbnQtc2l6ZT0iMjgiIGZpbGw9IiNmMmYyZjIiIGZvbnQtZmFtaWx5PSJBcmlhbCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RlhMPC90ZXh0Pjwvc3ZnPg==",
+        "tags": [],
+        "linkedVideoIds": [],
+        "favorite": false,
+        "archived": false,
+        "isSample": true,
+        "createdAt": "2026-07-30T05:06:59.210Z",
+        "updatedAt": "2026-07-30T05:06:59.210Z",
+        "lastUsedAt": null
+      },
+      {
+        "id": "43ab332b-38f2-48b4-97fe-7ea1329db354",
+        "folderId": "381b02d9-c2da-4d12-8fd9-97aa210d993b",
+        "name": "Carpeta de Drive — Inserts Messi (ejemplo)",
+        "description": "Enlace de ejemplo. Reemplazalo por tu carpeta real de Drive.",
+        "resourceType": "driveFolder",
+        "storageMode": "link",
+        "url": "https://drive.google.com/drive/folders/EJEMPLO-CARPETA-MESSI",
+        "fileData": null,
+        "mimeType": null,
+        "fileSize": 0,
+        "thumbnailData": null,
+        "tags": [
+          "899cf5af-6034-4d87-bc80-c2e3aadfc8cf"
+        ],
+        "linkedVideoIds": [
+          "5384e05c-8582-465d-aef6-70c4b839697b"
+        ],
+        "favorite": true,
+        "archived": false,
+        "isSample": true,
+        "createdAt": "2026-07-30T05:06:59.210Z",
+        "updatedAt": "2026-07-30T05:06:59.210Z",
+        "lastUsedAt": null
+      },
+      {
+        "id": "21f0d56b-bdda-4ef7-8a6e-3b9db49192ec",
+        "folderId": "2e3af935-4f47-433c-8377-c77c22838c20",
+        "name": "Estadísticas de Messi (ejemplo)",
+        "description": "Enlace de ejemplo a un sitio web externo.",
+        "resourceType": "link",
+        "storageMode": "link",
+        "url": "https://example.com/estadisticas-messi",
+        "fileData": null,
+        "mimeType": null,
+        "fileSize": 0,
+        "thumbnailData": null,
+        "tags": [],
+        "linkedVideoIds": [],
+        "favorite": false,
+        "archived": false,
+        "isSample": true,
+        "createdAt": "2026-07-30T05:06:59.210Z",
+        "updatedAt": "2026-07-30T05:06:59.210Z",
+        "lastUsedAt": null
+      }
+    ],
+    "expenseCategories": [
+      {
+        "id": "6adade24-625d-470e-bb5c-1bb9e5f91b47",
+        "name": "Editores",
+        "icon": "✂️",
+        "active": true,
+        "order": 0,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "36ea6a36-7f14-4f5d-b859-5746be24208a",
+        "name": "Diseño y miniaturas",
+        "icon": "🖼️",
+        "active": true,
+        "order": 1,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "466b7a52-b6f5-499c-8ade-302748fb23e1",
+        "name": "Suscripciones",
+        "icon": "🔁",
+        "active": true,
+        "order": 2,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "5b2ffce5-b845-4790-8a0c-237e8f9926e5",
+        "name": "Equipamiento",
+        "icon": "🎥",
+        "active": true,
+        "order": 3,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "e433f63b-0ee6-4c47-be4a-6b554d1a99c0",
+        "name": "Publicidad",
+        "icon": "📣",
+        "active": true,
+        "order": 4,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "11f945ea-714d-4c37-ba1a-48a0ca253357",
+        "name": "Producción",
+        "icon": "🎬",
+        "active": true,
+        "order": 5,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "32bb3ca9-6e4c-4d2f-8ab4-9f8ec101b5cb",
+        "name": "Transporte",
+        "icon": "🚗",
+        "active": true,
+        "order": 6,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "2e41fbbd-7f43-4c07-a461-a85cbbb709e2",
+        "name": "Hosting y dominios",
+        "icon": "🌐",
+        "active": true,
+        "order": 7,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "44abcbf0-02b2-447e-a35f-01332eff14be",
+        "name": "Herramientas de IA",
+        "icon": "🤖",
+        "active": true,
+        "order": 8,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "2a9f4f9b-a1c5-4cc4-9696-6a33a197c27e",
+        "name": "Otros",
+        "icon": "📦",
+        "active": true,
+        "order": 9,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      }
+    ],
+    "expenseTypes": [
+      {
+        "id": "0492eb49-c927-4997-9545-20d4bc29944a",
+        "name": "Gasto único",
+        "active": true,
+        "order": 0,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "6ef00df6-d281-44eb-ae35-aaea5e70abc7",
+        "name": "Gasto recurrente",
+        "active": true,
+        "order": 1,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "2d308dc3-6687-4a59-ab75-31c4a32c044f",
+        "name": "Compra",
+        "active": true,
+        "order": 2,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "ca373515-39a5-4a70-8b03-7bd795d33861",
+        "name": "Servicio",
+        "active": true,
+        "order": 3,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "00c27f5a-a5fd-4f03-9ef8-6d3e180f0767",
+        "name": "Honorario",
+        "active": true,
+        "order": 4,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      }
+    ],
+    "paymentMethods": [
+      {
+        "id": "cd117251-3b35-4e9c-b207-3c10b7e63434",
+        "name": "Efectivo",
+        "active": true,
+        "order": 0,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "d53663cb-0c32-48e9-bfb6-16bc8c9601ca",
+        "name": "Transferencia",
+        "active": true,
+        "order": 1,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "307e5190-dc9b-40b1-bb89-7669a06b999e",
+        "name": "Mercado Pago",
+        "active": true,
+        "order": 2,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "f7f3fdb8-4434-4078-ba99-97b1a52997ad",
+        "name": "Tarjeta de crédito",
+        "active": true,
+        "order": 3,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "f26c3fa6-0bc5-4a18-a5fc-53382e5a8cd8",
+        "name": "Tarjeta de débito",
+        "active": true,
+        "order": 4,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "9316d6eb-ac11-4273-84a7-10b45f5df106",
+        "name": "PayPal",
+        "active": true,
+        "order": 5,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "3cfb29a7-3771-4bd9-9fc8-23b57a33e3ce",
+        "name": "Otro",
+        "active": true,
+        "order": 6,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      }
+    ],
+    "currencies": [
+      {
+        "id": "2cccbacd-b642-4998-bc50-c0e2b773d0b0",
+        "code": "ARS",
+        "name": "Peso argentino",
+        "symbol": "$",
+        "decimalPlaces": 2,
+        "active": true,
+        "order": 0,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "06767b83-2daa-4e32-b0e8-ea6ebf80514b",
+        "code": "USD",
+        "name": "Dólar estadounidense",
+        "symbol": "US$",
+        "decimalPlaces": 2,
+        "active": true,
+        "order": 1,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      }
+    ],
+    "recipients": [
+      {
+        "id": "692d0385-31be-4b45-b2be-c005ea551409",
+        "name": "Editor principal",
+        "notes": "Edición de videos largos y reels.",
+        "active": true,
+        "isSample": true,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "44141b96-ad7b-4acd-9375-c2a4da89d896",
+        "name": "Diseñador de miniaturas",
+        "notes": "",
+        "active": true,
+        "isSample": true,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      }
+    ],
+    "expenses": [
+      {
+        "id": "373c308c-3354-4913-aefc-a0b5d3ee8d01",
+        "date": "2026-07-27",
+        "description": "Edición de 4 videos (ejemplo)",
+        "categoryId": "6adade24-625d-470e-bb5c-1bb9e5f91b47",
+        "recipient": "Editor principal",
+        "amount": 45000,
+        "currencyId": "2cccbacd-b642-4998-bc50-c0e2b773d0b0",
+        "expenseTypeId": "00c27f5a-a5fd-4f03-9ef8-6d3e180f0767",
+        "status": "paid",
+        "paymentMethodId": "d53663cb-0c32-48e9-bfb6-16bc8c9601ca",
+        "projectVideoId": "5384e05c-8582-465d-aef6-70c4b839697b",
+        "projectSeriesId": null,
+        "notes": "",
+        "receiptUrl": "",
+        "subscriptionId": null,
+        "isSample": true,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      },
+      {
+        "id": "feb7b330-0b8c-4f5c-ae7e-87e9924018df",
+        "date": "2026-07-20",
+        "description": "Miniaturas de la semana (ejemplo)",
+        "categoryId": "36ea6a36-7f14-4f5d-b859-5746be24208a",
+        "recipient": "Diseñador de miniaturas",
+        "amount": 15000,
+        "currencyId": "2cccbacd-b642-4998-bc50-c0e2b773d0b0",
+        "expenseTypeId": "ca373515-39a5-4a70-8b03-7bd795d33861",
+        "status": "pending",
+        "paymentMethodId": "307e5190-dc9b-40b1-bb89-7669a06b999e",
+        "projectVideoId": null,
+        "projectSeriesId": null,
+        "notes": "Pendiente de pago la próxima semana.",
+        "receiptUrl": "",
+        "subscriptionId": null,
+        "isSample": true,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      }
+    ],
+    "subscriptions": [
+      {
+        "id": "6cb139ab-34a7-465c-a642-8bde54cdd625",
+        "name": "Adobe Creative Cloud (ejemplo)",
+        "categoryId": "466b7a52-b6f5-499c-8ade-302748fb23e1",
+        "description": "Suscripción de ejemplo para edición de video y diseño.",
+        "amount": 25,
+        "currencyId": "06767b83-2daa-4e32-b0e8-ea6ebf80514b",
+        "frequency": "monthly",
+        "customFrequencyValue": null,
+        "customFrequencyUnit": null,
+        "nextBillingDate": "2026-08-04",
+        "startDate": "2026-05-31",
+        "paymentMethodId": "f7f3fdb8-4434-4078-ba99-97b1a52997ad",
+        "status": "active",
+        "autoRenew": true,
+        "projectVideoId": null,
+        "projectSeriesId": "42455dc8-ec9a-4529-a547-fa4369d9b20c",
+        "website": "https://www.adobe.com",
+        "notes": "",
+        "isSample": true,
+        "createdAt": "2026-07-30T19:00:10.393Z",
+        "updatedAt": "2026-07-30T19:00:10.393Z"
+      }
+    ]
+  }
+}

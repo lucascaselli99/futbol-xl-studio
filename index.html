@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
+  <title>Fútbol XL Studio</title>
+  <meta name="description" content="Centro de gestión y organización de producción de video para Fútbol XL." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23111%22/><text x=%2250%22 y=%2262%22 font-size=%2242%22 fill=%22%23fff%22 text-anchor=%22middle%22 font-family=%22Arial%22>FXL</text></svg>" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Contenedor raíz de la aplicación -->
+  <div id="app">
+    <div id="sidebar-root"></div>
+
+    <div class="app-shell">
+      <div id="topbar-root"></div>
+      <main id="main-content" class="main-content">
+        <!-- Se rellena dinámicamente desde app.js -->
+        <div class="boot-skeleton">
+          <div class="skeleton-line skeleton-line--title"></div>
+          <div class="skeleton-grid">
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div id="mobile-nav-root"></div>
+  </div>
+
+  <!-- Panel lateral / overlay de edición de video -->
+  <div id="editor-root"></div>
+
+  <!-- Diálogo de confirmación genérico -->
+  <dialog id="confirm-dialog" class="modal"></dialog>
+
+  <!-- Diálogo genérico (reasignaciones, importación de respaldo, etc.) -->
+  <dialog id="generic-modal" class="modal"></dialog>
+
+  <!-- Notificaciones tipo toast -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Persistencia: Supabase (ver README.md, sección "Supabase y variables
+       de entorno"). config.js define window.FXL_SUPABASE_URL y
+       window.FXL_SUPABASE_ANON_KEY sin escribir ningún valor acá; en
+       Vercel se genera solo en cada deploy (build-config.js), en local se
+       copia desde config.example.js. -->
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="supabase-client.js"></script>
+
+  <!-- Scripts: orden importa (utils y db antes que components y app) -->
+  <script src="utils.js"></script>
+  <script src="db.js"></script>
+  <script src="components.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
