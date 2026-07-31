@@ -348,4 +348,4 @@ Se listan explícitamente para no simular que algo funciona cuando no es así:
 | Mensaje de error claro si falta configurar `SUPABASE_URL`/clave publicable | ✅ Verificado con prueba automatizada |
 | Interfaz, estilos, componentes, navegación y estructura del proyecto sin cambios | ✅ Verificado (solo se tocó `db.js`; `index.html` únicamente sumó 3 `<script>`) |
 
-Todo lo marcado como limitación en la sección 5 se deja explícito ahí para que no haya sorpresas. Ningún ítem de esta tabla se marca como "✅ Funciona" si solo está diseñado visualmente sin lógica real detrás.
+Todo lo marcado como limitación en la sección 5 se deja explícito ahí para que no haya sorpresas. Ningún ítem de esta tabla se marca como "✅ Funciona" si solo está diseñado visualmente sin lógica real detrás.--
