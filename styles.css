@@ -1683,3 +1683,20 @@ dialog.modal::backdrop { background: var(--overlay); }
   .drive-field__label { width: 100%; }
   .btn, .icon-btn { min-height: 36px; }
 }
+
+
+/* Equipo */
+.team-view .page-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1.5rem; }
+.team-view .page-heading h1 { margin:0 0 .25rem; }
+.team-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:1rem; }
+.team-card { position:relative; display:flex; gap:1rem; padding:1.1rem; border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--surface); }
+.team-card__avatar { flex:0 0 48px; width:48px; height:48px; display:grid; place-items:center; border-radius:50%; background:var(--accent); color:white; font-weight:700; }
+.team-card__body { min-width:0; flex:1; }
+.team-card__heading { display:flex; justify-content:space-between; gap:.75rem; }
+.team-card__heading h3,.team-card__heading p { margin:0; }
+.team-card__count { margin:.85rem 0 .45rem; }
+.team-card__projects { display:flex; flex-direction:column; align-items:flex-start; gap:.25rem; }
+.team-card__projects button { border:0; background:none; color:var(--text); padding:0; cursor:pointer; text-align:left; font-size:.86rem; }
+.team-card__projects button:hover { color:var(--accent); }
+.team-card__actions { display:flex; gap:.25rem; align-self:flex-start; }
+@media (max-width:700px){ .team-view .page-heading{flex-direction:column}.team-grid{grid-template-columns:1fr}.team-card{flex-wrap:wrap}.team-card__actions{position:absolute;right:.75rem;top:.75rem} }
