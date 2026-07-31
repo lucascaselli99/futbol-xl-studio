@@ -43,6 +43,7 @@
     recipients: [],
     expenses: [],
     subscriptions: [],
+    employees: [],
     undo: [], // pila simple de acciones destructivas para Ctrl/Cmd+Z
     ui: {
       route: 'home',
@@ -133,6 +134,7 @@
       recipients,
       expenses,
       subscriptions,
+      employees,
     ] = await Promise.all([
       DB.getAll('videos'),
       DB.getAll('series'),
@@ -153,6 +155,7 @@
       DB.getAll('recipients'),
       DB.getAll('expenses'),
       DB.getAll('subscriptions'),
+      DB.getAll('employees'),
     ]);
     state.videos = videos;
     state.series = series;
@@ -173,6 +176,7 @@
     state.recipients = recipients;
     state.expenses = expenses;
     state.subscriptions = subscriptions;
+    state.employees = employees;
   }
 
   function applyTheme() {
@@ -210,6 +214,7 @@
       recipients: state.recipients,
       expenses: state.expenses,
       subscriptions: state.subscriptions,
+      employees: state.employees,
       route: state.ui.route,
       videosView: state.ui.videosView,
       search: state.ui.search,
@@ -357,6 +362,8 @@
         return renderLibraryRoute(ctx);
       case 'costs':
         return renderCostsRoute(ctx);
+      case 'team':
+        return Components.renderTeam(ctx);
       case 'calendar-module':
         return Components.renderComingSoon('Calendario avanzado', 'Un calendario completo con publicaciones, grabaciones, entrevistas, fechas límite y recordatorios llegará en una próxima versión.');
       case 'analytics':
@@ -2175,6 +2182,7 @@
       estimatedDuration: '',
       finalDuration: '',
       owner: '',
+      ownerId: null,
       favorite: false,
       archived: false,
       tagIds: [],
@@ -2348,6 +2356,13 @@
       if (newFormat && newFormat.defaultChecklistTemplateId) {
         await maybeApplyTemplate(video, newFormat.defaultChecklistTemplateId, `el formato "${newFormat.name}"`);
       }
+    } else if (field === 'ownerId') {
+      video.ownerId = value || null;
+      const employee = state.employees.find((item) => item.id === value);
+      // Conservamos también el nombre en `owner` para compatibilidad con
+      // respaldos y versiones anteriores de la app.
+      video.owner = employee ? employee.name : '';
+      pushHistory(video, 'owner-change', `Responsable cambiado a "${employee ? employee.name : 'Sin responsable'}"`);
     } else if (field === 'targetDate' || field === 'publishDate') {
       video[field] = value || null;
       pushHistory(video, 'date-change', `${field === 'targetDate' ? 'Fecha objetivo' : 'Fecha de publicación'} actualizada a ${value || 'sin definir'}`);
@@ -3103,6 +3118,67 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* Equipo                                                              */
+  /* ------------------------------------------------------------------ */
+
+  function openEmployeeModal(employeeId) {
+    const employee = employeeId ? state.employees.find((x) => x.id === employeeId) : null;
+    const dialog = document.getElementById('generic-modal');
+    dialog.innerHTML = Components.renderEmployeeModal(employee || {});
+    dialog.showModal();
+  }
+
+  async function saveEmployee(employeeId) {
+    const name = document.getElementById('employee-name')?.value.trim();
+    if (!name) {
+      Utils.toast('Ingresá el nombre del empleado', 'error');
+      return;
+    }
+    const existing = employeeId ? state.employees.find((x) => x.id === employeeId) : null;
+    const employee = {
+      ...(existing || {}),
+      id: existing?.id || Utils.uuid(),
+      name,
+      role: document.getElementById('employee-role')?.value.trim() || '',
+      email: document.getElementById('employee-email')?.value.trim() || '',
+      phone: document.getElementById('employee-phone')?.value.trim() || '',
+      active: document.getElementById('employee-active')?.checked ?? true,
+      updatedAt: new Date().toISOString(),
+      createdAt: existing?.createdAt || new Date().toISOString(),
+    };
+    await DB.put('employees', employee);
+    if (existing) Object.assign(existing, employee);
+    else state.employees.push(employee);
+    document.getElementById('generic-modal').close();
+    renderAll();
+    Utils.toast(existing ? 'Empleado actualizado' : 'Empleado creado', 'success');
+  }
+
+  async function deleteEmployee(employeeId) {
+    const employee = state.employees.find((x) => x.id === employeeId);
+    if (!employee) return;
+    const assigned = state.videos.filter((v) => v.ownerId === employeeId).length;
+    const ok = await Utils.confirmDialog({
+      title: 'Eliminar empleado',
+      message: assigned
+        ? `${employee.name} está asignado a ${assigned} video(s). Esos videos quedarán sin responsable. ¿Continuar?`
+        : `¿Eliminar a ${employee.name} del equipo?`,
+      danger: true,
+      confirmText: 'Eliminar',
+    });
+    if (!ok) return;
+    for (const video of state.videos.filter((v) => v.ownerId === employeeId)) {
+      video.ownerId = null;
+      video.owner = '';
+      await DB.put('videos', video);
+    }
+    await DB.remove('employees', employeeId);
+    state.employees = state.employees.filter((x) => x.id !== employeeId);
+    renderAll();
+    Utils.toast('Empleado eliminado', 'success');
+  }
+
+  /* ------------------------------------------------------------------ */
   /* Delegación de eventos                                               */
   /* ------------------------------------------------------------------ */
 
@@ -3731,6 +3807,20 @@
         viewProjectCosts(actionEl.dataset.videoId);
         break;
 
+      /* ---- Equipo ---- */
+      case 'new-employee':
+        openEmployeeModal();
+        break;
+      case 'edit-employee':
+        openEmployeeModal(id);
+        break;
+      case 'save-employee':
+        saveEmployee(id || null);
+        break;
+      case 'delete-employee':
+        deleteEmployee(id);
+        break;
+
       default:
         break;
     }
@@ -3999,7 +4089,7 @@
       return;
     }
 
-    if (video && el.dataset.field && ['stateId', 'seriesId', 'formatId', 'contentTypeId', 'priorityId', 'archived', 'favorite', 'targetDate', 'publishDate'].includes(el.dataset.field)) {
+    if (video && el.dataset.field && ['stateId', 'seriesId', 'formatId', 'contentTypeId', 'priorityId', 'ownerId', 'archived', 'favorite', 'targetDate', 'publishDate'].includes(el.dataset.field)) {
       handleGeneralFieldChange(video, el.dataset.field, el);
       return;
     }
