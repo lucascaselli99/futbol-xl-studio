@@ -49,6 +49,7 @@ const Components = (() => {
     image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>',
     link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 1 1 0 10h-2M8 12h8"/></svg>',
     menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
+    users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-2a5.5 5.5 0 0 1 11 0v2"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.5A5 5 0 0 1 21 19v1"/></svg>',
     wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 13.5h3"/></svg>',
     repeat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 2 21 6l-4 4"/><path d="M3 12v-1a5 5 0 0 1 5-5h13"/><path d="M7 22 3 18l4-4"/><path d="M21 12v1a5 5 0 0 1-5 5H3"/></svg>',
   };
@@ -100,6 +101,7 @@ const Components = (() => {
     { key: 'videos', label: 'Videos', icon: 'video', ready: true },
     { key: 'library', label: 'Biblioteca', icon: 'library', ready: false },
     { key: 'costs', label: 'Costos', icon: 'wallet', ready: true },
+    { key: 'team', label: 'Equipo', icon: 'users', ready: true },
     { key: 'calendar-module', label: 'Calendario', icon: 'calendar', ready: false },
     { key: 'analytics', label: 'Analytics', icon: 'analytics', ready: false },
     { key: 'settings', label: 'Configuración', icon: 'settings', ready: true },
@@ -168,6 +170,7 @@ const Components = (() => {
       videos: 'Videos',
       library: 'Biblioteca',
       costs: 'Costos',
+      team: 'Equipo',
       'calendar-module': 'Calendario',
       analytics: 'Analytics',
       settings: 'Configuración',
@@ -738,6 +741,48 @@ const Components = (() => {
       </div>`;
   }
 
+  function renderTeam(ctx) {
+    const employees = (ctx.employees || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+    const cards = employees.map((employee) => {
+      const videos = (ctx.videos || []).filter((v) => v.ownerId === employee.id);
+      return `
+        <article class="team-card">
+          <div class="team-card__avatar">${escapeHtml((employee.name || '?').split(/\s+/).map((x) => x[0]).slice(0,2).join('').toUpperCase())}</div>
+          <div class="team-card__body">
+            <div class="team-card__heading">
+              <div><h3>${escapeHtml(employee.name)}</h3><p class="muted">${escapeHtml(employee.role || 'Sin rol')}</p></div>
+              <span class="pill ${employee.active === false ? 'pill--outline' : ''}">${employee.active === false ? 'Inactivo' : 'Activo'}</span>
+            </div>
+            ${employee.email ? `<p class="small">${escapeHtml(employee.email)}</p>` : ''}
+            ${employee.phone ? `<p class="small muted">${escapeHtml(employee.phone)}</p>` : ''}
+            <p class="team-card__count"><strong>${videos.length}</strong> proyecto${videos.length === 1 ? '' : 's'} asignado${videos.length === 1 ? '' : 's'}</p>
+            ${videos.length ? `<div class="team-card__projects">${videos.slice(0,4).map((v) => `<button data-action="open-video" data-id="${v.id}">${escapeHtml(v.title || 'Sin título')}</button>`).join('')}${videos.length > 4 ? `<span class="muted small">+${videos.length - 4} más</span>` : ''}</div>` : ''}
+          </div>
+          <div class="team-card__actions">
+            <button class="icon-btn" data-action="edit-employee" data-id="${employee.id}" title="Editar">${icon('edit')}</button>
+            <button class="icon-btn" data-action="delete-employee" data-id="${employee.id}" title="Eliminar">${icon('trash')}</button>
+          </div>
+        </article>`;
+    }).join('');
+    return `<div class="view team-view">
+      <div class="page-heading"><div><h1>Equipo</h1><p class="muted">Administrá responsables y conectalos automáticamente con cada video.</p></div><button class="btn btn--primary" data-action="new-employee">${icon('plus')} Nuevo empleado</button></div>
+      ${employees.length ? `<div class="team-grid">${cards}</div>` : renderEmptyState({ title: 'Todavía no hay empleados', message: 'Creá el primer integrante para asignarlo como responsable de tus videos.', action: { action: 'new-employee', label: 'Nuevo empleado' } })}
+    </div>`;
+  }
+
+  function renderEmployeeModal(employee) {
+    const editing = !!employee.id;
+    return `<div class="modal__header"><h3>${editing ? 'Editar empleado' : 'Nuevo empleado'}</h3></div>
+      <div class="modal__body"><div class="form-grid">
+        <label class="field field--wide"><span>Nombre *</span><input id="employee-name" type="text" value="${escapeHtml(employee.name || '')}" autofocus /></label>
+        <label class="field"><span>Rol</span><input id="employee-role" type="text" placeholder="Ej. Editor" value="${escapeHtml(employee.role || '')}" /></label>
+        <label class="field"><span>Email</span><input id="employee-email" type="email" value="${escapeHtml(employee.email || '')}" /></label>
+        <label class="field"><span>WhatsApp / teléfono</span><input id="employee-phone" type="text" value="${escapeHtml(employee.phone || '')}" /></label>
+        <label class="field field--checkbox"><input id="employee-active" type="checkbox" ${employee.active === false ? '' : 'checked'} /><span>Empleado activo</span></label>
+      </div></div>
+      <div class="modal__footer"><button class="btn btn--ghost" data-action="modal-cancel">Cancelar</button><button class="btn btn--primary" data-action="save-employee" data-id="${employee.id || ''}">${editing ? 'Guardar cambios' : 'Crear empleado'}</button></div>`;
+  }
+
   function renderComingSoon(name, description) {
     return `
       <div class="coming-soon">
@@ -820,6 +865,20 @@ const Components = (() => {
       .join('');
   }
 
+  function employeeOptions(employees, selectedId, legacyOwner) {
+    const selectedExists = employees.some((employee) => employee.id === selectedId);
+    const options = employees
+      .filter((employee) => employee.active !== false || employee.id === selectedId)
+      .slice()
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+      .map((employee) => `<option value="${employee.id}" ${employee.id === selectedId ? 'selected' : ''}>${escapeHtml(employee.name || 'Sin nombre')}${employee.active === false ? ' (inactivo)' : ''}</option>`)
+      .join('');
+    const legacy = !selectedExists && legacyOwner
+      ? `<option value="" selected>${escapeHtml(legacyOwner)} (sin vincular)</option>`
+      : `<option value="" ${selectedId ? '' : 'selected'}>Sin responsable</option>`;
+    return legacy + options;
+  }
+
   function renderEditorGeneral(video, ctx) {
     return `
       <div class="editor-form">
@@ -854,8 +913,8 @@ const Components = (() => {
             <select data-field="contentTypeId">${selectOptions(ctx.contentTypes, video.contentTypeId)}</select>
           </label>
           <label class="field">
-            <span>Responsable</span>
-            <input type="text" data-field="owner" value="${escapeHtml(video.owner || '')}" />
+            <span>Responsable del proyecto</span>
+            <select data-field="ownerId">${employeeOptions(ctx.employees || [], video.ownerId, video.owner)}</select>
           </label>
 
           <label class="field">
@@ -3213,6 +3272,8 @@ const Components = (() => {
     renderEmptyState,
     renderComingSoon,
     renderVideoEditor,
+    renderTeam,
+    renderEmployeeModal,
     renderEditorTab,
     EDITOR_TABS,
     byId,
