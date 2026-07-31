@@ -743,6 +743,10 @@
 
   async function permanentlyDeleteFolder(id) {
     const { folderIds, itemIds } = collectFolderDescendants(id);
+    for (const iid of itemIds) {
+      const item = libItem(iid);
+      if (item) await deleteLibraryStorageFile(item);
+    }
     for (const fid of folderIds) await DB.remove('libraryFolders', fid);
     for (const iid of itemIds) await DB.remove('libraryItems', iid);
     state.libraryFolders = state.libraryFolders.filter((f) => !folderIds.includes(f.id));
@@ -850,6 +854,8 @@
   }
 
   async function permanentlyDeleteItem(id) {
+    const item = libItem(id);
+    if (item) await deleteLibraryStorageFile(item);
     await DB.remove('libraryItems', id);
     state.libraryItems = state.libraryItems.filter((it) => it.id !== id);
     Utils.toast('Recurso eliminado definitivamente', 'success');
@@ -951,6 +957,57 @@
 
   /* ---- Abrir / copiar / descargar recursos ---- */
 
+  const LIBRARY_STORAGE_BUCKET = 'inserts';
+
+  function storageClient() {
+    if (typeof Supa === 'undefined' || !Supa.client) {
+      throw new Error('Supabase no está configurado.');
+    }
+    return Supa.client.storage.from(LIBRARY_STORAGE_BUCKET);
+  }
+
+  function safeStorageFileName(name) {
+    const raw = String(name || 'archivo').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const clean = raw.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    return clean || 'archivo';
+  }
+
+  function storagePathForFile(fileName) {
+    const now = new Date();
+    const y = now.getUTCFullYear();
+    const m = String(now.getUTCMonth() + 1).padStart(2, '0');
+    return `${y}/${m}/${Utils.uuid()}-${safeStorageFileName(fileName)}`;
+  }
+
+  function publicStorageUrl(path) {
+    if (!path) return '';
+    const { data } = storageClient().getPublicUrl(path);
+    return data && data.publicUrl ? data.publicUrl : '';
+  }
+
+  async function uploadLibraryBlob(blob, fileName, mimeType) {
+    const path = storagePathForFile(fileName);
+    const { error } = await storageClient().upload(path, blob, {
+      cacheControl: '3600',
+      contentType: mimeType || blob.type || 'application/octet-stream',
+      upsert: false,
+    });
+    if (error) throw new Error(`No se pudo subir el archivo a Supabase Storage: ${error.message}`);
+    return { path, url: publicStorageUrl(path) };
+  }
+
+  async function deleteLibraryStorageFile(item) {
+    if (!item || !item.storagePath) return;
+    const isShared = state.libraryItems.some((other) => other.id !== item.id && other.storagePath === item.storagePath);
+    if (isShared) return;
+    const { error } = await storageClient().remove([item.storagePath]);
+    if (error) console.warn('[Fútbol XL Studio] No se pudo eliminar el archivo de Storage:', error.message);
+  }
+
+  function libraryItemFileUrl(item) {
+    return (item && (item.url || item.fileData)) || '';
+  }
+
   function dataUrlToBlob(dataUrl) {
     const [header, base64] = dataUrl.split(',');
     const mimeMatch = header.match(/data:(.*?);base64/);
@@ -966,10 +1023,6 @@
     if (!it) return;
     markLibraryItemUsed(id);
     if (it.storageMode === 'link') {
-      // Validación de esquema en el momento de abrir (no solo al crear el
-      // enlace): protege también contra respaldos importados o ediciones
-      // manuales del campo URL que hayan quedado con un valor no http(s)
-      // (por ejemplo "javascript:..."), evitando ejecutar código.
       if (it.url && Utils.looksLikeUrl(it.url)) {
         window.open(it.url, '_blank', 'noopener');
       } else if (it.url) {
@@ -977,24 +1030,40 @@
       }
       return;
     }
-    if (it.fileData) {
-      try {
-        const blob = dataUrlToBlob(it.fileData);
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank', 'noopener');
-        // Liberamos la URL temporal más adelante para no acumular memoria.
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
-      } catch (e) {
-        window.open(it.fileData, '_blank', 'noopener');
-      }
+    const source = libraryItemFileUrl(it);
+    if (!source) return;
+    if (it.storagePath || /^https?:\/\//i.test(source)) {
+      window.open(source, '_blank', 'noopener');
+      return;
+    }
+    try {
+      const blob = dataUrlToBlob(source);
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank', 'noopener');
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (e) {
+      window.open(source, '_blank', 'noopener');
     }
   }
 
   function downloadLibraryItem(id) {
     const it = libItem(id);
-    if (!it || it.storageMode !== 'file' || !it.fileData) return;
+    if (!it || it.storageMode !== 'file') return;
+    const source = libraryItemFileUrl(it);
+    if (!source) return;
+    if (it.storagePath || /^https?:\/\//i.test(source)) {
+      const a = document.createElement('a');
+      a.href = source;
+      a.download = it.name || 'archivo';
+      a.target = '_blank';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      return;
+    }
     try {
-      const blob = dataUrlToBlob(it.fileData);
+      const blob = dataUrlToBlob(source);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -1011,7 +1080,7 @@
   async function copyLibraryItemLink(id) {
     const it = libItem(id);
     if (!it) return;
-    const text = it.storageMode === 'link' ? it.url : `${it.name} (archivo local guardado en la Biblioteca)`;
+    const text = it.storageMode === 'link' ? it.url : (it.url || `${it.name} (archivo guardado en la Biblioteca)`);
     const ok = await Utils.copyToClipboard(text);
     Utils.toast(ok ? 'Copiado' : 'No se pudo copiar', ok ? 'success' : 'error');
   }
@@ -1033,37 +1102,49 @@
   }
 
   async function handleLibraryFileUpload(files, folderId) {
-    const limitBytes = (state.settings.libraryFileSizeLimitMB || 3) * 1024 * 1024;
+    const limitBytes = 50 * 1024 * 1024;
     let addedCount = 0;
     for (const file of Array.from(files || [])) {
       if (file.size > limitBytes) {
-        const decision = await askFileSizeDecision(Utils.formatBytes(file.size), state.settings.libraryFileSizeLimitMB);
-        if (decision === 'cancel') continue;
-        if (decision === 'use-link') {
-          openNewLinkModal();
-          continue;
-        }
-        // 'save-anyway' -> seguimos con la carga normal
+        Utils.toast(`"${file.name}" supera el límite de 50 MB configurado en Supabase.`, 'error');
+        continue;
       }
-      const dataUrl = await Utils.readFileAsDataURL(file);
+
       const resourceType = Utils.resourceTypeFromFile(file.type, file.name);
       let thumbnailData = null;
       if (resourceType === 'image') {
+        const dataUrl = await Utils.readFileAsDataURL(file);
         thumbnailData = state.settings.libraryCompressThumbnails
           ? await Utils.generateThumbnail(dataUrl, 320, state.settings.libraryThumbnailQuality || 0.72)
           : dataUrl;
       }
-      await createItem({
-        folderId: folderId || null,
-        name: file.name,
-        resourceType,
-        storageMode: 'file',
-        fileData: dataUrl,
-        thumbnailData,
-        mimeType: file.type,
-        fileSize: file.size,
-      });
-      addedCount++;
+
+      let uploaded = null;
+      try {
+        Utils.toast(`Subiendo ${file.name}…`, 'info');
+        uploaded = await uploadLibraryBlob(file, file.name, file.type);
+        const created = await createItem({
+          folderId: folderId || null,
+          name: file.name,
+          resourceType,
+          storageMode: 'file',
+          storageProvider: 'supabase',
+          storagePath: uploaded.path,
+          url: uploaded.url,
+          fileData: null,
+          thumbnailData,
+          mimeType: file.type,
+          fileSize: file.size,
+        });
+        if (!created) {
+          await storageClient().remove([uploaded.path]);
+          continue;
+        }
+        addedCount++;
+      } catch (e) {
+        if (uploaded && uploaded.path) await storageClient().remove([uploaded.path]);
+        Utils.toast(e.message || `No se pudo subir ${file.name}`, 'error');
+      }
     }
     if (addedCount) Utils.toast(`${addedCount} archivo(s) agregado(s) a la Biblioteca`, 'success');
   }
@@ -1087,20 +1168,32 @@
     const thumbnailData = state.settings.libraryCompressThumbnails
       ? await Utils.generateThumbnail(pendingPastedImage.dataUrl, 320, state.settings.libraryThumbnailQuality || 0.72)
       : pendingPastedImage.dataUrl;
-    await createItem({
-      folderId: state.ui.library.currentFolderId,
-      name,
-      description,
-      resourceType: 'image',
-      storageMode: 'file',
-      fileData: pendingPastedImage.dataUrl,
-      thumbnailData,
-      mimeType: pendingPastedImage.mimeType,
-      fileSize: pendingPastedImage.size,
-    });
-    pendingPastedImage = null;
-    document.getElementById('generic-modal').close();
-    Utils.toast('Imagen guardada en la Biblioteca', 'success');
+    const blob = dataUrlToBlob(pendingPastedImage.dataUrl);
+    let uploaded = null;
+    try {
+      uploaded = await uploadLibraryBlob(blob, name, pendingPastedImage.mimeType);
+      const created = await createItem({
+        folderId: state.ui.library.currentFolderId,
+        name,
+        description,
+        resourceType: 'image',
+        storageMode: 'file',
+        storageProvider: 'supabase',
+        storagePath: uploaded.path,
+        url: uploaded.url,
+        fileData: null,
+        thumbnailData,
+        mimeType: pendingPastedImage.mimeType,
+        fileSize: pendingPastedImage.size,
+      });
+      if (!created) throw new Error('No se pudo guardar el registro de la imagen.');
+      pendingPastedImage = null;
+      document.getElementById('generic-modal').close();
+      Utils.toast('Imagen guardada en la Biblioteca', 'success');
+    } catch (e) {
+      if (uploaded && uploaded.path) await storageClient().remove([uploaded.path]);
+      Utils.toast(e.message || 'No se pudo guardar la imagen', 'error');
+    }
   }
 
   function wireLibraryPasteHandler() {
