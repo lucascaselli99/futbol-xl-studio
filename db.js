@@ -97,6 +97,7 @@ const DB = (() => {
     'recipients',
     'expenses',
     'subscriptions',
+    'employees',
   ];
 
   // Nombre de tabla en Supabase para cada colección (snake_case, como es
@@ -121,6 +122,7 @@ const DB = (() => {
     recipients: 'recipients',
     expenses: 'expenses',
     subscriptions: 'subscriptions',
+    employees: 'employees',
   };
 
   // Columna que actúa de clave primaria en cada tabla (equivalente al
