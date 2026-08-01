@@ -44,6 +44,7 @@
     expenses: [],
     subscriptions: [],
     employees: [],
+    authUser: null,
     undo: [], // pila simple de acciones destructivas para Ctrl/Cmd+Z
     ui: {
       route: 'home',
@@ -98,19 +99,132 @@
   /* ------------------------------------------------------------------ */
 
   async function init() {
+    const authRoot = document.getElementById('auth-root');
+    const appRoot = document.getElementById('app');
+
+    if (!Supa.client) {
+      showLogin('No se pudo conectar con Supabase. Revisá la configuración de la aplicación.');
+      return;
+    }
+
+    const { data, error } = await Supa.client.auth.getSession();
+    if (error) {
+      console.error('[Fútbol XL Studio] No se pudo recuperar la sesión:', error);
+      showLogin('No se pudo verificar la sesión. Intentá nuevamente.');
+      return;
+    }
+
+    const session = data?.session || null;
+    if (!session) {
+      showLogin();
+      return;
+    }
+
+    state.authUser = session.user;
+    await bootAuthenticatedApp();
+  }
+
+  async function bootAuthenticatedApp() {
+    document.getElementById('auth-root').hidden = true;
+    document.getElementById('app').hidden = false;
+
     await DB.open();
     await DB.seedIfEmpty();
     await DB.seedLibraryIfEmpty();
     await DB.seedCostsTaxonomyIfEmpty();
     await DB.seedCostsSampleDataIfEmpty();
     await loadAllFromDB();
+
     state.ui.videosView = state.settings.defaultView || 'kanban';
     state.ui.library.view = state.settings.libraryDefaultView || 'grid';
     state.ui.library.sort = state.settings.librarySortBy || 'name-asc';
     state.ui.costsTab = state.settings.costsDefaultExpenseTab || 'summary';
+
     applyTheme();
     wireGlobalEvents();
     renderAll();
+  }
+
+  function showLogin(message = '') {
+    const authRoot = document.getElementById('auth-root');
+    const appRoot = document.getElementById('app');
+
+    appRoot.hidden = true;
+    authRoot.hidden = false;
+    authRoot.innerHTML = `
+      <main class="auth-page">
+        <section class="auth-card" aria-labelledby="auth-title">
+          <div class="auth-brand">
+            <div class="auth-brand__logo">FXL</div>
+            <div>
+              <h1 id="auth-title">Fútbol XL Studio</h1>
+              <p>Ingresá con tu cuenta del equipo.</p>
+            </div>
+          </div>
+
+          <form id="login-form" class="auth-form">
+            <label class="field">
+              <span>Email</span>
+              <input id="login-email" type="email" autocomplete="email" required />
+            </label>
+
+            <label class="field">
+              <span>Contraseña</span>
+              <input id="login-password" type="password" autocomplete="current-password" required />
+            </label>
+
+            <p id="login-error" class="auth-error" ${message ? '' : 'hidden'}>${Utils.escapeHtml(message)}</p>
+
+            <button id="login-submit" class="btn btn--primary btn--block auth-submit" type="submit">
+              Iniciar sesión
+            </button>
+          </form>
+        </section>
+      </main>`;
+
+    document.getElementById('login-form').addEventListener('submit', handleLoginSubmit);
+    setTimeout(() => document.getElementById('login-email')?.focus(), 0);
+  }
+
+  async function handleLoginSubmit(event) {
+    event.preventDefault();
+
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    const submitButton = document.getElementById('login-submit');
+    const errorElement = document.getElementById('login-error');
+
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    submitButton.disabled = true;
+    submitButton.textContent = 'Ingresando…';
+    errorElement.hidden = true;
+
+    const { data, error } = await Supa.client.auth.signInWithPassword({ email, password });
+
+    if (error || !data?.session) {
+      errorElement.textContent = 'Email o contraseña incorrectos.';
+      errorElement.hidden = false;
+      submitButton.disabled = false;
+      submitButton.textContent = 'Iniciar sesión';
+      passwordInput.select();
+      return;
+    }
+
+    state.authUser = data.user;
+    await bootAuthenticatedApp();
+  }
+
+  async function logout() {
+    const { error } = await Supa.client.auth.signOut();
+    if (error) {
+      Utils.toast('No se pudo cerrar la sesión: ' + error.message, 'error');
+      return;
+    }
+
+    state.authUser = null;
+    window.location.reload();
   }
 
   async function loadAllFromDB() {
@@ -215,6 +329,7 @@
       expenses: state.expenses,
       subscriptions: state.subscriptions,
       employees: state.employees,
+      authUser: state.authUser,
       route: state.ui.route,
       videosView: state.ui.videosView,
       search: state.ui.search,
@@ -3304,6 +3419,9 @@
     const id = actionEl.dataset.id;
 
     switch (action) {
+      case 'logout':
+        await logout();
+        break;
       case 'navigate':
         state.ui.route = actionEl.dataset.route;
         state.ui.mobileSidebarOpen = false;
