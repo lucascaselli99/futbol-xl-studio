@@ -45,6 +45,7 @@
     subscriptions: [],
     employees: [],
     authUser: null,
+    currentEmployee: null,
     undo: [], // pila simple de acciones destructivas para Ctrl/Cmd+Z
     ui: {
       route: 'home',
@@ -291,6 +292,18 @@
     state.expenses = expenses;
     state.subscriptions = subscriptions;
     state.employees = employees;
+    linkCurrentUserToEmployee();
+  }
+
+  function normalizeEmail(value) {
+    return String(value || '').trim().toLowerCase();
+  }
+
+  function linkCurrentUserToEmployee() {
+    const userEmail = normalizeEmail(state.authUser?.email);
+    state.currentEmployee = userEmail
+      ? state.employees.find((employee) => normalizeEmail(employee.email) === userEmail) || null
+      : null;
   }
 
   function applyTheme() {
@@ -330,6 +343,7 @@
       subscriptions: state.subscriptions,
       employees: state.employees,
       authUser: state.authUser,
+      currentEmployee: state.currentEmployee,
       route: state.ui.route,
       videosView: state.ui.videosView,
       search: state.ui.search,
