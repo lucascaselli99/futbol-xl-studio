@@ -1,6 +1,6 @@
 /* =========================================================================
-   styles.css — Fútbol XL Studio
-   Estética moderna, minimalista y deportiva, inspirada en Linear/Notion/
+   styles.css â€” FÃºtbol XL Studio
+   EstÃ©tica moderna, minimalista y deportiva, inspirada en Linear/Notion/
    Trello. Escala de grises como base, color de acento configurable y
    colores personalizados solo en etiquetas/formatos/series/prioridades.
    ========================================================================= */
@@ -56,7 +56,7 @@ html[data-theme='light'] {
   --overlay: rgba(20, 20, 22, 0.35);
 }
 
-/* ---- Reset básico ------------------------------------------------------ */
+/* ---- Reset bÃ¡sico ------------------------------------------------------ */
 
 * {
   box-sizing: border-box;
@@ -106,7 +106,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 .icon svg { width: 16px; height: 16px; display: block; }
 .icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-/* ---- Layout raíz --------------------------------------------------------*/
+/* ---- Layout raÃ­z --------------------------------------------------------*/
 
 #app {
   display: flex;
@@ -883,7 +883,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .cal-item--more { color: var(--text-faint); background: transparent; cursor: default; }
 
-/* ---- Estados vacíos / próximamente --------------------------------------*/
+/* ---- Estados vacÃ­os / prÃ³ximamente --------------------------------------*/
 
 .empty-state, .coming-soon {
   display: flex;
@@ -910,7 +910,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .coming-soon h2 { font-size: 22px; margin-bottom: 8px; }
 
-/* ---- Panel de edición de video (overlay lateral) -------------------------*/
+/* ---- Panel de ediciÃ³n de video (overlay lateral) -------------------------*/
 
 .editor-overlay {
   position: fixed;
@@ -992,7 +992,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   .editor-panel { width: 100%; }
 }
 
-/* ---- Formularios genéricos ---------------------------------------------*/
+/* ---- Formularios genÃ©ricos ---------------------------------------------*/
 
 .editor-form { display: flex; flex-direction: column; gap: 16px; }
 .form-grid {
@@ -1099,7 +1099,7 @@ input:focus, select:focus, textarea:focus {
 .checklist-item__text--done { text-decoration: line-through; color: var(--text-faint); }
 input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px; }
 
-/* ---- Etiquetas rápidas ---------------------------------------------------*/
+/* ---- Etiquetas rÃ¡pidas ---------------------------------------------------*/
 
 .quick-add-tag { display: flex; gap: 8px; margin-top: 10px; }
 .quick-add-tag input {
@@ -1163,7 +1163,7 @@ input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px;
 }
 .comment-item__remove { position: absolute; top: 6px; right: 6px; }
 
-/* ---- Configuración -------------------------------------------------------*/
+/* ---- ConfiguraciÃ³n -------------------------------------------------------*/
 
 .settings-layout { display: flex; gap: 24px; align-items: flex-start; }
 .settings-nav {
@@ -1214,7 +1214,7 @@ input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px;
   .settings-nav { width: 100%; flex-direction: row; overflow-x: auto; }
 }
 
-/* ---- Filas de catálogos (series, formatos, estados, etc.) ----------------*/
+/* ---- Filas de catÃ¡logos (series, formatos, estados, etc.) ----------------*/
 
 .entity-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .entity-row {
@@ -1301,19 +1301,19 @@ dialog.modal::backdrop { background: var(--overlay); }
 .toast--warning .toast__icon { color: var(--warning); }
 .toast--info .toast__icon { color: var(--accent); }
 
-/* ---- Marca: versión visible junto al nombre (v1.1.0) ----------------------*/
+/* ---- Marca: versiÃ³n visible junto al nombre (v1.1.0) ----------------------*/
 
 .brand__text { display: flex; flex-direction: column; min-width: 0; }
 .brand__version { font-size: 10px; color: var(--text-faint); }
 
-/* ---- Dashboard: métricas compactas de Biblioteca --------------------------*/
+/* ---- Dashboard: mÃ©tricas compactas de Biblioteca --------------------------*/
 
 .stat-grid--compact { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 .stat-card--sm { padding: 10px 12px; }
 .stat-card--sm .stat-card__value { font-size: 20px; }
 
 /* ============================================================================
-   MÓDULO BIBLIOTECA
+   MÃ“DULO BIBLIOTECA
    ========================================================================= */
 
 .view--library { position: relative; min-height: calc(100vh - 220px); }
@@ -1504,7 +1504,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 .library-video-picker__row:hover { background: var(--bg-hover); }
 
 /* ============================================================================
-   MÓDULO COSTOS (v1.2.0)
+   MÃ“DULO COSTOS (v1.2.0)
    ========================================================================= */
 
 .view--costs { display: flex; flex-direction: column; gap: 18px; }
@@ -1700,3 +1700,116 @@ dialog.modal::backdrop { background: var(--overlay); }
 .team-card__projects button:hover { color:var(--accent); }
 .team-card__actions { display:flex; gap:.25rem; align-self:flex-start; }
 @media (max-width:700px){ .team-view .page-heading{flex-direction:column}.team-grid{grid-template-columns:1fr}.team-card{flex-wrap:wrap}.team-card__actions{position:absolute;right:.75rem;top:.75rem} }
+
+
+/* ---- AutenticaciÃ³n ----------------------------------------------------- */
+
+[hidden] {
+  display: none !important;
+}
+
+.auth-root {
+  min-height: 100vh;
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(59, 130, 246, 0.10), transparent 34%),
+    var(--bg);
+}
+
+.auth-card {
+  width: min(100%, 420px);
+  padding: 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.auth-brand h1 {
+  font-size: 22px;
+  margin: 0 0 3px;
+}
+
+.auth-brand p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.auth-brand__logo {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, #2b2b2d, #111);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.auth-form {
+  display: grid;
+  gap: 16px;
+}
+
+.auth-form .field input {
+  width: 100%;
+}
+
+.auth-submit {
+  justify-content: center;
+  min-height: 42px;
+  margin-top: 2px;
+}
+
+.auth-error {
+  margin: -4px 0 0;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 10px;
+  border-left: 1px solid var(--border);
+}
+
+.user-menu__email {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  .user-menu__email {
+    display: none;
+  }
+
+  .user-menu {
+    padding-left: 0;
+    border-left: none;
+  }
+}
