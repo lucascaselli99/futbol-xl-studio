@@ -135,26 +135,22 @@ if (localStorage.getItem('guestMode') === 'true') {
     await bootAuthenticatedApp();
   }
 
-  async function bootAuthenticatedApp() {
-  console.time('Carga inicial');
-
+  aasync function bootAuthenticatedApp() {
   document.getElementById('auth-root').hidden = true;
   document.getElementById('app').hidden = false;
 
   await DB.open();
-
-  // Carga únicamente lo necesario para mostrar la app.
-  await loadCoreFromDB();
+  await loadAllFromDB();
 
   state.ui.videosView = state.settings.defaultView || 'kanban';
   state.ui.library.view = state.settings.libraryDefaultView || 'grid';
   state.ui.library.sort = state.settings.librarySortBy || 'name-asc';
-  state.ui.costsTab =
-    state.settings.costsDefaultExpenseTab || 'summary';
+  state.ui.costsTab = state.settings.costsDefaultExpenseTab || 'summary';
 
   applyTheme();
   wireGlobalEvents();
   renderAll();
+}
 
   console.timeEnd('Carga inicial');
 
