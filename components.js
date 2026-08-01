@@ -164,7 +164,7 @@ const Components = (() => {
   /* ------------------------------------------------------------------ */
 
   function renderTopbar(ctx) {
-    const { search, saveState, route, authUser } = ctx;
+    const { search, saveState, route, authUser, currentEmployee } = ctx;
     const titles = {
       home: 'Inicio',
       videos: 'Videos',
@@ -191,7 +191,10 @@ const Components = (() => {
           </span>
           <button class="btn btn--primary" data-action="new-video">${icon('plus')} <span>Nuevo video</span></button>
           <div class="user-menu">
-            <span class="user-menu__email" title="${escapeHtml(authUser?.email || '')}">${escapeHtml(authUser?.email || '')}</span>
+            <div class="user-menu__identity">
+              <strong class="user-menu__name">${escapeHtml(currentEmployee?.name || 'Usuario sin vincular')}</strong>
+              <span class="user-menu__email" title="${escapeHtml(authUser?.email || '')}">${escapeHtml(authUser?.email || '')}</span>
+            </div>
             <button class="btn btn--ghost btn--sm" data-action="logout">Cerrar sesión</button>
           </div>
         </div>
@@ -746,6 +749,7 @@ const Components = (() => {
   }
 
   function renderTeam(ctx) {
+    const currentEmployeeId = ctx.currentEmployee?.id || null;
     const employees = (ctx.employees || [])
       .slice()
       .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es'));
@@ -801,7 +805,10 @@ const Components = (() => {
           <div class="team-card__avatar">${escapeHtml((employee.name || '?').split(/\s+/).map((x) => x[0]).slice(0,2).join('').toUpperCase())}</div>
           <div class="team-card__body">
             <div class="team-card__heading">
-              <div><h3>${escapeHtml(employee.name)}</h3><p class="muted">${escapeHtml(employee.role || 'Sin rol')}</p></div>
+              <div>
+                <h3>${escapeHtml(employee.name)} ${employee.id === currentEmployeeId ? '<span class="account-link-badge">Tu cuenta</span>' : ''}</h3>
+                <p class="muted">${escapeHtml(employee.role || 'Sin rol')}</p>
+              </div>
               <span class="pill ${employee.active === false ? 'pill--outline' : ''}">${employee.active === false ? 'Inactivo' : 'Activo'}</span>
             </div>
             ${employee.email ? `<p class="small">${escapeHtml(employee.email)}</p>` : ''}
