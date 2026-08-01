@@ -309,7 +309,10 @@ const Components = (() => {
           </div>
 
           <section class="dashboard-citas" data-citas-slider data-index="0">
-            <div class="citas-header"></div>
+            <<div class="citas-header">
+  <h3>Citas</h3>
+  <span class="citas-counter">1 / 2</span>
+</div>
               ${citasImages.length ? `<span class="dashboard-citas__counter" data-citas-counter>1 / ${citasImages.length}</span>` : ''}
             </div>
             <div class="dashboard-citas__canvas">
