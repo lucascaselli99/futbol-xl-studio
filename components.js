@@ -326,6 +326,7 @@ const Components = (() => {
                 <button class="dashboard-citas__arrow dashboard-citas__arrow--next" data-action="dashboard-citas-next" aria-label="Imagen siguiente">${icon('chevronRight')}</button>
               ` : ''}
             </div>
+            ${citasImages.length>1?`<div class="dashboard-citas__dots">${citasImages.map((_,i)=>`<button class="dashboard-citas__dot ${i===0?'is-active':''}" data-citas-dot="${i}"></button>`).join('')}</div>`:''}
           </section>
         </div>
 
@@ -446,6 +447,7 @@ const Components = (() => {
             <div class="thumbnail-device-switch">
               ${['desktop', 'mobile', 'tv'].map((item) => `<button class="btn ${device === item ? 'btn--primary' : 'btn--secondary'} btn--sm" data-action="thumbnail-lab-device" data-device="${item}">${item === 'desktop' ? '💻 Escritorio' : item === 'mobile' ? '📱 Celular' : '📺 TV'}</button>`).join('')}
             </div>
+            ${citasImages.length>1?`<div class="dashboard-citas__dots">${citasImages.map((_,i)=>`<button class="dashboard-citas__dot ${i===0?'is-active':''}" data-citas-dot="${i}"></button>`).join('')}</div>`:''}
           </section>
 
           <section class="panel thumbnail-preview-wrap">
@@ -463,6 +465,7 @@ const Components = (() => {
                 </div>
               </div>
             </div>
+            ${citasImages.length>1?`<div class="dashboard-citas__dots">${citasImages.map((_,i)=>`<button class="dashboard-citas__dot ${i===0?'is-active':''}" data-citas-dot="${i}"></button>`).join('')}</div>`:''}
           </section>
         </div>
       </div>`;
