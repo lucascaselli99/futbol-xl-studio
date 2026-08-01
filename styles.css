@@ -1813,3 +1813,43 @@ dialog.modal::backdrop { background: var(--overlay); }
     border-left: none;
   }
 }
+
+
+/* ---- VinculaciÃ³n usuario â†” empleado (v1.3.1) -------------------------- */
+
+.user-menu__identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.user-menu__name {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.account-link-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 2px 7px;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+@media (max-width: 900px) {
+  .user-menu__identity {
+    display: none;
+  }
+}
