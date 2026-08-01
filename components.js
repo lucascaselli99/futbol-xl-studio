@@ -1889,13 +1889,9 @@ const Components = (() => {
       </div>`;
   }
 
-  function libraryItemFileSource(item) {
-    return (item && (item.url || item.fileData)) || '';
-  }
-
   function libraryItemThumb(item) {
     if (item.resourceType === 'image' || item.resourceType === 'logo') {
-      const src = item.thumbnailData || libraryItemFileSource(item);
+      const src = item.thumbnailData || item.fileData;
       if (src) return `<div class="library-card__thumb" style="background-image:url('${src}')"></div>`;
     }
     if ((item.resourceType === 'youtube') && item.url) {
@@ -2032,16 +2028,16 @@ const Components = (() => {
   function renderLibraryPreview(item) {
     if (item.storageMode === 'file') {
       if (item.resourceType === 'image' || item.resourceType === 'logo') {
-        return `<img class="library-preview__img" src="${libraryItemFileSource(item)}" alt="${escapeHtml(item.name)}" />`;
+        return `<img class="library-preview__img" src="${item.fileData}" alt="${escapeHtml(item.name)}" />`;
       }
       if (item.resourceType === 'audio') {
-        return `<audio class="library-preview__audio" controls src="${libraryItemFileSource(item)}"></audio>`;
+        return `<audio class="library-preview__audio" controls src="${item.fileData}"></audio>`;
       }
       if (item.resourceType === 'video') {
-        return `<video class="library-preview__video" controls src="${libraryItemFileSource(item)}"></video>`;
+        return `<video class="library-preview__video" controls src="${item.fileData}"></video>`;
       }
       if (item.resourceType === 'pdf') {
-        return `<iframe class="library-preview__pdf" src="${libraryItemFileSource(item)}" title="${escapeHtml(item.name)}"></iframe><p class="muted small">Si tu navegador no puede mostrar el PDF embebido, usá "Descargar" o "Abrir".</p>`;
+        return `<iframe class="library-preview__pdf" src="${item.fileData}" title="${escapeHtml(item.name)}"></iframe><p class="muted small">Si tu navegador no puede mostrar el PDF embebido, usá "Descargar" o "Abrir".</p>`;
       }
       return `<div class="library-preview__icon">${resourceTypeMeta(item.resourceType).icon}</div>`;
     }
