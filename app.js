@@ -2708,27 +2708,12 @@ if (localStorage.getItem('guestMode') === 'true') {
       if (newFormat && newFormat.defaultChecklistTemplateId) {
         await maybeApplyTemplate(video, newFormat.defaultChecklistTemplateId, `el formato "${newFormat.name}"`);
       }
-    } else if (field === 'ownerId') {
+        } else if (field === 'ownerId') {
       video.ownerId = value || null;
       const employee = state.employees.find((item) => item.id === value);
-      // Conservamos también el nombre en `owner` para compatibilidad con
-      // respaldos y versiones anteriores de la app.
       video.owner = employee ? employee.name : '';
       pushHistory(video, 'owner-change', `Responsable cambiado a "${employee ? employee.name : 'Sin responsable'}"`);
-      // El video se guarda antes de intentar enviar el correo. Si Resend
-      // falla, la asignación igualmente queda aplicada correctamente.
-      video.owner = employee ? employee.name : '';
-pushHistory(video, 'owner-change', `Responsable cambiado a "${employee ? employee.name : 'Sin asignar'}"`);
 
-console.log({
-  employee,
-  prev,
-  value
-});
-
-if (employee && employee.email && prev !== value) {
-    setTimeout(() => sendAssignmentEmail(video, employee), 0);
-}
       if (employee && employee.email && prev !== value) {
         setTimeout(() => sendAssignmentEmail(video, employee), 0);
       }
