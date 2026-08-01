@@ -45,6 +45,7 @@
     subscriptions: [],
     employees: [],
     quickNotes: [],
+    seriesPlanner: [],
     authUser: null,
     currentEmployee: null,
     undo: [], // pila simple de acciones destructivas para Ctrl/Cmd+Z
@@ -88,6 +89,7 @@
       costExpenseFilters: {},
       showCostFilters: false,
       thumbnailLab: { title: '', image: '', device: 'desktop' },
+      selectedSeriesPlannerId: null,
     },
   };
 
@@ -105,6 +107,8 @@
     const authRoot = document.getElementById('auth-root');
     const appRoot = document.getElementById('app');
     state.quickNotes = readQuickNotes();
+    state.seriesPlanner = readSeriesPlanner();
+    state.ui.selectedSeriesPlannerId = state.seriesPlanner[0]?.id || null;
     // ===== MODO INVITADO =====
 if (localStorage.getItem('guestMode') === 'true') {
   state.authUser = {
@@ -332,6 +336,125 @@ if (localStorage.getItem('guestMode') === 'true') {
 
   function saveQuickNotes() {
     localStorage.setItem('fxlQuickNotes', JSON.stringify(state.quickNotes));
+  }
+
+
+  function readSeriesPlanner() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem('fxlSeriesPlanner') || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.warn('[Fútbol XL Studio] No se pudo leer Formatos:', error);
+      return [];
+    }
+  }
+
+  function saveSeriesPlanner() {
+    localStorage.setItem('fxlSeriesPlanner', JSON.stringify(state.seriesPlanner));
+  }
+
+  function currentSeriesPlanner() {
+    return state.seriesPlanner.find((item) => item.id === state.ui.selectedSeriesPlannerId) || state.seriesPlanner[0] || null;
+  }
+
+  function createSeriesPlanner() {
+    const name = window.prompt('Nombre de la serie o formato');
+    if (!name || !name.trim()) return;
+    const item = {
+      id: Utils.uuid(),
+      name: name.trim(),
+      description: '',
+      notes: '',
+      seasons: [],
+      createdAt: Utils.nowISO(),
+      updatedAt: Utils.nowISO(),
+    };
+    state.seriesPlanner.unshift(item);
+    state.ui.selectedSeriesPlannerId = item.id;
+    saveSeriesPlanner();
+    renderMain();
+  }
+
+  function deleteSeriesPlanner(id) {
+    const item = state.seriesPlanner.find((x) => x.id === id);
+    if (!item || !window.confirm(`¿Eliminar “${item.name}” y toda su planificación?`)) return;
+    state.seriesPlanner = state.seriesPlanner.filter((x) => x.id !== id);
+    state.ui.selectedSeriesPlannerId = state.seriesPlanner[0]?.id || null;
+    saveSeriesPlanner();
+    renderMain();
+  }
+
+  function addPlannerSeason() {
+    const item = currentSeriesPlanner();
+    if (!item) return;
+    const nextNumber = item.seasons.length ? Math.max(...item.seasons.map((s) => Number(s.number) || 0)) + 1 : 1;
+    item.seasons.push({ id: Utils.uuid(), number: nextNumber, title: `Temporada ${nextNumber}`, notes: '', episodes: [] });
+    item.updatedAt = Utils.nowISO();
+    saveSeriesPlanner();
+    renderMain();
+  }
+
+  function addPlannerEpisode(seasonId) {
+    const item = currentSeriesPlanner();
+    const season = item?.seasons.find((x) => x.id === seasonId);
+    if (!season) return;
+    const title = window.prompt('Título del capítulo');
+    if (!title || !title.trim()) return;
+    season.episodes.push({
+      id: Utils.uuid(),
+      number: season.episodes.length + 1,
+      title: title.trim(),
+      status: 'pending',
+      notes: '',
+      videoId: null,
+    });
+    item.updatedAt = Utils.nowISO();
+    saveSeriesPlanner();
+    renderMain();
+  }
+
+  function deletePlannerEpisode(seasonId, episodeId) {
+    const item = currentSeriesPlanner();
+    const season = item?.seasons.find((x) => x.id === seasonId);
+    if (!season) return;
+    season.episodes = season.episodes.filter((x) => x.id !== episodeId);
+    season.episodes.forEach((episode, index) => { episode.number = index + 1; });
+    item.updatedAt = Utils.nowISO();
+    saveSeriesPlanner();
+    renderMain();
+  }
+
+  async function createVideoFromPlanner(seasonId, episodeId) {
+    const planner = currentSeriesPlanner();
+    const season = planner?.seasons.find((x) => x.id === seasonId);
+    const episode = season?.episodes.find((x) => x.id === episodeId);
+    if (!planner || !season || !episode) return;
+    if (episode.videoId && state.videos.some((v) => v.id === episode.videoId)) {
+      openVideoEditor(episode.videoId, 'general');
+      return;
+    }
+    const video = blankVideo();
+    video.title = episode.title;
+    video.description = `${planner.name} · Temporada ${season.number} · Episodio ${episode.number}`;
+    const linkedSeries = state.series.find((x) => String(x.name || '').trim().toLowerCase() === planner.name.trim().toLowerCase());
+    if (linkedSeries) video.seriesId = linkedSeries.id;
+    state.videos.unshift(video);
+    await DB.put('videos', video);
+    episode.videoId = video.id;
+    episode.status = 'in_progress';
+    planner.updatedAt = Utils.nowISO();
+    saveSeriesPlanner();
+    Utils.toast('Proyecto creado desde Formatos', 'success');
+    openVideoEditor(video.id, 'general');
+  }
+
+  function renderSeriesPlannerRoute(ctx) {
+    return Components.renderSeriesPlanner({
+      ...ctx,
+      plannerItems: state.seriesPlanner,
+      selectedPlannerId: state.ui.selectedSeriesPlannerId,
+      selectedPlanner: currentSeriesPlanner(),
+    });
   }
 
   function addQuickNote() {
@@ -574,6 +697,8 @@ if (localStorage.getItem('guestMode') === 'true') {
         return renderLibraryRoute(ctx);
       case 'costs':
         return renderCostsRoute(ctx);
+      case 'series-planner':
+        return renderSeriesPlannerRoute(ctx);
       case 'team':
         return Components.renderTeam(ctx);
       case 'thumbnail-lab':
@@ -2471,7 +2596,7 @@ if (localStorage.getItem('guestMode') === 'true') {
     try {
       const { data, error } = await Supa.client.auth.getSession();
       if (error || !data?.session?.access_token) {
-        throw new Error('No se pudo validar la sesión de Supabase. Volvé a iniciar sesión e intentá de nuevo.');
+        throw new Error('No se pudo validar la sesión de Supabase.');
       }
 
       const currentState = Components.byId(state.states, video.stateId);
@@ -2492,30 +2617,13 @@ if (localStorage.getItem('guestMode') === 'true') {
         }),
       });
 
-      // Si la función de Vercel se cae de forma inesperada (timeout, crash
-      // no controlado), la respuesta puede no ser JSON: no lo tratamos como
-      // "sin error" en silencio, sino como un fallo con mensaje genérico.
-      let result;
-      try {
-        result = await response.json();
-      } catch (parseError) {
-        result = { error: `Respuesta inesperada del servidor (status ${response.status}, sin cuerpo JSON legible).` };
-      }
+      const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || 'No se pudo enviar el correo.');
 
       Utils.toast(`Email enviado a ${employee.name || employee.email}`, 'success');
-      pushHistory(video, 'assignment-email-sent', `Email de asignación enviado a ${employee.name || employee.email}`);
-      await touchAndSaveNow(video);
     } catch (error) {
       console.error('[Fútbol XL Studio] Error al enviar email de asignación:', error);
-      // Duración larga (10s) y queda registrado en el historial del video:
-      // el toast por defecto (3.2s) es fácil de perder, y esta acción no
-      // tiene otro lugar visible donde quede constancia del motivo exacto
-      // del fallo (sin necesidad de abrir la consola del navegador).
-      Utils.toast(`La asignación se guardó, pero el email no pudo enviarse: ${error.message}`, 'error', 10000);
-      pushHistory(video, 'assignment-email-failed', `No se pudo enviar el email de asignación a ${employee.name || employee.email}: ${error.message}`);
-      await touchAndSaveNow(video);
-      renderEditorBody();
+      Utils.toast(`La asignación se guardó, pero el email no pudo enviarse: ${error.message}`, 'error');
     }
   }
 
@@ -2725,12 +2833,11 @@ if (localStorage.getItem('guestMode') === 'true') {
       if (newFormat && newFormat.defaultChecklistTemplateId) {
         await maybeApplyTemplate(video, newFormat.defaultChecklistTemplateId, `el formato "${newFormat.name}"`);
       }
-        } else if (field === 'ownerId') {
+    } else if (field === 'ownerId') {
       video.ownerId = value || null;
       const employee = state.employees.find((item) => item.id === value);
       video.owner = employee ? employee.name : '';
       pushHistory(video, 'owner-change', `Responsable cambiado a "${employee ? employee.name : 'Sin responsable'}"`);
-
       if (employee && employee.email && prev !== value) {
         setTimeout(() => sendAssignmentEmail(video, employee), 0);
       }
@@ -3647,6 +3754,29 @@ if (localStorage.getItem('guestMode') === 'true') {
       case 'quick-note-to-project':
         await quickNoteToProject(id);
         break;
+      case 'planner-new':
+        createSeriesPlanner();
+        break;
+      case 'planner-select':
+        state.ui.selectedSeriesPlannerId = id;
+        renderMain();
+        break;
+      case 'planner-delete':
+        deleteSeriesPlanner(id);
+        break;
+      case 'planner-add-season':
+        addPlannerSeason();
+        break;
+      case 'planner-add-episode':
+        addPlannerEpisode(actionEl.dataset.seasonId);
+        break;
+      case 'planner-delete-episode':
+        deletePlannerEpisode(actionEl.dataset.seasonId, id);
+        break;
+      case 'planner-create-video':
+        await createVideoFromPlanner(actionEl.dataset.seasonId, id);
+        break;
+
       case 'thumbnail-lab-device':
         state.ui.thumbnailLab.device = actionEl.dataset.device || 'desktop';
         renderMain();
@@ -4281,6 +4411,37 @@ if (localStorage.getItem('guestMode') === 'true') {
   function onGlobalInput(e) {
     const el = e.target;
 
+    if (el.dataset.plannerField) {
+      const planner = currentSeriesPlanner();
+      if (!planner) return;
+      planner[el.dataset.plannerField] = el.value;
+      planner.updatedAt = Utils.nowISO();
+      saveSeriesPlanner();
+      return;
+    }
+
+    if (el.dataset.seasonField) {
+      const planner = currentSeriesPlanner();
+      const season = planner?.seasons.find((x) => x.id === el.dataset.seasonId);
+      if (!season) return;
+      season[el.dataset.seasonField] = el.value;
+      planner.updatedAt = Utils.nowISO();
+      saveSeriesPlanner();
+      return;
+    }
+
+    if (el.dataset.episodeField) {
+      const planner = currentSeriesPlanner();
+      const season = planner?.seasons.find((x) => x.id === el.dataset.seasonId);
+      const episode = season?.episodes.find((x) => x.id === el.dataset.episodeId);
+      if (!episode) return;
+      episode[el.dataset.episodeField] = el.value;
+      planner.updatedAt = Utils.nowISO();
+      saveSeriesPlanner();
+      return;
+    }
+
+
     if (el.id === 'thumbnail-lab-title') {
       state.ui.thumbnailLab.title = el.value;
       const preview = document.getElementById('thumbnail-lab-preview-title');
@@ -4344,7 +4505,7 @@ if (localStorage.getItem('guestMode') === 'true') {
       return;
     }
 
-    if (el.dataset.field && video && !['stateId', 'seriesId', 'formatId', 'contentTypeId', 'priorityId'].includes(el.dataset.field)) {
+    if (el.dataset.field && video && !['stateId', 'seriesId', 'formatId', 'contentTypeId', 'priorityId', 'ownerId'].includes(el.dataset.field)) {
       video[el.dataset.field] = el.value;
       touchAndSaveDebounced(video);
       return;
@@ -4412,6 +4573,19 @@ if (localStorage.getItem('guestMode') === 'true') {
   async function onGlobalChange(e) {
     const el = e.target;
     const video = currentVideo();
+
+    if (el.dataset.episodeStatus) {
+      const planner = currentSeriesPlanner();
+      const season = planner?.seasons.find((x) => x.id === el.dataset.seasonId);
+      const episode = season?.episodes.find((x) => x.id === el.dataset.episodeId);
+      if (!episode) return;
+      episode.status = el.value;
+      planner.updatedAt = Utils.nowISO();
+      saveSeriesPlanner();
+      renderMain();
+      return;
+    }
+
 
     if (el.id === 'thumbnail-lab-image') {
       const file = el.files?.[0];
