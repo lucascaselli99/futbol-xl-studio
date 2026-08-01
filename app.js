@@ -102,6 +102,16 @@
   async function init() {
     const authRoot = document.getElementById('auth-root');
     const appRoot = document.getElementById('app');
+    // ===== MODO INVITADO =====
+if (localStorage.getItem('guestMode') === 'true') {
+  state.authUser = {
+    email: 'Invitado',
+    guest: true,
+  };
+
+  await bootAuthenticatedApp();
+  return;
+}
 
     if (!Supa.client) {
       showLogin('No se pudo conectar con Supabase. Revisá la configuración de la aplicación.');
@@ -179,11 +189,23 @@
             <button id="login-submit" class="btn btn--primary btn--block auth-submit" type="submit">
               Iniciar sesión
             </button>
+            <button
+  id="guest-login"
+  type="button"
+  class="btn btn--secondary btn--block"
+  style="margin-top:12px;"
+>
+  Continuar como invitado
+</button>
           </form>
         </section>
       </main>`;
 
     document.getElementById('login-form').addEventListener('submit', handleLoginSubmit);
+    document.getElementById('guest-login').addEventListener('click', () => {
+    localStorage.setItem('guestMode', 'true');
+    location.reload();
+});
     setTimeout(() => document.getElementById('login-email')?.focus(), 0);
   }
 
