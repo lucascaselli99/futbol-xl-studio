@@ -51,6 +51,7 @@ const Components = (() => {
     menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
     users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-2a5.5 5.5 0 0 1 11 0v2"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.5A5 5 0 0 1 21 19v1"/></svg>',
     wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 13.5h3"/></svg>',
+    lightbulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6M10 22h4"/><path d="M8.2 14.5A7 7 0 1 1 15.8 14.5C14.8 15.3 14.5 16 14.5 17h-5c0-1-.3-1.7-1.3-2.5Z"/></svg>',
     repeat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 2 21 6l-4 4"/><path d="M3 12v-1a5 5 0 0 1 5-5h13"/><path d="M7 22 3 18l4-4"/><path d="M21 12v1a5 5 0 0 1-5 5H3"/></svg>',
   };
 
@@ -102,6 +103,7 @@ const Components = (() => {
     { key: 'library', label: 'Biblioteca', icon: 'library', ready: false },
     { key: 'costs', label: 'Costos', icon: 'wallet', ready: true },
     { key: 'team', label: 'Equipo', icon: 'users', ready: true },
+    { key: 'thumbnail-lab', label: 'Probador de miniaturas', icon: 'image', ready: true },
     { key: 'calendar-module', label: 'Calendario', icon: 'calendar', ready: false },
     { key: 'analytics', label: 'Analytics', icon: 'analytics', ready: false },
     { key: 'settings', label: 'Configuración', icon: 'settings', ready: true },
@@ -171,6 +173,7 @@ const Components = (() => {
       library: 'Biblioteca',
       costs: 'Costos',
       team: 'Equipo',
+      'thumbnail-lab': 'Probador de miniaturas',
       'calendar-module': 'Calendario',
       analytics: 'Analytics',
       settings: 'Configuración',
@@ -206,7 +209,7 @@ const Components = (() => {
   /* ------------------------------------------------------------------ */
 
   function renderDashboard(ctx) {
-    const { videos, states, series, formats, settings } = ctx;
+    const { videos, states, series, formats, settings, quickNotes = [] } = ctx;
     const active = videos.filter((v) => !v.archived);
     const byStateName = (name) => {
       const st = states.find((s) => s.name.toLowerCase() === name.toLowerCase());
@@ -295,6 +298,29 @@ const Components = (() => {
         </div>
 
         <div class="home-grid">
+          <section class="panel panel--wide quick-notes-panel">
+            <div class="quick-notes__header">
+              <div>
+                <h3>💡 Notas rápidas</h3>
+                <p class="muted small">Anotá una idea y convertíla en proyecto cuando esté lista.</p>
+              </div>
+            </div>
+            <div class="quick-notes__composer">
+              <textarea id="quick-note-input" rows="2" placeholder="Escribí una idea rápida..."></textarea>
+              <button class="btn btn--primary" data-action="quick-note-add">${icon('plus')} Guardar nota</button>
+            </div>
+            ${quickNotes.length ? `<div class="quick-notes__grid">
+              ${quickNotes.map((note) => `<article class="quick-note-card">
+                <p>${escapeHtml(note.text)}</p>
+                <div class="quick-note-card__actions">
+                  <button class="btn btn--ghost btn--sm" data-action="quick-note-edit" data-id="${note.id}">${icon('edit')} Editar</button>
+                  <button class="btn btn--secondary btn--sm" data-action="quick-note-to-project" data-id="${note.id}">${icon('video')} Proyecto</button>
+                  <button class="icon-btn icon-btn--sm" data-action="quick-note-delete" data-id="${note.id}" title="Eliminar">${icon('trash')}</button>
+                </div>
+              </article>`).join('')}
+            </div>` : `<p class="muted small empty-mini">Todavía no guardaste ninguna idea.</p>`}
+          </section>
+
           <section class="panel">
             <h3>Próximos vencimientos</h3>
             ${upcoming.length ? `<ul class="mini-list">
@@ -354,6 +380,57 @@ const Components = (() => {
                   <span class="mini-list__meta">${formatDate(it.createdAt, settings.dateFormat)}</span>
                 </li>`).join('')}
               </ul>` : ''}
+          </section>
+        </div>
+      </div>`;
+  }
+
+  function renderThumbnailLab(ctx) {
+    const lab = ctx.thumbnailLab || { title: '', image: '', device: 'desktop' };
+    const title = lab.title || '';
+    const device = lab.device || 'desktop';
+    return `
+      <div class="view thumbnail-lab">
+        <div class="home-header">
+          <div>
+            <h2>Probador de miniaturas</h2>
+            <p class="muted">Subí una miniatura y mirá cómo se ve junto al título antes de publicarla.</p>
+          </div>
+          <button class="btn btn--ghost" data-action="thumbnail-lab-clear">Limpiar</button>
+        </div>
+
+        <div class="thumbnail-lab__layout">
+          <section class="panel thumbnail-lab__controls">
+            <label class="field">
+              <span>Título del video</span>
+              <textarea id="thumbnail-lab-title" rows="3" placeholder="Escribí el título...">${escapeHtml(title)}</textarea>
+            </label>
+            <label class="thumbnail-upload">
+              ${icon('upload')}
+              <strong>Subir miniatura</strong>
+              <span>JPG, PNG o WebP</span>
+              <input id="thumbnail-lab-image" type="file" accept="image/*" hidden />
+            </label>
+            <div class="thumbnail-device-switch">
+              ${['desktop', 'mobile', 'tv'].map((item) => `<button class="btn ${device === item ? 'btn--primary' : 'btn--secondary'} btn--sm" data-action="thumbnail-lab-device" data-device="${item}">${item === 'desktop' ? '💻 Escritorio' : item === 'mobile' ? '📱 Celular' : '📺 TV'}</button>`).join('')}
+            </div>
+          </section>
+
+          <section class="panel thumbnail-preview-wrap">
+            <div class="youtube-preview youtube-preview--${device}">
+              <div class="youtube-preview__thumb ${lab.image ? '' : 'youtube-preview__thumb--empty'}" ${lab.image ? `style="background-image:url('${lab.image}')"` : ''}>
+                ${lab.image ? '' : `<div>${icon('image')}<span>Tu miniatura aparecerá acá</span></div>`}
+                <span class="youtube-preview__duration">12:34</span>
+              </div>
+              <div class="youtube-preview__meta">
+                <div class="youtube-preview__avatar">FXL</div>
+                <div>
+                  <h3 id="thumbnail-lab-preview-title">${escapeHtml(title.trim() || 'Título del video')}</h3>
+                  <p>Fútbol XL</p>
+                  <p>18 mil vistas · hace 2 horas</p>
+                </div>
+              </div>
+            </div>
           </section>
         </div>
       </div>`;
@@ -3321,6 +3398,7 @@ const Components = (() => {
     renderMobileNav,
     renderTopbar,
     renderDashboard,
+    renderThumbnailLab,
     renderVideosToolbar,
     renderFilterPanel,
     renderKanban,
