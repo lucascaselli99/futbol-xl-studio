@@ -3502,6 +3502,11 @@ if (localStorage.getItem('guestMode') === 'true') {
     document.addEventListener('dragover', onGlobalDragOver);
     document.addEventListener('drop', onGlobalDrop);
     document.addEventListener('dragend', onGlobalDragEnd);
+    window.addEventListener('dragleave', (event) => {
+      if (event.clientX === 0 && event.clientY === 0) {
+        document.querySelector('.view--library')?.classList.remove('library-drop-active');
+      }
+    });
     wireLibraryPasteHandler();
   }
 
@@ -4603,10 +4608,25 @@ if (localStorage.getItem('guestMode') === 'true') {
       col.classList.add('kanban-col--drag-over');
       return;
     }
+
     if (state.ui.route !== 'library') return;
-    const libTarget = closest(e.target, '.library-card--folder, [data-drop-folder], .crumb');
-    if (libTarget) {
-      e.preventDefault();
+
+    const isFileDrag = e.dataTransfer?.types
+      && Array.from(e.dataTransfer.types).includes('Files');
+
+    const libTarget = closest(
+      e.target,
+      '.library-card--folder, .library-empty-dropzone, .library-grid, .view--library[data-drop-folder], .crumb'
+    );
+
+    if (!libTarget) return;
+
+    e.preventDefault();
+    e.dataTransfer.dropEffect = isFileDrag ? 'copy' : 'move';
+
+    if (isFileDrag) {
+      document.querySelector('.view--library')?.classList.add('library-drop-active');
+    } else {
       libTarget.classList.add('kanban-col--drag-over');
     }
   }
@@ -4621,10 +4641,15 @@ if (localStorage.getItem('guestMode') === 'true') {
       return;
     }
 
-    const libTarget = closest(e.target, '.library-card--folder, [data-drop-folder], .crumb');
+    const libTarget = closest(
+      e.target,
+      '.library-card--folder, .library-empty-dropzone, .library-grid, .view--library[data-drop-folder], .crumb'
+    );
     if (libTarget && state.ui.route === 'library') {
       e.preventDefault();
-      libTarget.classList.remove('kanban-col--drag-over');
+      document.querySelectorAll('.library-drop-active, .kanban-col--drag-over').forEach((el) => {
+        el.classList.remove('library-drop-active', 'kanban-col--drag-over');
+      });
       const targetFolderId = libraryDropTargetFolderId(libTarget);
 
       // Arrastre de archivos desde el sistema operativo (subida directa).
@@ -4651,7 +4676,9 @@ if (localStorage.getItem('guestMode') === 'true') {
 
   function onGlobalDragEnd(e) {
     document.querySelectorAll('.video-card--dragging').forEach((c) => c.classList.remove('video-card--dragging'));
-    document.querySelectorAll('.kanban-col--drag-over').forEach((c) => c.classList.remove('kanban-col--drag-over'));
+    document.querySelectorAll('.kanban-col--drag-over, .library-drop-active').forEach((c) => {
+      c.classList.remove('kanban-col--drag-over', 'library-drop-active');
+    });
     draggedVideoId = null;
     draggedLibraryId = null;
     draggedLibraryKind = null;
