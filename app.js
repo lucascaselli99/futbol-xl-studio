@@ -3492,13 +3492,18 @@ if (localStorage.getItem('guestMode') === 'true') {
     if (slides.length < 2) return;
     const current = Number(slider.dataset.index || 0);
     const next = (current + direction + slides.length) % slides.length;
-    slides.forEach((slide, index) => {
-      const active = index === next;
-      slide.classList.toggle('is-active', active);
-      slide.style.display = active ? 'block' : 'none';
-    });
-    slider.dataset.index = String(next);
-    const counter = slider.querySelector('[data-citas-counter]');
+    const dots=Array.from(slider.querySelectorAll('[data-citas-dot]'));
+    slides[current].classList.remove('is-active');
+    window.setTimeout(()=>{
+      slides[current].style.display='none';
+      slides[next].style.display='block';
+      requestAnimationFrame(()=>slides[next].classList.add('is-active'));
+      dots.forEach((d,i)=>d.classList.toggle('is-active',i===next));
+      slider.dataset.index=String(next);
+      const counter=slider.querySelector('[data-citas-counter]');
+      if(counter) counter.textContent=`${next+1} / ${slides.length}`;
+    },225);
+    return;
     if (counter) counter.textContent = `${next + 1} / ${slides.length}`;
   }
 
@@ -4716,3 +4721,16 @@ if (localStorage.getItem('guestMode') === 'true') {
 
   document.addEventListener('DOMContentLoaded', init);
 })();
+
+document.addEventListener('click',e=>{
+ const d=e.target.closest('[data-citas-dot]');
+ if(!d)return;
+ const slider=document.querySelector('[data-citas-slider]');
+ if(!slider)return;
+ const target=Number(d.dataset.citasDot);
+ const slides=[...slider.querySelectorAll('[data-citas-slide]')];
+ const current=Number(slider.dataset.index||0);
+ if(target===current)return;
+ slider.dataset.index=String(current);
+ moveDashboardCitasSlider(target-current);
+});
