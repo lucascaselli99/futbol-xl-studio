@@ -2184,19 +2184,32 @@ const Components = (() => {
 
   /* ---- Panel de detalles de un recurso ---- */
 
-  function renderLibraryPreview(item) {
+  function renderLibraryPreview(item, ctx = {}) {
+    const source = item.url || item.fileData || '';
+    const slider = ctx.citasSlider;
+    if (slider && (item.resourceType === 'image' || item.resourceType === 'logo')) {
+      return `
+        <div class="citas-slider" aria-label="Slider de imágenes de citas">
+          <button class="citas-slider__arrow citas-slider__arrow--prev" data-action="citas-slider-prev" aria-label="Imagen anterior" ${slider.total < 2 ? 'disabled' : ''}>${icon('chevronLeft')}</button>
+          <div class="citas-slider__stage">
+            <img class="citas-slider__img" src="${source}" alt="${escapeHtml(item.name)}" />
+          </div>
+          <button class="citas-slider__arrow citas-slider__arrow--next" data-action="citas-slider-next" aria-label="Imagen siguiente" ${slider.total < 2 ? 'disabled' : ''}>${icon('chevronRight')}</button>
+          <div class="citas-slider__counter">${slider.index + 1} / ${slider.total}</div>
+        </div>`;
+    }
     if (item.storageMode === 'file') {
       if (item.resourceType === 'image' || item.resourceType === 'logo') {
-        return `<img class="library-preview__img" src="${item.fileData}" alt="${escapeHtml(item.name)}" />`;
+        return `<img class="library-preview__img" src="${source}" alt="${escapeHtml(item.name)}" />`;
       }
       if (item.resourceType === 'audio') {
-        return `<audio class="library-preview__audio" controls src="${item.fileData}"></audio>`;
+        return `<audio class="library-preview__audio" controls src="${source}"></audio>`;
       }
       if (item.resourceType === 'video') {
-        return `<video class="library-preview__video" controls src="${item.fileData}"></video>`;
+        return `<video class="library-preview__video" controls src="${source}"></video>`;
       }
       if (item.resourceType === 'pdf') {
-        return `<iframe class="library-preview__pdf" src="${item.fileData}" title="${escapeHtml(item.name)}"></iframe><p class="muted small">Si tu navegador no puede mostrar el PDF embebido, usá "Descargar" o "Abrir".</p>`;
+        return `<iframe class="library-preview__pdf" src="${source}" title="${escapeHtml(item.name)}"></iframe><p class="muted small">Si tu navegador no puede mostrar el PDF embebido, usá "Descargar" o "Abrir".</p>`;
       }
       return `<div class="library-preview__icon">${resourceTypeMeta(item.resourceType).icon}</div>`;
     }
@@ -2232,7 +2245,7 @@ const Components = (() => {
             </div>
           </div>
           <div class="editor-panel__body">
-            <div class="library-preview">${renderLibraryPreview(item)}</div>
+            <div class="library-preview ${ctx.citasSlider ? 'library-preview--citas' : ''}">${renderLibraryPreview(item, ctx)}</div>
             <div class="editor-form">
               <label class="field field--wide">
                 <span>Descripción</span>
