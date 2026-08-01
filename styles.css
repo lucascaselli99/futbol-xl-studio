@@ -1481,7 +1481,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 
 .library-detail-panel .editor-panel__body { display: flex; flex-direction: column; gap: 16px; }
 .library-preview { display: flex; align-items: center; justify-content: center; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; min-height: 160px; }
-.library-preview__img { max-width: 100%; max-height: 320px; border-radius: var(--radius-sm); object-fit: contain; }
+.library-preview__img { max-width: 100%; max-height: 320px; border-radius: var(--radius-sm); object-fit: cover; }
 .library-preview__audio { width: 100%; }
 .library-preview__video { max-width: 100%; max-height: 320px; border-radius: var(--radius-sm); }
 .library-preview__pdf { width: 100%; height: 320px; border: none; border-radius: var(--radius-sm); background: #fff; }
@@ -2062,7 +2062,7 @@ dialog.modal::backdrop { background: var(--overlay); }
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   opacity: 0;
   pointer-events: none;
   transition: opacity 180ms ease;
