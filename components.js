@@ -959,80 +959,151 @@ const Components = (() => {
       in_progress: 'En producción',
       published: 'Publicado',
     };
+    const statusClass = {
+      pending: 'is-pending',
+      scripted: 'is-scripted',
+      in_progress: 'is-progress',
+      published: 'is-published',
+    };
 
-    const sidebar = items.length
-      ? items.map((item) => {
-          const episodes = (item.seasons || []).flatMap((season) => season.episodes || []);
-          const published = episodes.filter((episode) => episode.status === 'published').length;
-          const pct = episodes.length ? Math.round((published / episodes.length) * 100) : 0;
-          return `<button class="planner-series-card ${item.id === ctx.selectedPlannerId ? 'is-active' : ''}" data-action="planner-select" data-id="${item.id}">
-            <strong>${escapeHtml(item.name)}</strong>
-            <span>${episodes.length} capítulos · ${pct}% publicado</span>
-          </button>`;
-        }).join('')
-      : '<p class="muted small">Todavía no creaste ningún formato.</p>';
+    const itemStats = (item) => {
+      const seasons = item.seasons || [];
+      const episodes = seasons.flatMap((season) => season.episodes || []);
+      const published = episodes.filter((episode) => episode.status === 'published').length;
+      const inProgress = episodes.filter((episode) => episode.status === 'in_progress' || episode.status === 'scripted').length;
+      const pending = episodes.filter((episode) => !episode.status || episode.status === 'pending').length;
+      const pct = episodes.length ? Math.round((published / episodes.length) * 100) : 0;
+      return { seasons: seasons.length, episodes, published, inProgress, pending, pct };
+    };
+
+    const aggregate = items.reduce((acc, item) => {
+      const stats = itemStats(item);
+      acc.episodes += stats.episodes.length;
+      acc.published += stats.published;
+      acc.inProgress += stats.inProgress;
+      acc.pending += stats.pending;
+      return acc;
+    }, { episodes: 0, published: 0, inProgress: 0, pending: 0 });
 
     if (!selected) {
-      return `<div class="view planner-view">
-        <div class="page-heading"><div><h1>Formatos</h1><p class="muted">Planificá series, temporadas y capítulos antes de convertirlos en proyectos.</p></div><button class="btn btn--primary" data-action="planner-new">${icon('plus')} Nuevo formato</button></div>
-        <div class="planner-empty panel"><h3>Tu mapa de series</h3><p class="muted">Creá una serie para guardar su estructura, notas generales, temporadas y capítulos.</p><button class="btn btn--primary" data-action="planner-new">Crear el primero</button></div>
+      return `<div class="view planner-view planner-view--premium">
+        <div class="planner-page-heading">
+          <div><span class="planner-eyebrow">PLANIFICACIÓN EDITORIAL</span><h1>${icon('repeat')} Formatos</h1><p>Organizá tus series, temporadas y capítulos en un solo lugar.</p></div>
+          <button class="btn planner-new-btn" data-action="planner-new">${icon('plus')} Nuevo formato</button>
+        </div>
+        <div class="planner-empty planner-empty--premium">
+          <div class="planner-empty__icon">${icon('repeat')}</div>
+          <h2>Tu mapa de contenidos empieza acá</h2>
+          <p>Creá la primera serie para guardar su estructura, notas generales, temporadas y capítulos.</p>
+          <button class="btn planner-new-btn" data-action="planner-new">${icon('plus')} Crear primer formato</button>
+        </div>
       </div>`;
     }
 
-    const allEpisodes = (selected.seasons || []).flatMap((season) => season.episodes || []);
-    const published = allEpisodes.filter((episode) => episode.status === 'published').length;
-    const pct = allEpisodes.length ? Math.round((published / allEpisodes.length) * 100) : 0;
+    const selectedStats = itemStats(selected);
+    const selectedEpisodes = selectedStats.episodes;
+    const statCards = [
+      { label: 'Series', value: items.length, sub: 'creadas', tone: 'purple', glyph: '▤' },
+      { label: 'Capítulos', value: aggregate.episodes, sub: 'totales', tone: 'blue', glyph: '▣' },
+      { label: 'Publicados', value: aggregate.published, sub: aggregate.episodes ? `${Math.round((aggregate.published / aggregate.episodes) * 100)}% del total` : 'sin capítulos', tone: 'green', glyph: '✓' },
+      { label: 'En producción', value: aggregate.inProgress, sub: aggregate.episodes ? `${Math.round((aggregate.inProgress / aggregate.episodes) * 100)}% del total` : 'sin capítulos', tone: 'orange', glyph: '✎' },
+      { label: 'Pendientes', value: aggregate.pending, sub: aggregate.episodes ? `${Math.round((aggregate.pending / aggregate.episodes) * 100)}% del total` : 'sin capítulos', tone: 'gray', glyph: '◷' },
+    ];
 
-    return `<div class="view planner-view">
-      <div class="page-heading"><div><h1>Formatos</h1><p class="muted">Estructura y bloc de notas de tus series.</p></div><button class="btn btn--primary" data-action="planner-new">${icon('plus')} Nuevo formato</button></div>
-      <div class="planner-layout">
-        <aside class="planner-sidebar panel">
-          <h3>Series</h3>
-          <div class="planner-series-list">${sidebar}</div>
-        </aside>
-        <main class="planner-main">
-          <section class="panel planner-header-card">
-            <div class="planner-title-row">
-              <input class="planner-title-input" data-planner-field="name" value="${escapeHtml(selected.name || '')}" />
-              <button class="icon-btn" data-action="planner-delete" data-id="${selected.id}" title="Eliminar formato">${icon('trash')}</button>
-            </div>
-            <textarea data-planner-field="description" rows="2" placeholder="Descripción general de la serie…">${escapeHtml(selected.description || '')}</textarea>
-            <div class="planner-progress"><div><strong>${published}/${allEpisodes.length}</strong><span> capítulos publicados</span></div>${progressBar(pct)}<span class="muted small">${pct}% completado</span></div>
-          </section>
+    const seriesCards = items.map((item, index) => {
+      const stats = itemStats(item);
+      const initials = String(item.name || 'Formato').split(/\s+/).filter(Boolean).slice(0, 3).map((part) => part[0]).join('').toUpperCase();
+      return `<button class="planner-format-card planner-format-card--${index % 6} ${item.id === ctx.selectedPlannerId ? 'is-active' : ''}" data-action="planner-select" data-id="${item.id}">
+        <div class="planner-format-card__cover">
+          <span class="planner-format-card__orb planner-format-card__orb--one"></span>
+          <span class="planner-format-card__orb planner-format-card__orb--two"></span>
+          <span class="planner-format-card__initials">${escapeHtml(initials)}</span>
+          <strong>${escapeHtml(item.name || 'Sin título')}</strong>
+        </div>
+        <div class="planner-format-card__body">
+          <div class="planner-format-card__top"><div><h3>${escapeHtml(item.name || 'Sin título')}</h3><p>${stats.seasons} temporada${stats.seasons === 1 ? '' : 's'}</p></div><span class="planner-format-card__menu">•••</span></div>
+          <div class="planner-format-card__progress"><span style="width:${stats.pct}%"></span></div>
+          <div class="planner-format-card__progress-label"><span>${stats.pct}% completado</span><strong>${stats.pct}%</strong></div>
+          <div class="planner-format-card__meta"><span>▣ ${stats.episodes.length} capítulos</span><span>✓ ${stats.published} publicados</span></div>
+        </div>
+      </button>`;
+    }).join('');
 
-          <section class="panel planner-notes">
-            <h3>Bloc de notas de la serie</h3>
-            <textarea data-planner-field="notes" rows="7" placeholder="Idea general, tono, reglas de la serie, posibles invitados, referencias…">${escapeHtml(selected.notes || '')}</textarea>
-          </section>
-
-          <div class="planner-seasons">
-            ${(selected.seasons || []).map((season) => `<section class="panel planner-season">
-              <div class="planner-season__header">
-                <div><span class="muted small">TEMPORADA ${season.number}</span><input data-season-field="title" data-season-id="${season.id}" value="${escapeHtml(season.title || `Temporada ${season.number}`)}" /></div>
-                <button class="btn btn--secondary btn--sm" data-action="planner-add-episode" data-season-id="${season.id}">${icon('plus')} Capítulo</button>
-              </div>
-              <textarea class="planner-season-notes" data-season-field="notes" data-season-id="${season.id}" rows="2" placeholder="Notas de esta temporada…">${escapeHtml(season.notes || '')}</textarea>
-              <div class="planner-episodes">
-                ${(season.episodes || []).length ? season.episodes.map((episode) => `<article class="planner-episode">
-                  <span class="planner-episode__number">${episode.number}</span>
-                  <div class="planner-episode__body">
-                    <input data-episode-field="title" data-season-id="${season.id}" data-episode-id="${episode.id}" value="${escapeHtml(episode.title || '')}" />
-                    <textarea data-episode-field="notes" data-season-id="${season.id}" data-episode-id="${episode.id}" rows="2" placeholder="Notas del capítulo…">${escapeHtml(episode.notes || '')}</textarea>
-                  </div>
-                  <select data-episode-status data-season-id="${season.id}" data-episode-id="${episode.id}">
-                    ${Object.entries(statusLabels).map(([value, label]) => `<option value="${value}" ${episode.status === value ? 'selected' : ''}>${label}</option>`).join('')}
-                  </select>
-                  <div class="planner-episode__actions">
-                    <button class="btn btn--secondary btn--sm" data-action="planner-create-video" data-season-id="${season.id}" data-id="${episode.id}">${episode.videoId ? 'Abrir proyecto' : 'Crear proyecto'}</button>
-                    <button class="icon-btn icon-btn--sm" data-action="planner-delete-episode" data-season-id="${season.id}" data-id="${episode.id}" title="Eliminar">${icon('trash')}</button>
-                  </div>
-                </article>`).join('') : '<p class="muted small">Todavía no hay capítulos en esta temporada.</p>'}
-              </div>
-            </section>`).join('') || '<div class="panel planner-empty"><p class="muted">Todavía no agregaste temporadas.</p></div>'}
+    const seasonsHtml = (selected.seasons || []).map((season) => {
+      const episodes = season.episodes || [];
+      const seasonPublished = episodes.filter((episode) => episode.status === 'published').length;
+      const seasonPct = episodes.length ? Math.round((seasonPublished / episodes.length) * 100) : 0;
+      return `<section class="planner-season-card">
+        <div class="planner-season-card__header">
+          <div class="planner-season-card__heading">
+            <span class="planner-season-card__badge">T${season.number}</span>
+            <div><span class="planner-kicker">TEMPORADA ${season.number}</span><input data-season-field="title" data-season-id="${season.id}" value="${escapeHtml(season.title || `Temporada ${season.number}`)}" /></div>
           </div>
-          <button class="btn btn--secondary" data-action="planner-add-season">${icon('plus')} Agregar temporada</button>
-        </main>
+          <div class="planner-season-card__summary"><strong>${seasonPublished}/${episodes.length}</strong><span>publicados</span><div class="planner-mini-progress"><span style="width:${seasonPct}%"></span></div></div>
+          <button class="btn btn--secondary btn--sm" data-action="planner-add-episode" data-season-id="${season.id}">${icon('plus')} Capítulo</button>
+        </div>
+        <textarea class="planner-season-notes" data-season-field="notes" data-season-id="${season.id}" rows="2" placeholder="Notas de esta temporada…">${escapeHtml(season.notes || '')}</textarea>
+        <div class="planner-episodes">
+          ${episodes.length ? episodes.map((episode) => `<article class="planner-episode-card ${statusClass[episode.status] || 'is-pending'}">
+            <span class="planner-episode-card__number">${episode.number}</span>
+            <div class="planner-episode-card__content">
+              <input data-episode-field="title" data-season-id="${season.id}" data-episode-id="${episode.id}" value="${escapeHtml(episode.title || '')}" />
+              <textarea data-episode-field="notes" data-season-id="${season.id}" data-episode-id="${episode.id}" rows="2" placeholder="Notas, referencias o ideas del capítulo…">${escapeHtml(episode.notes || '')}</textarea>
+            </div>
+            <select class="planner-status-select ${statusClass[episode.status] || 'is-pending'}" data-episode-status data-season-id="${season.id}" data-episode-id="${episode.id}">
+              ${Object.entries(statusLabels).map(([value, label]) => `<option value="${value}" ${episode.status === value ? 'selected' : ''}>${label}</option>`).join('')}
+            </select>
+            <div class="planner-episode-card__actions">
+              <button class="btn btn--secondary btn--sm" data-action="planner-create-video" data-season-id="${season.id}" data-id="${episode.id}">${episode.videoId ? 'Abrir proyecto' : 'Crear proyecto'}</button>
+              <button class="icon-btn icon-btn--sm" data-action="planner-delete-episode" data-season-id="${season.id}" data-id="${episode.id}" title="Eliminar">${icon('trash')}</button>
+            </div>
+          </article>`).join('') : `<div class="planner-season-empty"><span>${icon('video')}</span><p>Todavía no hay capítulos en esta temporada.</p></div>`}
+        </div>
+      </section>`;
+    }).join('');
+
+    return `<div class="view planner-view planner-view--premium">
+      <div class="planner-page-heading">
+        <div><span class="planner-eyebrow">PLANIFICACIÓN EDITORIAL</span><h1>${icon('repeat')} Formatos</h1><p>Estructura y organizá tus series, temporadas y capítulos.</p></div>
+        <button class="btn planner-new-btn" data-action="planner-new">${icon('plus')} Nuevo formato</button>
       </div>
+
+      <section class="planner-stats-grid">${statCards.map((card) => `<article class="planner-stat-card planner-stat-card--${card.tone}"><span class="planner-stat-card__icon">${card.glyph}</span><div><strong>${card.value}</strong><h3>${card.label}</h3><p>${card.sub}</p></div></article>`).join('')}</section>
+
+      <div class="planner-workspace">
+        <section class="planner-catalog">
+          <div class="planner-section-heading"><div><span class="planner-kicker">CATÁLOGO</span><h2>Mis series</h2></div><span class="planner-series-count">${items.length} formato${items.length === 1 ? '' : 's'}</span></div>
+          <div class="planner-format-grid">${seriesCards}</div>
+        </section>
+
+        <aside class="planner-detail-panel">
+          <div class="planner-detail-panel__cover planner-format-card--${Math.max(0, items.findIndex((item) => item.id === selected.id)) % 6}">
+            <span class="planner-format-card__orb planner-format-card__orb--one"></span><span class="planner-format-card__orb planner-format-card__orb--two"></span>
+            <strong>${escapeHtml(selected.name || 'Sin título')}</strong>
+          </div>
+          <div class="planner-detail-panel__body">
+            <div class="planner-detail-title-row"><input class="planner-title-input" data-planner-field="name" value="${escapeHtml(selected.name || '')}" /><button class="icon-btn" data-action="planner-delete" data-id="${selected.id}" title="Eliminar formato">${icon('trash')}</button></div>
+            <textarea class="planner-description-input" data-planner-field="description" rows="3" placeholder="Descripción general de la serie…">${escapeHtml(selected.description || '')}</textarea>
+            <div class="planner-detail-divider"></div>
+            <h3>Resumen general</h3>
+            <div class="planner-detail-summary">
+              <div><strong>${selectedStats.seasons}</strong><span>Temporadas</span></div>
+              <div><strong>${selectedEpisodes.length}</strong><span>Capítulos</span></div>
+              <div class="is-green"><strong>${selectedStats.published}</strong><span>Publicados</span><em>${selectedStats.pct}%</em></div>
+              <div class="is-orange"><strong>${selectedStats.inProgress}</strong><span>En producción</span></div>
+              <div><strong>${selectedStats.pending}</strong><span>Pendientes</span></div>
+            </div>
+            <div class="planner-detail-progress"><span style="width:${selectedStats.pct}%"></span></div>
+            <label class="planner-notes-card"><span class="planner-notes-card__icon">✎</span><div><strong>Bloc de notas de la serie</strong><textarea data-planner-field="notes" rows="5" placeholder="Idea general, tono, reglas, invitados, referencias…">${escapeHtml(selected.notes || '')}</textarea></div></label>
+            <p class="planner-detail-updated">Última actualización: ${selected.updatedAt ? formatDateTime(selected.updatedAt) : 'sin datos'}</p>
+          </div>
+        </aside>
+      </div>
+
+      <section class="planner-seasons-section">
+        <div class="planner-section-heading planner-section-heading--seasons"><div><span class="planner-kicker">ESTRUCTURA</span><h2>Temporadas y capítulos</h2></div><button class="btn btn--secondary" data-action="planner-add-season">${icon('plus')} Agregar temporada</button></div>
+        <div class="planner-seasons">${seasonsHtml || `<div class="planner-empty planner-empty--inline"><h3>Todavía no agregaste temporadas</h3><p>Creá la primera para empezar a ordenar los capítulos de esta serie.</p><button class="btn btn--secondary" data-action="planner-add-season">${icon('plus')} Agregar temporada</button></div>`}</div>
+      </section>
     </div>`;
   }
 
