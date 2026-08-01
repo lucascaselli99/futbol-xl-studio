@@ -4340,14 +4340,7 @@ if (localStorage.getItem('guestMode') === 'true') {
       return;
     }
 
-    if (el.dataset.field && video && ![
-          'stateId',
-          'seriesId',
-          'formatId',
-          'contentTypeId',
-          'priorityId',
-          'ownerId'
-        ].includes(el.dataset.field)) {
+    if (el.dataset.field && video && !['stateId', 'seriesId', 'formatId', 'contentTypeId', 'priorityId'].includes(el.dataset.field)) {
       video[el.dataset.field] = el.value;
       touchAndSaveDebounced(video);
       return;
