@@ -2457,21 +2457,24 @@ if (localStorage.getItem('guestMode') === 'true') {
     saveVideoNow(video.id);
   }
 
-  /**
-   * Envía un aviso por correo cuando un video se asigna a un integrante.
-   * El guardado del video ocurre antes del envío: si Resend falla, la
-   * asignación permanece guardada y solo se informa el error al usuario.
-   */
   async function sendAssignmentEmail(video, employee) {
-    if (!employee?.email || state.authUser?.guest || !Supa.client) return;
+    if (!employee || !employee.email) {
+      Utils.toast('El responsable no tiene un email cargado en Equipo', 'info');
+      return;
+    }
+
+    if (state.authUser?.guest) {
+      Utils.toast('Los emails no se envían en modo invitado', 'info');
+      return;
+    }
 
     try {
       const { data, error } = await Supa.client.auth.getSession();
       if (error || !data?.session?.access_token) {
-        throw new Error('No se pudo validar la sesión para enviar el aviso.');
+        throw new Error('No se pudo validar la sesión de Supabase.');
       }
 
-      const currentState = state.states.find((item) => item.id === video.stateId);
+      const currentState = Components.byId(state.states, video.stateId);
       const response = await fetch('/api/send-assignment-email', {
         method: 'POST',
         headers: {
@@ -2480,9 +2483,9 @@ if (localStorage.getItem('guestMode') === 'true') {
         },
         body: JSON.stringify({
           to: employee.email,
-          employeeName: employee.name || 'integrante del equipo',
+          employeeName: employee.name || 'Integrante del equipo',
           videoTitle: video.title || 'Video sin título',
-          stateName: currentState?.name || 'Sin estado',
+          statusName: currentState?.name || 'Sin estado',
           targetDate: video.targetDate || null,
           assignedBy: state.currentEmployee?.name || state.authUser?.email || 'Fútbol XL Studio',
           appUrl: window.location.origin,
@@ -2490,14 +2493,12 @@ if (localStorage.getItem('guestMode') === 'true') {
       });
 
       const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(result.error || 'No se pudo enviar el correo.');
-      }
+      if (!response.ok) throw new Error(result.error || 'No se pudo enviar el correo.');
 
-      Utils.toast(`Aviso enviado a ${employee.name || employee.email}`, 'success');
+      Utils.toast(`Email enviado a ${employee.name || employee.email}`, 'success');
     } catch (error) {
-      console.error('[Fútbol XL Studio] Error al enviar aviso de asignación:', error);
-      Utils.toast(`La asignación se guardó, pero el correo no se pudo enviar: ${error.message}`, 'error');
+      console.error('[Fútbol XL Studio] Error al enviar email de asignación:', error);
+      Utils.toast(`La asignación se guardó, pero el email no pudo enviarse: ${error.message}`, 'error');
     }
   }
 
@@ -2714,6 +2715,11 @@ if (localStorage.getItem('guestMode') === 'true') {
       // respaldos y versiones anteriores de la app.
       video.owner = employee ? employee.name : '';
       pushHistory(video, 'owner-change', `Responsable cambiado a "${employee ? employee.name : 'Sin responsable'}"`);
+      // El video se guarda antes de intentar enviar el correo. Si Resend
+      // falla, la asignación igualmente queda aplicada correctamente.
+      if (employee && employee.email && prev !== value) {
+        setTimeout(() => sendAssignmentEmail(video, employee), 0);
+      }
     } else if (field === 'targetDate' || field === 'publishDate') {
       video[field] = value || null;
       pushHistory(video, 'date-change', `${field === 'targetDate' ? 'Fecha objetivo' : 'Fecha de publicación'} actualizada a ${value || 'sin definir'}`);
@@ -2721,16 +2727,6 @@ if (localStorage.getItem('guestMode') === 'true') {
       video[field] = value;
     }
     await touchAndSaveNow(video);
-
-    if (field === 'ownerId' && value && value !== prev) {
-      const assignedEmployee = state.employees.find((item) => item.id === value);
-      if (assignedEmployee?.email) {
-        void sendAssignmentEmail(video, assignedEmployee);
-      } else if (assignedEmployee) {
-        Utils.toast(`La asignación se guardó, pero ${assignedEmployee.name || 'el responsable'} no tiene email configurado.`, 'info');
-      }
-    }
-
     renderEditorBody();
     renderMain();
   }
