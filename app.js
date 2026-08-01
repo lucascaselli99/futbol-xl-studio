@@ -2717,6 +2717,18 @@ if (localStorage.getItem('guestMode') === 'true') {
       pushHistory(video, 'owner-change', `Responsable cambiado a "${employee ? employee.name : 'Sin responsable'}"`);
       // El video se guarda antes de intentar enviar el correo. Si Resend
       // falla, la asignación igualmente queda aplicada correctamente.
+      video.owner = employee ? employee.name : '';
+pushHistory(video, 'owner-change', `Responsable cambiado a "${employee ? employee.name : 'Sin asignar'}"`);
+
+console.log({
+  employee,
+  prev,
+  value
+});
+
+if (employee && employee.email && prev !== value) {
+    setTimeout(() => sendAssignmentEmail(video, employee), 0);
+}
       if (employee && employee.email && prev !== value) {
         setTimeout(() => sendAssignmentEmail(video, employee), 0);
       }
