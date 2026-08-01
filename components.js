@@ -743,8 +743,43 @@ const Components = (() => {
 
   function renderTeam(ctx) {
     const employees = (ctx.employees || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+    const priorityById = Object.fromEntries((ctx.priorities || []).map((p) => [p.id, p]));
+
+    const priorityScore = (video) => {
+      const priority = priorityById[video.priorityId];
+      if (!priority) return -1;
+
+      const name = String(priority.name || '').toLowerCase();
+      if (name.includes('urgente')) return 4;
+      if (name.includes('alta')) return 3;
+      if (name.includes('media')) return 2;
+      if (name.includes('baja')) return 1;
+
+      return Number(priority.order ?? 0);
+    };
+
     const cards = employees.map((employee) => {
-      const videos = (ctx.videos || []).filter((v) => v.ownerId === employee.id);
+      const videos = (ctx.videos || [])
+        .filter((v) => v.ownerId === employee.id)
+        .slice()
+        .sort((a, b) => {
+          const byPriority = priorityScore(b) - priorityScore(a);
+          if (byPriority !== 0) return byPriority;
+          return String(a.title || '').localeCompare(String(b.title || ''), 'es');
+        });
+
+      const projectsHtml = videos.slice(0, 4).map((v) => {
+        const priority = priorityById[v.priorityId];
+        const priorityName = priority?.name || 'Sin prioridad';
+        const priorityColor = priority?.color || '#737373';
+
+        return `
+          <button data-action="open-video" data-id="${v.id}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left">
+            <span class="pill pill--outline" style="--pill-color:${escapeHtml(priorityColor)};flex:0 0 auto">${escapeHtml(priorityName)}</span>
+            <span>${escapeHtml(v.title || 'Sin título')}</span>
+          </button>`;
+      }).join('');
+
       return `
         <article class="team-card">
           <div class="team-card__avatar">${escapeHtml((employee.name || '?').split(/\s+/).map((x) => x[0]).slice(0,2).join('').toUpperCase())}</div>
@@ -756,7 +791,7 @@ const Components = (() => {
             ${employee.email ? `<p class="small">${escapeHtml(employee.email)}</p>` : ''}
             ${employee.phone ? `<p class="small muted">${escapeHtml(employee.phone)}</p>` : ''}
             <p class="team-card__count"><strong>${videos.length}</strong> proyecto${videos.length === 1 ? '' : 's'} asignado${videos.length === 1 ? '' : 's'}</p>
-            ${videos.length ? `<div class="team-card__projects">${videos.slice(0,4).map((v) => `<button data-action="open-video" data-id="${v.id}">${escapeHtml(v.title || 'Sin título')}</button>`).join('')}${videos.length > 4 ? `<span class="muted small">+${videos.length - 4} más</span>` : ''}</div>` : ''}
+            ${videos.length ? `<div class="team-card__projects">${projectsHtml}${videos.length > 4 ? `<span class="muted small">+${videos.length - 4} más</span>` : ''}</div>` : ''}
           </div>
           <div class="team-card__actions">
             <button class="icon-btn" data-action="edit-employee" data-id="${employee.id}" title="Editar">${icon('edit')}</button>
@@ -764,6 +799,7 @@ const Components = (() => {
           </div>
         </article>`;
     }).join('');
+
     return `<div class="view team-view">
       <div class="page-heading"><div><h1>Equipo</h1><p class="muted">Administrá responsables y conectalos automáticamente con cada video.</p></div><button class="btn btn--primary" data-action="new-employee">${icon('plus')} Nuevo empleado</button></div>
       ${employees.length ? `<div class="team-grid">${cards}</div>` : renderEmptyState({ title: 'Todavía no hay empleados', message: 'Creá el primer integrante para asignarlo como responsable de tus videos.', action: { action: 'new-employee', label: 'Nuevo empleado' } })}
@@ -865,20 +901,6 @@ const Components = (() => {
       .join('');
   }
 
-  function employeeOptions(employees, selectedId, legacyOwner) {
-    const selectedExists = employees.some((employee) => employee.id === selectedId);
-    const options = employees
-      .filter((employee) => employee.active !== false || employee.id === selectedId)
-      .slice()
-      .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-      .map((employee) => `<option value="${employee.id}" ${employee.id === selectedId ? 'selected' : ''}>${escapeHtml(employee.name || 'Sin nombre')}${employee.active === false ? ' (inactivo)' : ''}</option>`)
-      .join('');
-    const legacy = !selectedExists && legacyOwner
-      ? `<option value="" selected>${escapeHtml(legacyOwner)} (sin vincular)</option>`
-      : `<option value="" ${selectedId ? '' : 'selected'}>Sin responsable</option>`;
-    return legacy + options;
-  }
-
   function renderEditorGeneral(video, ctx) {
     return `
       <div class="editor-form">
@@ -914,7 +936,7 @@ const Components = (() => {
           </label>
           <label class="field">
             <span>Responsable del proyecto</span>
-            <select data-field="ownerId">${employeeOptions(ctx.employees || [], video.ownerId, video.owner)}</select>
+            <select data-field="ownerId">${selectOptions(ctx.employees || [], video.ownerId, 'Sin responsable')}</select>
           </label>
 
           <label class="field">
