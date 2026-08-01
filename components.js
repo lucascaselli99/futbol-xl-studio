@@ -1884,7 +1884,14 @@ const Components = (() => {
 
   function renderLibraryView(ctx) {
     return `
-      <div class="view view--library">
+      <div class="view view--library" data-drop-folder="${ctx.mode === 'browse' ? (ctx.currentFolderId || '') : ''}">
+        <div class="library-drop-overlay" aria-hidden="true">
+          <div class="library-drop-overlay__content">
+            ${icon('upload')}
+            <strong>Soltá los archivos</strong>
+            <span>Se agregarán a esta carpeta</span>
+          </div>
+        </div>
         ${renderLibraryToolbar(ctx)}
         ${renderLibraryQuickChips(ctx)}
         ${ctx.showFilters ? renderLibraryTagFilterRow(ctx) : ''}
@@ -2070,9 +2077,17 @@ const Components = (() => {
 
   function renderLibraryGrid(ctx) {
     if (!ctx.visibleFolders.length && !ctx.visibleItems.length) {
+      if (ctx.mode === 'browse') {
+        return `
+          <button class="library-empty-dropzone" type="button" data-action="quick-upload-file" data-drop-folder="${ctx.currentFolderId || ''}">
+            <span class="library-empty-dropzone__icon">${icon('upload')}</span>
+            <strong>Arrastrá archivos acá</strong>
+            <span>o hacé clic para seleccionarlos</span>
+          </button>`;
+      }
       return renderEmptyState({
-        title: ctx.mode === 'browse' ? 'Esta carpeta está vacía' : 'No se encontraron resultados',
-        message: ctx.mode === 'browse' ? 'Creá una carpeta o subí tu primer recurso.' : 'Probá con otra búsqueda o filtro.',
+        title: 'No se encontraron resultados',
+        message: 'Probá con otra búsqueda o filtro.',
       });
     }
     return `
@@ -2084,7 +2099,15 @@ const Components = (() => {
 
   function renderLibraryList(ctx) {
     if (!ctx.visibleFolders.length && !ctx.visibleItems.length) {
-      return renderEmptyState({ title: 'No hay elementos', message: 'Creá una carpeta o subí un recurso para empezar.' });
+      if (ctx.mode === 'browse') {
+        return `
+          <button class="library-empty-dropzone" type="button" data-action="quick-upload-file" data-drop-folder="${ctx.currentFolderId || ''}">
+            <span class="library-empty-dropzone__icon">${icon('upload')}</span>
+            <strong>Arrastrá archivos acá</strong>
+            <span>o hacé clic para seleccionarlos</span>
+          </button>`;
+      }
+      return renderEmptyState({ title: 'No hay elementos', message: 'Probá con otra búsqueda o filtro.' });
     }
     return `
       <div class="table-wrap">
