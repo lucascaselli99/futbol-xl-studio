@@ -311,8 +311,7 @@ const Components = (() => {
           <section class="dashboard-citas" data-citas-slider data-index="0">
             <div class="dashboard-citas__header">
               <div>
-                <h3>Citas</h3>
-                <p class="muted small">Imágenes de la carpeta “citas”</p>
+                <h3>Citas</h3>               
               </div>
               ${citasImages.length ? `<span class="dashboard-citas__counter" data-citas-counter>1 / ${citasImages.length}</span>` : ''}
             </div>
