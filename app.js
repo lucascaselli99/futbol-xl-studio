@@ -3453,6 +3453,18 @@ if (localStorage.getItem('guestMode') === 'true') {
     if (!actionEl) return;
     const action = actionEl.dataset.action;
     const id = actionEl.dataset.id;
+    // ===== MODO INVITADO =====
+if (state.authUser?.guest) {
+    const accionesPermitidas = [
+        'navigate',
+        'logout'
+    ];
+
+    if (!accionesPermitidas.includes(action)) {
+        Utils.toast('Modo invitado: solo lectura.', 'error');
+        return;
+    }
+}
 
     switch (action) {
       case 'logout':
