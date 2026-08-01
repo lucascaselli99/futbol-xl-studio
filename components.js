@@ -309,13 +309,7 @@ const Components = (() => {
           </div>
 
           <section class="dashboard-citas" data-citas-slider data-index="0">
-            <<div class="citas-header">
-  <h3>Citas</h3>
-  <span class="citas-counter">1 / 2</span>
-</div>
-              ${citasImages.length ? `<span class="dashboard-citas__counter" data-citas-counter>1 / ${citasImages.length}</span>` : ''}
-            </div>
-            <div class="dashboard-citas__canvas">
+  <div class="dashboard-citas__canvas">
               ${citasImages.length ? citasImages.map((item, index) => {
                 const src = item.thumbnailData || item.url || item.fileData;
                 return `<img class="dashboard-citas__image ${index === 0 ? 'is-active' : ''}" data-citas-slide="${index}" src="${escapeHtml(src)}" alt="${escapeHtml(item.name || 'Cita')}" loading="${index === 0 ? 'eager' : 'lazy'}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:${index === 0 ? 'block' : 'none'};">`;
