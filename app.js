@@ -3519,6 +3519,9 @@ if (localStorage.getItem('guestMode') === 'true') {
     document.addEventListener('dragover', onGlobalDragOver);
     document.addEventListener('drop', onGlobalDrop);
     document.addEventListener('dragend', onGlobalDragEnd);
+    // Avanza automáticamente el slider de la carpeta "citas" cada 5 segundos.
+    // La función no hace nada cuando el dashboard no está visible o hay menos de 2 imágenes.
+    window.setInterval(() => moveDashboardCitasSlider(1), 5000);
     window.addEventListener('dragleave', (event) => {
       if (event.clientX === 0 && event.clientY === 0) {
         document.querySelector('.view--library')?.classList.remove('library-drop-active');
