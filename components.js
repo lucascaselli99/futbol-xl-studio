@@ -278,6 +278,16 @@ const Components = (() => {
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 5);
 
+    // Slider del dashboard: toma automáticamente las imágenes guardadas
+    // directamente dentro de la carpeta de Biblioteca llamada "citas".
+    const citasFolder = libFolders.find((folder) => String(folder.name || '').trim().toLowerCase() === 'citas');
+    const citasImages = citasFolder
+      ? libItems
+          .filter((item) => item.folderId === citasFolder.id && (item.resourceType === 'image' || item.resourceType === 'logo'))
+          .filter((item) => item.thumbnailData || item.url || item.fileData)
+          .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+      : [];
+
     return `
       <div class="view view--home">
         <div class="home-header">
@@ -288,13 +298,35 @@ const Components = (() => {
           <button class="btn btn--primary btn--lg" data-action="new-video">${icon('plus')} Nuevo video</button>
         </div>
 
-        <div class="stat-grid">
-          ${cards.map((c) => `
-            <div class="stat-card ${c.danger ? 'stat-card--danger' : ''}">
-              <div class="stat-card__icon">${icon(c.icon)}</div>
-              <div class="stat-card__value">${c.value}</div>
-              <div class="stat-card__label">${escapeHtml(c.label)}</div>
-            </div>`).join('')}
+        <div class="dashboard-overview">
+          <div class="stat-grid stat-grid--dashboard">
+            ${cards.map((c) => `
+              <div class="stat-card stat-card--dashboard ${c.danger ? 'stat-card--danger' : ''}">
+                <div class="stat-card__icon">${icon(c.icon)}</div>
+                <div class="stat-card__value">${c.value}</div>
+                <div class="stat-card__label">${escapeHtml(c.label)}</div>
+              </div>`).join('')}
+          </div>
+
+          <section class="dashboard-citas" data-citas-slider data-index="0">
+            <div class="dashboard-citas__header">
+              <div>
+                <h3>Citas</h3>
+                <p class="muted small">Imágenes de la carpeta “citas”</p>
+              </div>
+              ${citasImages.length ? `<span class="dashboard-citas__counter" data-citas-counter>1 / ${citasImages.length}</span>` : ''}
+            </div>
+            <div class="dashboard-citas__canvas">
+              ${citasImages.length ? citasImages.map((item, index) => {
+                const src = item.thumbnailData || item.url || item.fileData;
+                return `<img class="dashboard-citas__image ${index === 0 ? 'is-active' : ''}" data-citas-slide="${index}" src="${escapeHtml(src)}" alt="${escapeHtml(item.name || 'Cita')}" loading="${index === 0 ? 'eager' : 'lazy'}">`;
+              }).join('') : `<div class="dashboard-citas__empty">${icon('image')}<strong>La carpeta “citas” está vacía</strong><span>Agregá imágenes desde Biblioteca y aparecerán acá automáticamente.</span></div>`}
+              ${citasImages.length > 1 ? `
+                <button class="dashboard-citas__arrow dashboard-citas__arrow--prev" data-action="dashboard-citas-prev" aria-label="Imagen anterior">${icon('chevronLeft')}</button>
+                <button class="dashboard-citas__arrow dashboard-citas__arrow--next" data-action="dashboard-citas-next" aria-label="Imagen siguiente">${icon('chevronRight')}</button>
+              ` : ''}
+            </div>
+          </section>
         </div>
 
         <div class="home-grid">
@@ -2184,32 +2216,19 @@ const Components = (() => {
 
   /* ---- Panel de detalles de un recurso ---- */
 
-  function renderLibraryPreview(item, ctx = {}) {
-    const source = item.url || item.fileData || '';
-    const slider = ctx.citasSlider;
-    if (slider && (item.resourceType === 'image' || item.resourceType === 'logo')) {
-      return `
-        <div class="citas-slider" aria-label="Slider de imágenes de citas">
-          <button class="citas-slider__arrow citas-slider__arrow--prev" data-action="citas-slider-prev" aria-label="Imagen anterior" ${slider.total < 2 ? 'disabled' : ''}>${icon('chevronLeft')}</button>
-          <div class="citas-slider__stage">
-            <img class="citas-slider__img" src="${source}" alt="${escapeHtml(item.name)}" />
-          </div>
-          <button class="citas-slider__arrow citas-slider__arrow--next" data-action="citas-slider-next" aria-label="Imagen siguiente" ${slider.total < 2 ? 'disabled' : ''}>${icon('chevronRight')}</button>
-          <div class="citas-slider__counter">${slider.index + 1} / ${slider.total}</div>
-        </div>`;
-    }
+  function renderLibraryPreview(item) {
     if (item.storageMode === 'file') {
       if (item.resourceType === 'image' || item.resourceType === 'logo') {
-        return `<img class="library-preview__img" src="${source}" alt="${escapeHtml(item.name)}" />`;
+        return `<img class="library-preview__img" src="${item.fileData}" alt="${escapeHtml(item.name)}" />`;
       }
       if (item.resourceType === 'audio') {
-        return `<audio class="library-preview__audio" controls src="${source}"></audio>`;
+        return `<audio class="library-preview__audio" controls src="${item.fileData}"></audio>`;
       }
       if (item.resourceType === 'video') {
-        return `<video class="library-preview__video" controls src="${source}"></video>`;
+        return `<video class="library-preview__video" controls src="${item.fileData}"></video>`;
       }
       if (item.resourceType === 'pdf') {
-        return `<iframe class="library-preview__pdf" src="${source}" title="${escapeHtml(item.name)}"></iframe><p class="muted small">Si tu navegador no puede mostrar el PDF embebido, usá "Descargar" o "Abrir".</p>`;
+        return `<iframe class="library-preview__pdf" src="${item.fileData}" title="${escapeHtml(item.name)}"></iframe><p class="muted small">Si tu navegador no puede mostrar el PDF embebido, usá "Descargar" o "Abrir".</p>`;
       }
       return `<div class="library-preview__icon">${resourceTypeMeta(item.resourceType).icon}</div>`;
     }
@@ -2245,7 +2264,7 @@ const Components = (() => {
             </div>
           </div>
           <div class="editor-panel__body">
-            <div class="library-preview ${ctx.citasSlider ? 'library-preview--citas' : ''}">${renderLibraryPreview(item, ctx)}</div>
+            <div class="library-preview">${renderLibraryPreview(item)}</div>
             <div class="editor-form">
               <label class="field field--wide">
                 <span>Descripción</span>
