@@ -2471,7 +2471,7 @@ if (localStorage.getItem('guestMode') === 'true') {
     try {
       const { data, error } = await Supa.client.auth.getSession();
       if (error || !data?.session?.access_token) {
-        throw new Error('No se pudo validar la sesión de Supabase.');
+        throw new Error('No se pudo validar la sesión de Supabase. Volvé a iniciar sesión e intentá de nuevo.');
       }
 
       const currentState = Components.byId(state.states, video.stateId);
@@ -2492,13 +2492,30 @@ if (localStorage.getItem('guestMode') === 'true') {
         }),
       });
 
-      const result = await response.json().catch(() => ({}));
+      // Si la función de Vercel se cae de forma inesperada (timeout, crash
+      // no controlado), la respuesta puede no ser JSON: no lo tratamos como
+      // "sin error" en silencio, sino como un fallo con mensaje genérico.
+      let result;
+      try {
+        result = await response.json();
+      } catch (parseError) {
+        result = { error: `Respuesta inesperada del servidor (status ${response.status}, sin cuerpo JSON legible).` };
+      }
       if (!response.ok) throw new Error(result.error || 'No se pudo enviar el correo.');
 
       Utils.toast(`Email enviado a ${employee.name || employee.email}`, 'success');
+      pushHistory(video, 'assignment-email-sent', `Email de asignación enviado a ${employee.name || employee.email}`);
+      await touchAndSaveNow(video);
     } catch (error) {
       console.error('[Fútbol XL Studio] Error al enviar email de asignación:', error);
-      Utils.toast(`La asignación se guardó, pero el email no pudo enviarse: ${error.message}`, 'error');
+      // Duración larga (10s) y queda registrado en el historial del video:
+      // el toast por defecto (3.2s) es fácil de perder, y esta acción no
+      // tiene otro lugar visible donde quede constancia del motivo exacto
+      // del fallo (sin necesidad de abrir la consola del navegador).
+      Utils.toast(`La asignación se guardó, pero el email no pudo enviarse: ${error.message}`, 'error', 10000);
+      pushHistory(video, 'assignment-email-failed', `No se pudo enviar el email de asignación a ${employee.name || employee.email}: ${error.message}`);
+      await touchAndSaveNow(video);
+      renderEditorBody();
     }
   }
 
