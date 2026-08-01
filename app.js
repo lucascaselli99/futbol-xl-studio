@@ -44,6 +44,7 @@
     expenses: [],
     subscriptions: [],
     employees: [],
+    quickNotes: [],
     authUser: null,
     currentEmployee: null,
     undo: [], // pila simple de acciones destructivas para Ctrl/Cmd+Z
@@ -86,6 +87,7 @@
       costExpenseSearch: '',
       costExpenseFilters: {},
       showCostFilters: false,
+      thumbnailLab: { title: '', image: '', device: 'desktop' },
     },
   };
 
@@ -102,6 +104,7 @@
   async function init() {
     const authRoot = document.getElementById('auth-root');
     const appRoot = document.getElementById('app');
+    state.quickNotes = readQuickNotes();
     // ===== MODO INVITADO =====
 if (localStorage.getItem('guestMode') === 'true') {
   state.authUser = {
@@ -317,6 +320,62 @@ if (localStorage.getItem('guestMode') === 'true') {
     linkCurrentUserToEmployee();
   }
 
+  function readQuickNotes() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem('fxlQuickNotes') || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.warn('[Fútbol XL Studio] No se pudieron leer las notas rápidas:', error);
+      return [];
+    }
+  }
+
+  function saveQuickNotes() {
+    localStorage.setItem('fxlQuickNotes', JSON.stringify(state.quickNotes));
+  }
+
+  function addQuickNote() {
+    const input = document.getElementById('quick-note-input');
+    const text = input?.value.trim();
+    if (!text) return;
+    state.quickNotes.unshift({ id: Utils.uuid(), text, createdAt: Utils.nowISO() });
+    saveQuickNotes();
+    renderMain();
+    setTimeout(() => document.getElementById('quick-note-input')?.focus(), 0);
+  }
+
+  function deleteQuickNote(id) {
+    state.quickNotes = state.quickNotes.filter((note) => note.id !== id);
+    saveQuickNotes();
+    renderMain();
+  }
+
+  function editQuickNote(id) {
+    const note = state.quickNotes.find((item) => item.id === id);
+    if (!note) return;
+    const nextText = window.prompt('Editar nota rápida', note.text);
+    if (nextText === null) return;
+    const clean = nextText.trim();
+    if (!clean) return;
+    note.text = clean;
+    saveQuickNotes();
+    renderMain();
+  }
+
+  async function quickNoteToProject(id) {
+    const note = state.quickNotes.find((item) => item.id === id);
+    if (!note) return;
+    const video = blankVideo();
+    video.title = note.text;
+    video.idea = note.text;
+    state.videos.unshift(video);
+    await DB.put('videos', video);
+    state.quickNotes = state.quickNotes.filter((item) => item.id !== id);
+    saveQuickNotes();
+    Utils.toast('Idea convertida en proyecto', 'success');
+    openVideoEditor(video.id, 'general');
+  }
+
   function normalizeEmail(value) {
     return String(value || '').trim().toLowerCase();
   }
@@ -364,6 +423,8 @@ if (localStorage.getItem('guestMode') === 'true') {
       expenses: state.expenses,
       subscriptions: state.subscriptions,
       employees: state.employees,
+      quickNotes: state.quickNotes,
+      thumbnailLab: state.ui.thumbnailLab,
       authUser: state.authUser,
       currentEmployee: state.currentEmployee,
       route: state.ui.route,
@@ -515,6 +576,8 @@ if (localStorage.getItem('guestMode') === 'true') {
         return renderCostsRoute(ctx);
       case 'team':
         return Components.renderTeam(ctx);
+      case 'thumbnail-lab':
+        return Components.renderThumbnailLab(ctx);
       case 'calendar-module':
         return Components.renderComingSoon('Calendario avanzado', 'Un calendario completo con publicaciones, grabaciones, entrevistas, fechas límite y recordatorios llegará en una próxima versión.');
       case 'analytics':
@@ -3478,6 +3541,26 @@ if (localStorage.getItem('guestMode') === 'true') {
         renderSidebarAndTopbar();
         document.querySelector('.sidebar')?.classList.add('sidebar--mobile-open');
         break;
+      case 'quick-note-add':
+        addQuickNote();
+        break;
+      case 'quick-note-delete':
+        deleteQuickNote(id);
+        break;
+      case 'quick-note-edit':
+        editQuickNote(id);
+        break;
+      case 'quick-note-to-project':
+        await quickNoteToProject(id);
+        break;
+      case 'thumbnail-lab-device':
+        state.ui.thumbnailLab.device = actionEl.dataset.device || 'desktop';
+        renderMain();
+        break;
+      case 'thumbnail-lab-clear':
+        state.ui.thumbnailLab = { title: '', image: '', device: 'desktop' };
+        renderMain();
+        break;
       case 'clear-search':
         state.ui.search = '';
         renderMain();
@@ -4098,6 +4181,13 @@ if (localStorage.getItem('guestMode') === 'true') {
   function onGlobalInput(e) {
     const el = e.target;
 
+    if (el.id === 'thumbnail-lab-title') {
+      state.ui.thumbnailLab.title = el.value;
+      const preview = document.getElementById('thumbnail-lab-preview-title');
+      if (preview) preview.textContent = el.value.trim() || 'Título del video';
+      return;
+    }
+
     if (el.id === 'global-search') {
       state.ui.search = el.value;
       renderMain();
@@ -4222,6 +4312,22 @@ if (localStorage.getItem('guestMode') === 'true') {
   async function onGlobalChange(e) {
     const el = e.target;
     const video = currentVideo();
+
+    if (el.id === 'thumbnail-lab-image') {
+      const file = el.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        Utils.toast('Elegí un archivo de imagen.', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        state.ui.thumbnailLab.image = reader.result;
+        renderMain();
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
 
     if (el.id === 'logo-input') {
       handleLogoUpload(el.files[0]);
@@ -4407,6 +4513,12 @@ if (localStorage.getItem('guestMode') === 'true') {
   /* ---- teclado ---- */
 
   function onGlobalKeydown(e) {
+    if (e.target?.id === 'quick-note-input' && e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      addQuickNote();
+      return;
+    }
+
     const typing = Utils.isTypingInField();
     const meta = e.ctrlKey || e.metaKey;
 
