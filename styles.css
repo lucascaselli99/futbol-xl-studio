@@ -1,6 +1,6 @@
 /* =========================================================================
-   styles.css ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â FÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºtbol XL Studio
-   EstÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tica moderna, minimalista y deportiva, inspirada en Linear/Notion/
+   styles.css ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â FÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºtbol XL Studio
+   EstÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tica moderna, minimalista y deportiva, inspirada en Linear/Notion/
    Trello. Escala de grises como base, color de acento configurable y
    colores personalizados solo en etiquetas/formatos/series/prioridades.
    ========================================================================= */
@@ -56,7 +56,7 @@ html[data-theme='light'] {
   --overlay: rgba(20, 20, 22, 0.35);
 }
 
-/* ---- Reset bÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡sico ------------------------------------------------------ */
+/* ---- Reset bÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡sico ------------------------------------------------------ */
 
 * {
   box-sizing: border-box;
@@ -106,7 +106,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 .icon svg { width: 16px; height: 16px; display: block; }
 .icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-/* ---- Layout raÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­z --------------------------------------------------------*/
+/* ---- Layout raÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­z --------------------------------------------------------*/
 
 #app {
   display: flex;
@@ -883,7 +883,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .cal-item--more { color: var(--text-faint); background: transparent; cursor: default; }
 
-/* ---- Estados vacÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­os / prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ximamente --------------------------------------*/
+/* ---- Estados vacÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­os / prÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³ximamente --------------------------------------*/
 
 .empty-state, .coming-soon {
   display: flex;
@@ -910,7 +910,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .coming-soon h2 { font-size: 22px; margin-bottom: 8px; }
 
-/* ---- Panel de ediciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de video (overlay lateral) -------------------------*/
+/* ---- Panel de ediciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de video (overlay lateral) -------------------------*/
 
 .editor-overlay {
   position: fixed;
@@ -992,7 +992,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   .editor-panel { width: 100%; }
 }
 
-/* ---- Formularios genÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ricos ---------------------------------------------*/
+/* ---- Formularios genÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©ricos ---------------------------------------------*/
 
 .editor-form { display: flex; flex-direction: column; gap: 16px; }
 .form-grid {
@@ -1099,7 +1099,7 @@ input:focus, select:focus, textarea:focus {
 .checklist-item__text--done { text-decoration: line-through; color: var(--text-faint); }
 input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px; }
 
-/* ---- Etiquetas rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡pidas ---------------------------------------------------*/
+/* ---- Etiquetas rÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡pidas ---------------------------------------------------*/
 
 .quick-add-tag { display: flex; gap: 8px; margin-top: 10px; }
 .quick-add-tag input {
@@ -1163,7 +1163,7 @@ input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px;
 }
 .comment-item__remove { position: absolute; top: 6px; right: 6px; }
 
-/* ---- ConfiguraciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n -------------------------------------------------------*/
+/* ---- ConfiguraciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n -------------------------------------------------------*/
 
 .settings-layout { display: flex; gap: 24px; align-items: flex-start; }
 .settings-nav {
@@ -1214,7 +1214,7 @@ input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px;
   .settings-nav { width: 100%; flex-direction: row; overflow-x: auto; }
 }
 
-/* ---- Filas de catÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡logos (series, formatos, estados, etc.) ----------------*/
+/* ---- Filas de catÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logos (series, formatos, estados, etc.) ----------------*/
 
 .entity-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .entity-row {
@@ -1301,19 +1301,19 @@ dialog.modal::backdrop { background: var(--overlay); }
 .toast--warning .toast__icon { color: var(--warning); }
 .toast--info .toast__icon { color: var(--accent); }
 
-/* ---- Marca: versiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n visible junto al nombre (v1.1.0) ----------------------*/
+/* ---- Marca: versiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n visible junto al nombre (v1.1.0) ----------------------*/
 
 .brand__text { display: flex; flex-direction: column; min-width: 0; }
 .brand__version { font-size: 10px; color: var(--text-faint); }
 
-/* ---- Dashboard: mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tricas compactas de Biblioteca --------------------------*/
+/* ---- Dashboard: mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tricas compactas de Biblioteca --------------------------*/
 
 .stat-grid--compact { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 .stat-card--sm { padding: 10px 12px; }
 .stat-card--sm .stat-card__value { font-size: 20px; }
 
 /* ============================================================================
-   MÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œDULO BIBLIOTECA
+   MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“DULO BIBLIOTECA
    ========================================================================= */
 
 .view--library { position: relative; min-height: calc(100vh - 220px); }
@@ -1504,7 +1504,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 .library-video-picker__row:hover { background: var(--bg-hover); }
 
 /* ============================================================================
-   MÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œDULO COSTOS (v1.2.0)
+   MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“DULO COSTOS (v1.2.0)
    ========================================================================= */
 
 .view--costs { display: flex; flex-direction: column; gap: 18px; }
@@ -1702,7 +1702,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 @media (max-width:700px){ .team-view .page-heading{flex-direction:column}.team-grid{grid-template-columns:1fr}.team-card{flex-wrap:wrap}.team-card__actions{position:absolute;right:.75rem;top:.75rem} }
 
 
-/* ---- AutenticaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n ----------------------------------------------------- */
+/* ---- AutenticaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n ----------------------------------------------------- */
 
 [hidden] {
   display: none !important;
@@ -1815,7 +1815,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 }
 
 
-/* ---- VinculaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n usuario ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬ ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â empleado (v1.3.1) -------------------------- */
+/* ---- VinculaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n usuario ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â empleado (v1.3.1) -------------------------- */
 
 .user-menu__identity {
   display: flex;
@@ -1855,7 +1855,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 }
 
 
-/* ---- Notas rÃƒÆ’Ã‚Â¡pidas ----------------------------------------------------- */
+/* ---- Notas rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡pidas ----------------------------------------------------- */
 .quick-notes__header { display:flex; justify-content:space-between; gap:12px; margin-bottom:12px; }
 .quick-notes__composer { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:stretch; }
 .quick-notes__composer textarea { width:100%; resize:vertical; min-height:54px; background:var(--bg-input); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; outline:none; }
@@ -2001,7 +2001,7 @@ dialog.modal::backdrop { background: var(--overlay); }
   background: color-mix(in srgb, var(--accent) 5%, transparent);
 }
 
-/* ---- Dashboard: mÃ©tricas + slider de citas ----------------------------- */
+/* ---- Dashboard: mÃƒÂ©tricas + slider de citas ----------------------------- */
 .dashboard-overview {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 430px);
@@ -2065,7 +2065,7 @@ dialog.modal::backdrop { background: var(--overlay); }
   object-fit: cover;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 180ms ease;
+  transition: opacity 450ms ease-in-out;
 }
 .dashboard-citas__image.is-active { opacity: 1; }
 .dashboard-citas__arrow {
@@ -2114,3 +2114,7 @@ dialog.modal::backdrop { background: var(--overlay); }
   .stat-grid--dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stat-card--dashboard { min-height: 108px; }
 }
+
+.dashboard-citas__dots{display:flex;justify-content:center;gap:8px;padding-top:10px}
+.dashboard-citas__dot{width:8px;height:8px;border-radius:50%;border:none;background:#666;cursor:pointer}
+.dashboard-citas__dot.is-active{background:#fff;transform:scale(1.2)}
