@@ -136,15 +136,16 @@ if (localStorage.getItem('guestMode') === 'true') {
   }
 
   async function bootAuthenticatedApp() {
+    console.time("Carga total");
+
     document.getElementById('auth-root').hidden = true;
     document.getElementById('app').hidden = false;
 
     await DB.open();
-    await DB.seedIfEmpty();
-    await DB.seedLibraryIfEmpty();
-    await DB.seedCostsTaxonomyIfEmpty();
-    await DB.seedCostsSampleDataIfEmpty();
+
+    console.time("loadAllFromDB");
     await loadAllFromDB();
+    console.timeEnd("loadAllFromDB");
 
     state.ui.videosView = state.settings.defaultView || 'kanban';
     state.ui.library.view = state.settings.libraryDefaultView || 'grid';
@@ -152,9 +153,14 @@ if (localStorage.getItem('guestMode') === 'true') {
     state.ui.costsTab = state.settings.costsDefaultExpenseTab || 'summary';
 
     applyTheme();
+
+    console.time("renderAll");
     wireGlobalEvents();
     renderAll();
-  }
+    console.timeEnd("renderAll");
+
+    console.timeEnd("Carga total");
+}
 
   function showLogin(message = '') {
     const authRoot = document.getElementById('auth-root');
