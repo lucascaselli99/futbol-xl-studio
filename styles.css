@@ -1,6 +1,6 @@
 /* =========================================================================
-   styles.css â€” FÃºtbol XL Studio
-   EstÃ©tica moderna, minimalista y deportiva, inspirada en Linear/Notion/
+   styles.css Ã¢â‚¬â€ FÃƒÂºtbol XL Studio
+   EstÃƒÂ©tica moderna, minimalista y deportiva, inspirada en Linear/Notion/
    Trello. Escala de grises como base, color de acento configurable y
    colores personalizados solo en etiquetas/formatos/series/prioridades.
    ========================================================================= */
@@ -56,7 +56,7 @@ html[data-theme='light'] {
   --overlay: rgba(20, 20, 22, 0.35);
 }
 
-/* ---- Reset bÃ¡sico ------------------------------------------------------ */
+/* ---- Reset bÃƒÂ¡sico ------------------------------------------------------ */
 
 * {
   box-sizing: border-box;
@@ -106,7 +106,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 .icon svg { width: 16px; height: 16px; display: block; }
 .icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-/* ---- Layout raÃ­z --------------------------------------------------------*/
+/* ---- Layout raÃƒÂ­z --------------------------------------------------------*/
 
 #app {
   display: flex;
@@ -883,7 +883,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .cal-item--more { color: var(--text-faint); background: transparent; cursor: default; }
 
-/* ---- Estados vacÃ­os / prÃ³ximamente --------------------------------------*/
+/* ---- Estados vacÃƒÂ­os / prÃƒÂ³ximamente --------------------------------------*/
 
 .empty-state, .coming-soon {
   display: flex;
@@ -910,7 +910,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .coming-soon h2 { font-size: 22px; margin-bottom: 8px; }
 
-/* ---- Panel de ediciÃ³n de video (overlay lateral) -------------------------*/
+/* ---- Panel de ediciÃƒÂ³n de video (overlay lateral) -------------------------*/
 
 .editor-overlay {
   position: fixed;
@@ -992,7 +992,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   .editor-panel { width: 100%; }
 }
 
-/* ---- Formularios genÃ©ricos ---------------------------------------------*/
+/* ---- Formularios genÃƒÂ©ricos ---------------------------------------------*/
 
 .editor-form { display: flex; flex-direction: column; gap: 16px; }
 .form-grid {
@@ -1099,7 +1099,7 @@ input:focus, select:focus, textarea:focus {
 .checklist-item__text--done { text-decoration: line-through; color: var(--text-faint); }
 input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px; }
 
-/* ---- Etiquetas rÃ¡pidas ---------------------------------------------------*/
+/* ---- Etiquetas rÃƒÂ¡pidas ---------------------------------------------------*/
 
 .quick-add-tag { display: flex; gap: 8px; margin-top: 10px; }
 .quick-add-tag input {
@@ -1163,7 +1163,7 @@ input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px;
 }
 .comment-item__remove { position: absolute; top: 6px; right: 6px; }
 
-/* ---- ConfiguraciÃ³n -------------------------------------------------------*/
+/* ---- ConfiguraciÃƒÂ³n -------------------------------------------------------*/
 
 .settings-layout { display: flex; gap: 24px; align-items: flex-start; }
 .settings-nav {
@@ -1214,7 +1214,7 @@ input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px;
   .settings-nav { width: 100%; flex-direction: row; overflow-x: auto; }
 }
 
-/* ---- Filas de catÃ¡logos (series, formatos, estados, etc.) ----------------*/
+/* ---- Filas de catÃƒÂ¡logos (series, formatos, estados, etc.) ----------------*/
 
 .entity-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .entity-row {
@@ -1301,19 +1301,19 @@ dialog.modal::backdrop { background: var(--overlay); }
 .toast--warning .toast__icon { color: var(--warning); }
 .toast--info .toast__icon { color: var(--accent); }
 
-/* ---- Marca: versiÃ³n visible junto al nombre (v1.1.0) ----------------------*/
+/* ---- Marca: versiÃƒÂ³n visible junto al nombre (v1.1.0) ----------------------*/
 
 .brand__text { display: flex; flex-direction: column; min-width: 0; }
 .brand__version { font-size: 10px; color: var(--text-faint); }
 
-/* ---- Dashboard: mÃ©tricas compactas de Biblioteca --------------------------*/
+/* ---- Dashboard: mÃƒÂ©tricas compactas de Biblioteca --------------------------*/
 
 .stat-grid--compact { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 .stat-card--sm { padding: 10px 12px; }
 .stat-card--sm .stat-card__value { font-size: 20px; }
 
 /* ============================================================================
-   MÃ“DULO BIBLIOTECA
+   MÃƒâ€œDULO BIBLIOTECA
    ========================================================================= */
 
 .view--library { position: relative; min-height: calc(100vh - 220px); }
@@ -1504,7 +1504,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 .library-video-picker__row:hover { background: var(--bg-hover); }
 
 /* ============================================================================
-   MÃ“DULO COSTOS (v1.2.0)
+   MÃƒâ€œDULO COSTOS (v1.2.0)
    ========================================================================= */
 
 .view--costs { display: flex; flex-direction: column; gap: 18px; }
@@ -1702,7 +1702,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 @media (max-width:700px){ .team-view .page-heading{flex-direction:column}.team-grid{grid-template-columns:1fr}.team-card{flex-wrap:wrap}.team-card__actions{position:absolute;right:.75rem;top:.75rem} }
 
 
-/* ---- AutenticaciÃ³n ----------------------------------------------------- */
+/* ---- AutenticaciÃƒÂ³n ----------------------------------------------------- */
 
 [hidden] {
   display: none !important;
@@ -1815,7 +1815,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 }
 
 
-/* ---- VinculaciÃ³n usuario â†” empleado (v1.3.1) -------------------------- */
+/* ---- VinculaciÃƒÂ³n usuario Ã¢â€ â€ empleado (v1.3.1) -------------------------- */
 
 .user-menu__identity {
   display: flex;
@@ -1852,4 +1852,44 @@ dialog.modal::backdrop { background: var(--overlay); }
   .user-menu__identity {
     display: none;
   }
+}
+
+
+/* ---- Notas rÃ¡pidas ----------------------------------------------------- */
+.quick-notes__header { display:flex; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.quick-notes__composer { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:stretch; }
+.quick-notes__composer textarea { width:100%; resize:vertical; min-height:54px; background:var(--bg-input); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; outline:none; }
+.quick-notes__composer textarea:focus { border-color:var(--accent); }
+.quick-notes__grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:10px; margin-top:14px; }
+.quick-note-card { background:color-mix(in srgb, #f4c95d 10%, var(--bg-elevated)); border:1px solid color-mix(in srgb, #f4c95d 32%, var(--border)); border-radius:var(--radius); padding:13px; min-height:110px; display:flex; flex-direction:column; justify-content:space-between; gap:14px; }
+.quick-note-card p { white-space:pre-wrap; overflow-wrap:anywhere; margin:0; }
+.quick-note-card__actions { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+.quick-note-card__actions .icon-btn { margin-left:auto; }
+
+/* ---- Probador de miniaturas ------------------------------------------ */
+.thumbnail-lab__layout { display:grid; grid-template-columns:minmax(260px,360px) minmax(0,1fr); gap:18px; align-items:start; }
+.thumbnail-lab__controls { display:flex; flex-direction:column; gap:16px; }
+.thumbnail-upload { min-height:150px; border:1px dashed var(--border); border-radius:var(--radius); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; color:var(--text-muted); cursor:pointer; background:var(--bg-input); }
+.thumbnail-upload:hover { border-color:var(--accent); color:var(--text); }
+.thumbnail-upload .icon svg { width:26px; height:26px; }
+.thumbnail-device-switch { display:flex; gap:8px; flex-wrap:wrap; }
+.thumbnail-preview-wrap { min-height:420px; display:flex; align-items:center; justify-content:center; overflow:auto; }
+.youtube-preview { width:min(100%,760px); transition:width .18s ease; }
+.youtube-preview--mobile { width:min(100%,360px); }
+.youtube-preview--tv { width:min(100%,900px); }
+.youtube-preview__thumb { width:100%; aspect-ratio:16/9; border-radius:12px; background-size:cover; background-position:center; background-color:#202124; position:relative; overflow:hidden; }
+.youtube-preview__thumb--empty { display:flex; align-items:center; justify-content:center; border:1px dashed var(--border); }
+.youtube-preview__thumb--empty > div { display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-faint); }
+.youtube-preview__thumb--empty .icon svg { width:42px; height:42px; }
+.youtube-preview__duration { position:absolute; right:7px; bottom:7px; background:rgba(0,0,0,.82); color:#fff; padding:2px 5px; border-radius:4px; font-size:12px; font-weight:600; }
+.youtube-preview__meta { display:grid; grid-template-columns:40px 1fr; gap:11px; padding-top:11px; }
+.youtube-preview__avatar { width:40px; height:40px; border-radius:50%; background:#111; border:1px solid #333; color:#fff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; }
+.youtube-preview__meta h3 { font-size:16px; line-height:1.35; margin:0 0 5px; }
+.youtube-preview__meta p { margin:0; color:var(--text-muted); font-size:13px; }
+.youtube-preview--mobile .youtube-preview__meta h3 { font-size:14px; }
+
+@media (max-width: 800px) {
+  .quick-notes__composer { grid-template-columns:1fr; }
+  .thumbnail-lab__layout { grid-template-columns:1fr; }
+  .thumbnail-preview-wrap { min-height:300px; }
 }
