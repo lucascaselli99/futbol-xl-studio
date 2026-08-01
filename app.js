@@ -136,30 +136,42 @@ if (localStorage.getItem('guestMode') === 'true') {
   }
 
   async function bootAuthenticatedApp() {
-    console.time("Carga total");
+  console.time('Carga inicial');
 
-    document.getElementById('auth-root').hidden = true;
-    document.getElementById('app').hidden = false;
+  document.getElementById('auth-root').hidden = true;
+  document.getElementById('app').hidden = false;
 
-    await DB.open();
+  await DB.open();
 
-    console.time("loadAllFromDB");
-    await loadAllFromDB();
-    console.timeEnd("loadAllFromDB");
+  // Carga únicamente lo necesario para mostrar la app.
+  await loadCoreFromDB();
 
-    state.ui.videosView = state.settings.defaultView || 'kanban';
-    state.ui.library.view = state.settings.libraryDefaultView || 'grid';
-    state.ui.library.sort = state.settings.librarySortBy || 'name-asc';
-    state.ui.costsTab = state.settings.costsDefaultExpenseTab || 'summary';
+  state.ui.videosView = state.settings.defaultView || 'kanban';
+  state.ui.library.view = state.settings.libraryDefaultView || 'grid';
+  state.ui.library.sort = state.settings.librarySortBy || 'name-asc';
+  state.ui.costsTab =
+    state.settings.costsDefaultExpenseTab || 'summary';
 
-    applyTheme();
+  applyTheme();
+  wireGlobalEvents();
+  renderAll();
 
-    console.time("renderAll");
-    wireGlobalEvents();
-    renderAll();
-    console.timeEnd("renderAll");
+  console.timeEnd('Carga inicial');
 
-    console.timeEnd("Carga total");
+  // Biblioteca, Costos y Equipo se cargan después,
+  // sin bloquear la aparición de la aplicación.
+  loadDeferredFromDB()
+    .then(() => {
+      renderAll();
+      console.log('Datos secundarios cargados');
+    })
+    .catch((error) => {
+      console.error(
+        '[Fútbol XL Studio] Error cargando datos secundarios:',
+        error
+      );
+    });
+}
 }
 
   function showLogin(message = '') {
@@ -256,50 +268,90 @@ if (localStorage.getItem('guestMode') === 'true') {
     window.location.reload();
   }
 
-  async function loadAllFromDB() {
-    const [
-      videos,
-      series,
-      formats,
-      contentTypes,
-      states_,
-      priorities,
-      tags,
-      templates,
-      settings,
-      logo,
-      libraryFolders,
-      libraryItems,
-      expenseCategories,
-      expenseTypes,
-      paymentMethods,
-      currencies,
-      recipients,
-      expenses,
-      subscriptions,
-      employees,
-    ] = await Promise.all([
-      DB.getAll('videos'),
-      DB.getAll('series'),
-      DB.getAll('formats'),
-      DB.getAll('contentTypes'),
-      DB.getAll('states'),
-      DB.getAll('priorities'),
-      DB.getAll('tags'),
-      DB.getAll('checklistTemplates'),
-      DB.getSettings(),
-      DB.getLogo(),
-      DB.getAll('libraryFolders'),
-      DB.getAll('libraryItems'),
-      DB.getAll('expenseCategories'),
-      DB.getAll('expenseTypes'),
-      DB.getAll('paymentMethods'),
-      DB.getAll('currencies'),
-      DB.getAll('recipients'),
-      DB.getAll('expenses'),
-      DB.getAll('subscriptions'),
-      DB.getAll('employees'),
-    ]);
+  async function loadCoreFromDB() {
+  const [
+    videos,
+    series,
+    formats,
+    contentTypes,
+    states_,
+    priorities,
+    tags,
+    templates,
+    settings,
+    logo,
+  ] = await Promise.all([
+    DB.getAll('videos'),
+    DB.getAll('series'),
+    DB.getAll('formats'),
+    DB.getAll('contentTypes'),
+    DB.getAll('states'),
+    DB.getAll('priorities'),
+    DB.getAll('tags'),
+    DB.getAll('checklistTemplates'),
+    DB.getSettings(),
+    DB.getLogo(),
+  ]);
+
+  state.videos = videos;
+  state.series = series;
+  state.formats = formats;
+  state.contentTypes = contentTypes;
+  state.states = states_;
+  state.priorities = priorities;
+  state.tags = tags;
+  state.templates = templates;
+  state.settings = settings;
+  state.logo = logo;
+}
+
+async function loadDeferredFromDB() {
+  const [
+    libraryFolders,
+    libraryItems,
+    expenseCategories,
+    expenseTypes,
+    paymentMethods,
+    currencies,
+    recipients,
+    expenses,
+    subscriptions,
+    employees,
+  ] = await Promise.all([
+    DB.getAll('libraryFolders'),
+    DB.getAll('libraryItems'),
+    DB.getAll('expenseCategories'),
+    DB.getAll('expenseTypes'),
+    DB.getAll('paymentMethods'),
+    DB.getAll('currencies'),
+    DB.getAll('recipients'),
+    DB.getAll('expenses'),
+    DB.getAll('subscriptions'),
+    DB.getAll('employees'),
+  ]);
+
+  state.libraryFolders = libraryFolders;
+  state.libraryItems = libraryItems;
+  state.expenseCategories = expenseCategories;
+  state.expenseTypes = expenseTypes;
+  state.paymentMethods = paymentMethods;
+  state.currencies = currencies;
+  state.recipients = recipients;
+  state.expenses = expenses;
+  state.subscriptions = subscriptions;
+  state.employees = employees;
+
+  linkCurrentUserToEmployee();
+}
+
+// Se mantiene porque otras funciones, como importar un respaldo,
+// necesitan volver a cargar absolutamente todo.
+async function loadAllFromDB() {
+  await Promise.all([
+    loadCoreFromDB(),
+    loadDeferredFromDB(),
+  ]);
+}
     state.videos = videos;
     state.series = series;
     state.formats = formats;
