@@ -164,7 +164,7 @@ const Components = (() => {
   /* ------------------------------------------------------------------ */
 
   function renderTopbar(ctx) {
-    const { search, saveState, route } = ctx;
+    const { search, saveState, route, authUser } = ctx;
     const titles = {
       home: 'Inicio',
       videos: 'Videos',
@@ -190,6 +190,10 @@ const Components = (() => {
             <span class="save-indicator__text">${saveState === 'saving' ? 'Guardando…' : 'Guardado'}</span>
           </span>
           <button class="btn btn--primary" data-action="new-video">${icon('plus')} <span>Nuevo video</span></button>
+          <div class="user-menu">
+            <span class="user-menu__email" title="${escapeHtml(authUser?.email || '')}">${escapeHtml(authUser?.email || '')}</span>
+            <button class="btn btn--ghost btn--sm" data-action="logout">Cerrar sesión</button>
+          </div>
         </div>
       </header>`;
   }
