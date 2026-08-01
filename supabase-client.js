@@ -40,9 +40,11 @@ const Supa = (() => {
   } else {
     client = window.supabase.createClient(url, anonKey, {
       auth: {
-        // La app no tiene login propio; no hace falta persistir sesión.
-        persistSession: false,
-        autoRefreshToken: false,
+        // Mantiene la sesión iniciada y renueva el token automáticamente.
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: 'fxl-studio-auth',
       },
     });
   }
