@@ -298,8 +298,8 @@ const Components = (() => {
           <button class="btn btn--primary btn--lg" data-action="new-video">${icon('plus')} Nuevo video</button>
         </div>
 
-        <div class="dashboard-overview" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,430px);align-items:start;gap:20px;margin-bottom:28px;">
-          <div class="stat-grid stat-grid--dashboard" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:0;">
+        <div class="dashboard-overview">
+          <div class="stat-grid stat-grid--dashboard">
             ${cards.map((c) => `
               <div class="stat-card stat-card--dashboard ${c.danger ? 'stat-card--danger' : ''}">
                 <div class="stat-card__icon">${icon(c.icon)}</div>
@@ -308,7 +308,7 @@ const Components = (() => {
               </div>`).join('')}
           </div>
 
-          <section class="dashboard-citas" data-citas-slider data-index="0" style="width:100%;max-width:430px;min-width:0;justify-self:end;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-sizing:border-box;">
+          <section class="dashboard-citas" data-citas-slider data-index="0">
             <div class="dashboard-citas__header">
               <div>
                 <h3>Citas</h3>
@@ -316,7 +316,7 @@ const Components = (() => {
               </div>
               ${citasImages.length ? `<span class="dashboard-citas__counter" data-citas-counter>1 / ${citasImages.length}</span>` : ''}
             </div>
-            <div class="dashboard-citas__canvas" style="position:relative;width:100%;aspect-ratio:1 / 1;overflow:hidden;border-radius:12px;background:#0a0a0a;">
+            <div class="dashboard-citas__canvas">
               ${citasImages.length ? citasImages.map((item, index) => {
                 const src = item.thumbnailData || item.url || item.fileData;
                 return `<img class="dashboard-citas__image ${index === 0 ? 'is-active' : ''}" data-citas-slide="${index}" src="${escapeHtml(src)}" alt="${escapeHtml(item.name || 'Cita')}" loading="${index === 0 ? 'eager' : 'lazy'}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:${index === 0 ? 'block' : 'none'};">`;
