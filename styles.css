@@ -1,6 +1,6 @@
 /* =========================================================================
-   styles.css ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â FÃƒÆ’Ã‚Âºtbol XL Studio
-   EstÃƒÆ’Ã‚Â©tica moderna, minimalista y deportiva, inspirada en Linear/Notion/
+   styles.css ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â FÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºtbol XL Studio
+   EstÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tica moderna, minimalista y deportiva, inspirada en Linear/Notion/
    Trello. Escala de grises como base, color de acento configurable y
    colores personalizados solo en etiquetas/formatos/series/prioridades.
    ========================================================================= */
@@ -56,7 +56,7 @@ html[data-theme='light'] {
   --overlay: rgba(20, 20, 22, 0.35);
 }
 
-/* ---- Reset bÃƒÆ’Ã‚Â¡sico ------------------------------------------------------ */
+/* ---- Reset bÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡sico ------------------------------------------------------ */
 
 * {
   box-sizing: border-box;
@@ -106,7 +106,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 .icon svg { width: 16px; height: 16px; display: block; }
 .icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-/* ---- Layout raÃƒÆ’Ã‚Â­z --------------------------------------------------------*/
+/* ---- Layout raÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­z --------------------------------------------------------*/
 
 #app {
   display: flex;
@@ -883,7 +883,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .cal-item--more { color: var(--text-faint); background: transparent; cursor: default; }
 
-/* ---- Estados vacÃƒÆ’Ã‚Â­os / prÃƒÆ’Ã‚Â³ximamente --------------------------------------*/
+/* ---- Estados vacÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­os / prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ximamente --------------------------------------*/
 
 .empty-state, .coming-soon {
   display: flex;
@@ -910,7 +910,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .coming-soon h2 { font-size: 22px; margin-bottom: 8px; }
 
-/* ---- Panel de ediciÃƒÆ’Ã‚Â³n de video (overlay lateral) -------------------------*/
+/* ---- Panel de ediciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de video (overlay lateral) -------------------------*/
 
 .editor-overlay {
   position: fixed;
@@ -992,7 +992,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   .editor-panel { width: 100%; }
 }
 
-/* ---- Formularios genÃƒÆ’Ã‚Â©ricos ---------------------------------------------*/
+/* ---- Formularios genÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ricos ---------------------------------------------*/
 
 .editor-form { display: flex; flex-direction: column; gap: 16px; }
 .form-grid {
@@ -1099,7 +1099,7 @@ input:focus, select:focus, textarea:focus {
 .checklist-item__text--done { text-decoration: line-through; color: var(--text-faint); }
 input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px; }
 
-/* ---- Etiquetas rÃƒÆ’Ã‚Â¡pidas ---------------------------------------------------*/
+/* ---- Etiquetas rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡pidas ---------------------------------------------------*/
 
 .quick-add-tag { display: flex; gap: 8px; margin-top: 10px; }
 .quick-add-tag input {
@@ -1163,7 +1163,7 @@ input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px;
 }
 .comment-item__remove { position: absolute; top: 6px; right: 6px; }
 
-/* ---- ConfiguraciÃƒÆ’Ã‚Â³n -------------------------------------------------------*/
+/* ---- ConfiguraciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n -------------------------------------------------------*/
 
 .settings-layout { display: flex; gap: 24px; align-items: flex-start; }
 .settings-nav {
@@ -1214,7 +1214,7 @@ input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px;
   .settings-nav { width: 100%; flex-direction: row; overflow-x: auto; }
 }
 
-/* ---- Filas de catÃƒÆ’Ã‚Â¡logos (series, formatos, estados, etc.) ----------------*/
+/* ---- Filas de catÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡logos (series, formatos, estados, etc.) ----------------*/
 
 .entity-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .entity-row {
@@ -1301,19 +1301,19 @@ dialog.modal::backdrop { background: var(--overlay); }
 .toast--warning .toast__icon { color: var(--warning); }
 .toast--info .toast__icon { color: var(--accent); }
 
-/* ---- Marca: versiÃƒÆ’Ã‚Â³n visible junto al nombre (v1.1.0) ----------------------*/
+/* ---- Marca: versiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n visible junto al nombre (v1.1.0) ----------------------*/
 
 .brand__text { display: flex; flex-direction: column; min-width: 0; }
 .brand__version { font-size: 10px; color: var(--text-faint); }
 
-/* ---- Dashboard: mÃƒÆ’Ã‚Â©tricas compactas de Biblioteca --------------------------*/
+/* ---- Dashboard: mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tricas compactas de Biblioteca --------------------------*/
 
 .stat-grid--compact { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 .stat-card--sm { padding: 10px 12px; }
 .stat-card--sm .stat-card__value { font-size: 20px; }
 
 /* ============================================================================
-   MÃƒÆ’Ã¢â‚¬Å“DULO BIBLIOTECA
+   MÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œDULO BIBLIOTECA
    ========================================================================= */
 
 .view--library { position: relative; min-height: calc(100vh - 220px); }
@@ -1504,7 +1504,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 .library-video-picker__row:hover { background: var(--bg-hover); }
 
 /* ============================================================================
-   MÃƒÆ’Ã¢â‚¬Å“DULO COSTOS (v1.2.0)
+   MÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œDULO COSTOS (v1.2.0)
    ========================================================================= */
 
 .view--costs { display: flex; flex-direction: column; gap: 18px; }
@@ -1702,7 +1702,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 @media (max-width:700px){ .team-view .page-heading{flex-direction:column}.team-grid{grid-template-columns:1fr}.team-card{flex-wrap:wrap}.team-card__actions{position:absolute;right:.75rem;top:.75rem} }
 
 
-/* ---- AutenticaciÃƒÆ’Ã‚Â³n ----------------------------------------------------- */
+/* ---- AutenticaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n ----------------------------------------------------- */
 
 [hidden] {
   display: none !important;
@@ -1815,7 +1815,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 }
 
 
-/* ---- VinculaciÃƒÆ’Ã‚Â³n usuario ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬Â empleado (v1.3.1) -------------------------- */
+/* ---- VinculaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n usuario ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬ ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â empleado (v1.3.1) -------------------------- */
 
 .user-menu__identity {
   display: flex;
@@ -1855,7 +1855,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 }
 
 
-/* ---- Notas rÃƒÂ¡pidas ----------------------------------------------------- */
+/* ---- Notas rÃƒÆ’Ã‚Â¡pidas ----------------------------------------------------- */
 .quick-notes__header { display:flex; justify-content:space-between; gap:12px; margin-bottom:12px; }
 .quick-notes__composer { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:stretch; }
 .quick-notes__composer textarea { width:100%; resize:vertical; min-height:54px; background:var(--bg-input); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; outline:none; }
@@ -2001,68 +2001,116 @@ dialog.modal::backdrop { background: var(--overlay); }
   background: color-mix(in srgb, var(--accent) 5%, transparent);
 }
 
-/* ---- Slider 1080x1080 exclusivo para la carpeta Citas ------------------- */
-.library-preview--citas {
-  padding: 14px;
-  min-height: 0;
-  overflow: hidden;
-}
-.citas-slider {
-  position: relative;
-  width: min(100%, 720px);
+/* ---- Dashboard: mÃ©tricas + slider de citas ----------------------------- */
+.dashboard-overview {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 44px;
-  align-items: center;
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 430px);
+  align-items: start;
+  gap: 20px;
+  margin-bottom: 28px;
 }
-.citas-slider__stage {
+
+.stat-grid--dashboard {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.stat-card--dashboard {
+  min-height: 118px;
+  padding: 12px 14px;
+}
+.stat-card--dashboard .stat-card__icon { margin-bottom: 8px; }
+.stat-card--dashboard .stat-card__value { font-size: 24px; }
+.stat-card--dashboard .stat-card__label { line-height: 1.25; }
+
+.dashboard-citas {
+  min-width: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.dashboard-citas__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.dashboard-citas__header h3 { margin: 0 0 2px; }
+.dashboard-citas__header p { margin: 0; }
+.dashboard-citas__counter {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.dashboard-citas__canvas {
+  position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
-  background: #111;
-  border-radius: var(--radius-sm);
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-sm);
+  border-radius: calc(var(--radius) - 4px);
+  background: #0a0a0a;
 }
-.citas-slider__img {
+.dashboard-citas__image {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  object-position: center;
-  display: block;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
 }
-.citas-slider__arrow {
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  color: var(--text);
-  display: inline-flex;
+.dashboard-citas__image.is-active { opacity: 1; }
+.dashboard-citas__arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 50%;
+  background: rgba(0,0,0,.58);
+  color: #fff;
+  cursor: pointer;
+  transform: translateY(-50%);
+  backdrop-filter: blur(5px);
+}
+.dashboard-citas__arrow:hover { background: rgba(0,0,0,.8); }
+.dashboard-citas__arrow--prev { left: 10px; }
+.dashboard-citas__arrow--next { right: 10px; }
+.dashboard-citas__empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  gap: 8px;
+  padding: 28px;
+  text-align: center;
+  color: var(--text-muted);
 }
-.citas-slider__arrow:hover:not(:disabled) { background: var(--bg-hover); }
-.citas-slider__arrow:disabled { opacity: .35; cursor: default; }
-.citas-slider__counter {
-  position: absolute;
-  left: 50%;
-  bottom: 12px;
-  transform: translateX(-50%);
-  padding: 5px 10px;
-  border-radius: 999px;
-  color: #fff;
-  background: rgba(0, 0, 0, .62);
-  font-size: 12px;
-  font-weight: 700;
-  pointer-events: none;
+.dashboard-citas__empty svg { width: 34px; height: 34px; color: var(--text-faint); }
+.dashboard-citas__empty strong { color: var(--text); }
+.dashboard-citas__empty span { max-width: 280px; font-size: 12px; line-height: 1.45; }
+
+@media (max-width: 1320px) {
+  .dashboard-overview { grid-template-columns: minmax(0, 1fr) minmax(280px, 360px); }
+  .stat-grid--dashboard { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
-@media (max-width: 700px) {
-  .citas-slider { grid-template-columns: 36px minmax(0, 1fr) 36px; gap: 6px; }
-  .citas-slider__arrow { width: 36px; height: 36px; }
-  .library-preview--citas { padding: 8px; }
+@media (max-width: 980px) {
+  .dashboard-overview { grid-template-columns: 1fr; }
+  .dashboard-citas { max-width: 520px; width: 100%; }
+}
+@media (max-width: 620px) {
+  .stat-grid--dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat-card--dashboard { min-height: 108px; }
 }
