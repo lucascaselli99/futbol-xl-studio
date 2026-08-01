@@ -9,8 +9,11 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- Pantalla de acceso. app.js decide si mostrarla según la sesión de Supabase. -->
+  <div id="auth-root" class="auth-root" hidden></div>
+
   <!-- Contenedor raíz de la aplicación -->
-  <div id="app">
+  <div id="app" hidden>
     <div id="sidebar-root"></div>
 
     <div class="app-shell">
