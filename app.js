@@ -3492,7 +3492,11 @@ if (localStorage.getItem('guestMode') === 'true') {
     if (slides.length < 2) return;
     const current = Number(slider.dataset.index || 0);
     const next = (current + direction + slides.length) % slides.length;
-    slides.forEach((slide, index) => slide.classList.toggle('is-active', index === next));
+    slides.forEach((slide, index) => {
+      const active = index === next;
+      slide.classList.toggle('is-active', active);
+      slide.style.display = active ? 'block' : 'none';
+    });
     slider.dataset.index = String(next);
     const counter = slider.querySelector('[data-citas-counter]');
     if (counter) counter.textContent = `${next + 1} / ${slides.length}`;
