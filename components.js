@@ -742,43 +742,55 @@ const Components = (() => {
   }
 
   function renderTeam(ctx) {
-    const employees = (ctx.employees || []).slice().sort((a, b) => a.name.localeCompare(b.name));
-    const priorityById = Object.fromEntries((ctx.priorities || []).map((p) => [p.id, p]));
+    const employees = (ctx.employees || [])
+      .slice()
+      .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es'));
 
-    const priorityScore = (video) => {
+    const priorityById = Object.fromEntries(
+      (ctx.priorities || []).map((priority) => [priority.id, priority])
+    );
+
+    const priorityRank = (video) => {
       const priority = priorityById[video.priorityId];
-      if (!priority) return -1;
+      if (!priority) return 0;
 
-      const name = String(priority.name || '').toLowerCase();
-      if (name.includes('urgente')) return 4;
-      if (name.includes('alta')) return 3;
-      if (name.includes('media')) return 2;
-      if (name.includes('baja')) return 1;
+      const name = String(priority.name || '').trim().toLowerCase();
+      if (name.includes('urgente')) return 5;
+      if (name.includes('alta')) return 4;
+      if (name.includes('media')) return 3;
+      if (name.includes('baja')) return 2;
 
-      return Number(priority.order ?? 0);
+      return Number(priority.order || 1);
     };
 
     const cards = employees.map((employee) => {
       const videos = (ctx.videos || [])
-        .filter((v) => v.ownerId === employee.id)
+        .filter((video) => video.ownerId === employee.id)
         .slice()
         .sort((a, b) => {
-          const byPriority = priorityScore(b) - priorityScore(a);
-          if (byPriority !== 0) return byPriority;
+          const priorityDifference = priorityRank(b) - priorityRank(a);
+          if (priorityDifference !== 0) return priorityDifference;
+
           return String(a.title || '').localeCompare(String(b.title || ''), 'es');
         });
 
-      const projectsHtml = videos.slice(0, 4).map((v) => {
-        const priority = priorityById[v.priorityId];
-        const priorityName = priority?.name || 'Sin prioridad';
-        const priorityColor = priority?.color || '#737373';
+      const assignedProjects = videos
+        .slice(0, 4)
+        .map((video) => {
+          const priority = priorityById[video.priorityId];
+          const priorityName = priority?.name || 'Sin prioridad';
+          const priorityColor = priority?.color || '#737373';
 
-        return `
-          <button data-action="open-video" data-id="${v.id}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left">
-            <span class="pill pill--outline" style="--pill-color:${escapeHtml(priorityColor)};flex:0 0 auto">${escapeHtml(priorityName)}</span>
-            <span>${escapeHtml(v.title || 'Sin título')}</span>
-          </button>`;
-      }).join('');
+          return `
+            <button data-action="open-video" data-id="${video.id}" title="${escapeHtml(priorityName)}">
+              <span
+                class="pill pill--outline"
+                style="--pill-color:${escapeHtml(priorityColor)};flex:0 0 auto"
+              >${escapeHtml(priorityName)}</span>
+              <span>${escapeHtml(video.title || 'Sin título')}</span>
+            </button>`;
+        })
+        .join('');
 
       return `
         <article class="team-card">
@@ -791,7 +803,7 @@ const Components = (() => {
             ${employee.email ? `<p class="small">${escapeHtml(employee.email)}</p>` : ''}
             ${employee.phone ? `<p class="small muted">${escapeHtml(employee.phone)}</p>` : ''}
             <p class="team-card__count"><strong>${videos.length}</strong> proyecto${videos.length === 1 ? '' : 's'} asignado${videos.length === 1 ? '' : 's'}</p>
-            ${videos.length ? `<div class="team-card__projects">${projectsHtml}${videos.length > 4 ? `<span class="muted small">+${videos.length - 4} más</span>` : ''}</div>` : ''}
+            ${videos.length ? `<div class="team-card__projects">${assignedProjects}${videos.length > 4 ? `<span class="muted small">+${videos.length - 4} más</span>` : ''}</div>` : ''}
           </div>
           <div class="team-card__actions">
             <button class="icon-btn" data-action="edit-employee" data-id="${employee.id}" title="Editar">${icon('edit')}</button>
@@ -901,6 +913,20 @@ const Components = (() => {
       .join('');
   }
 
+  function employeeOptions(employees, selectedId, legacyOwner) {
+    const selectedExists = employees.some((employee) => employee.id === selectedId);
+    const options = employees
+      .filter((employee) => employee.active !== false || employee.id === selectedId)
+      .slice()
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+      .map((employee) => `<option value="${employee.id}" ${employee.id === selectedId ? 'selected' : ''}>${escapeHtml(employee.name || 'Sin nombre')}${employee.active === false ? ' (inactivo)' : ''}</option>`)
+      .join('');
+    const legacy = !selectedExists && legacyOwner
+      ? `<option value="" selected>${escapeHtml(legacyOwner)} (sin vincular)</option>`
+      : `<option value="" ${selectedId ? '' : 'selected'}>Sin responsable</option>`;
+    return legacy + options;
+  }
+
   function renderEditorGeneral(video, ctx) {
     return `
       <div class="editor-form">
@@ -936,7 +962,7 @@ const Components = (() => {
           </label>
           <label class="field">
             <span>Responsable del proyecto</span>
-            <select data-field="ownerId">${selectOptions(ctx.employees || [], video.ownerId, 'Sin responsable')}</select>
+            <select data-field="ownerId">${employeeOptions(ctx.employees || [], video.ownerId, video.owner)}</select>
           </label>
 
           <label class="field">
