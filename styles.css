@@ -2065,7 +2065,7 @@ dialog.modal::backdrop { background: var(--overlay); }
   object-fit: cover;
   opacity: 0;
   pointer-events: none;
-  transition: opacity .9s cubic-bezier(.4,0,.2,1);
+  transition: opacity 450ms ease-in-out;
 }
 .dashboard-citas__image.is-active { opacity: 1; }
 .dashboard-citas__arrow {
@@ -2118,3 +2118,132 @@ dialog.modal::backdrop { background: var(--overlay); }
 .dashboard-citas__dots{display:flex;justify-content:center;gap:8px;padding-top:10px}
 .dashboard-citas__dot{width:8px;height:8px;border-radius:50%;border:none;background:#666;cursor:pointer}
 .dashboard-citas__dot.is-active{background:#fff;transform:scale(1.2)}
+
+
+/* ---- Dashboard responsive: mÃ³vil ----------------------------------------- */
+.dashboard-citas {
+  width: 100%;
+  max-width: 430px;
+  justify-self: end;
+  box-sizing: border-box;
+}
+
+@media (max-width: 980px) {
+  .dashboard-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-citas {
+    width: min(100%, 520px);
+    max-width: 520px;
+    justify-self: center;
+  }
+}
+
+@media (max-width: 700px) {
+  .view--home {
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .home-header {
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .home-header .btn--lg {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .dashboard-overview {
+    width: 100%;
+    gap: 18px;
+    margin-bottom: 22px;
+  }
+
+  .stat-grid--dashboard {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .stat-card--dashboard {
+    min-width: 0;
+    min-height: 96px;
+    padding: 10px 11px;
+  }
+
+  .stat-card--dashboard .stat-card__value {
+    font-size: 22px;
+  }
+
+  .stat-card--dashboard .stat-card__label {
+    font-size: 11px;
+    overflow-wrap: anywhere;
+  }
+
+  .dashboard-citas {
+    width: 100%;
+    max-width: none;
+    justify-self: stretch;
+    padding: 11px;
+  }
+
+  .dashboard-citas__header {
+    gap: 8px;
+  }
+
+  .dashboard-citas__header p {
+    font-size: 11px;
+  }
+
+  .dashboard-citas__canvas {
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+  }
+
+  .dashboard-citas__arrow {
+    width: 38px;
+    height: 38px;
+  }
+
+  .dashboard-citas__arrow--prev { left: 8px; }
+  .dashboard-citas__arrow--next { right: 8px; }
+
+  .dashboard-citas__dots {
+    gap: 7px;
+    padding-top: 9px;
+  }
+
+  .dashboard-citas__dot {
+    width: 9px;
+    height: 9px;
+    padding: 0;
+  }
+
+  .quick-notes__header {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 380px) {
+  .main-content {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .stat-card--dashboard {
+    min-height: 90px;
+    padding: 9px;
+  }
+
+  .stat-card--dashboard .stat-card__value {
+    font-size: 20px;
+  }
+
+  .dashboard-citas {
+    padding: 9px;
+  }
+}
