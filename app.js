@@ -2709,14 +2709,27 @@ if (localStorage.getItem('guestMode') === 'true') {
         await maybeApplyTemplate(video, newFormat.defaultChecklistTemplateId, `el formato "${newFormat.name}"`);
       }
         } else if (field === 'ownerId') {
-      video.ownerId = value || null;
-      const employee = state.employees.find((item) => item.id === value);
-      video.owner = employee ? employee.name : '';
-      pushHistory(video, 'owner-change', `Responsable cambiado a "${employee ? employee.name : 'Sin responsable'}"`);
+  console.log('ENTRÓ A ownerId');
 
-      if (employee && employee.email && prev !== value) {
-        setTimeout(() => sendAssignmentEmail(video, employee), 0);
-      }
+  video.ownerId = value || null;
+
+  const employee = state.employees.find((item) => item.id === value);
+
+  console.log({
+    prev,
+    value,
+    employee
+  });
+
+  video.owner = employee ? employee.name : '';
+
+  pushHistory(video, 'owner-change', `Responsable cambiado a "${employee ? employee.name : 'Sin responsable'}"`);
+
+  if (employee && employee.email && prev !== value) {
+    console.log('VOY A ENVIAR MAIL');
+    setTimeout(() => sendAssignmentEmail(video, employee), 0);
+  }
+}
     } else if (field === 'targetDate' || field === 'publishDate') {
       video[field] = value || null;
       pushHistory(video, 'date-change', `${field === 'targetDate' ? 'Fecha objetivo' : 'Fecha de publicación'} actualizada a ${value || 'sin definir'}`);
