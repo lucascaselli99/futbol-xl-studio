@@ -2369,32 +2369,6 @@ if (localStorage.getItem('guestMode') === 'true') {
     return state.videos.find((v) => v.id === state.ui.editingVideoId) || null;
   }
 
-  function citasSliderContext(item) {
-    if (!item || !item.folderId || !['image', 'logo'].includes(item.resourceType)) return null;
-    const folder = libFolder(item.folderId);
-    if (!folder || String(folder.name || '').trim().toLowerCase() !== 'citas') return null;
-    const items = sortLibraryItems(state.libraryItems.filter((candidate) =>
-      candidate.folderId === item.folderId &&
-      !candidate.archived &&
-      ['image', 'logo'].includes(candidate.resourceType)
-    ));
-    const index = items.findIndex((candidate) => candidate.id === item.id);
-    if (index < 0) return null;
-    return { items, index, total: items.length };
-  }
-
-  function navigateCitasSlider(direction) {
-    const item = currentLibraryDetailItem();
-    const slider = citasSliderContext(item);
-    if (!slider || slider.total < 2) return;
-    const nextIndex = (slider.index + direction + slider.total) % slider.total;
-    const nextItem = slider.items[nextIndex];
-    if (!nextItem) return;
-    markLibraryItemUsed(nextItem.id);
-    state.ui.library.detailItemId = nextItem.id;
-    renderEditorOverlay();
-  }
-
   function renderEditorOverlay() {
     // Un único contenedor (#editor-root) se reutiliza tanto para la ficha
     // de video como para el panel de detalles de un recurso de Biblioteca:
@@ -2408,8 +2382,7 @@ if (localStorage.getItem('guestMode') === 'true') {
     }
     const item = currentLibraryDetailItem();
     if (item) {
-      const ctx = { ...buildBaseCtx(), citasSlider: citasSliderContext(item) };
-      root.innerHTML = Components.renderLibraryDetailPanel(item, ctx);
+      root.innerHTML = Components.renderLibraryDetailPanel(item, buildBaseCtx());
       return;
     }
     root.innerHTML = '';
@@ -3512,6 +3485,19 @@ if (localStorage.getItem('guestMode') === 'true') {
     Utils.toast('Empleado eliminado', 'success');
   }
 
+  function moveDashboardCitasSlider(direction) {
+    const slider = document.querySelector('[data-citas-slider]');
+    if (!slider) return;
+    const slides = Array.from(slider.querySelectorAll('[data-citas-slide]'));
+    if (slides.length < 2) return;
+    const current = Number(slider.dataset.index || 0);
+    const next = (current + direction + slides.length) % slides.length;
+    slides.forEach((slide, index) => slide.classList.toggle('is-active', index === next));
+    slider.dataset.index = String(next);
+    const counter = slider.querySelector('[data-citas-counter]');
+    if (counter) counter.textContent = `${next + 1} / ${slides.length}`;
+  }
+
   /* ------------------------------------------------------------------ */
   /* Delegación de eventos                                               */
   /* ------------------------------------------------------------------ */
@@ -3592,6 +3578,12 @@ if (localStorage.getItem('guestMode') === 'true') {
       case 'thumbnail-lab-clear':
         state.ui.thumbnailLab = { title: '', image: '', device: 'desktop' };
         renderMain();
+        break;
+      case 'dashboard-citas-prev':
+        moveDashboardCitasSlider(-1);
+        break;
+      case 'dashboard-citas-next':
+        moveDashboardCitasSlider(1);
         break;
       case 'clear-search':
         state.ui.search = '';
@@ -3978,12 +3970,6 @@ if (localStorage.getItem('guestMode') === 'true') {
         break;
       case 'close-library-detail':
         closeLibraryDetail();
-        break;
-      case 'citas-slider-prev':
-        navigateCitasSlider(-1);
-        break;
-      case 'citas-slider-next':
-        navigateCitasSlider(1);
         break;
       case 'close-library-detail-overlay':
         if (e.target.classList.contains('editor-overlay')) closeLibraryDetail();
@@ -4559,15 +4545,6 @@ if (localStorage.getItem('guestMode') === 'true') {
 
     const typing = Utils.isTypingInField();
     const meta = e.ctrlKey || e.metaKey;
-
-    if (!typing && state.ui.library.detailItemId && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-      const slider = citasSliderContext(currentLibraryDetailItem());
-      if (slider && slider.total > 1) {
-        e.preventDefault();
-        navigateCitasSlider(e.key === 'ArrowLeft' ? -1 : 1);
-        return;
-      }
-    }
 
     if (e.key === 'Escape') {
       if (state.ui.editingVideoId) {
