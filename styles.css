@@ -1,6 +1,6 @@
 /* =========================================================================
-   styles.css Ã¢â‚¬â€ FÃƒÂºtbol XL Studio
-   EstÃƒÂ©tica moderna, minimalista y deportiva, inspirada en Linear/Notion/
+   styles.css ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â FÃƒÆ’Ã‚Âºtbol XL Studio
+   EstÃƒÆ’Ã‚Â©tica moderna, minimalista y deportiva, inspirada en Linear/Notion/
    Trello. Escala de grises como base, color de acento configurable y
    colores personalizados solo en etiquetas/formatos/series/prioridades.
    ========================================================================= */
@@ -56,7 +56,7 @@ html[data-theme='light'] {
   --overlay: rgba(20, 20, 22, 0.35);
 }
 
-/* ---- Reset bÃƒÂ¡sico ------------------------------------------------------ */
+/* ---- Reset bÃƒÆ’Ã‚Â¡sico ------------------------------------------------------ */
 
 * {
   box-sizing: border-box;
@@ -106,7 +106,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 .icon svg { width: 16px; height: 16px; display: block; }
 .icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-/* ---- Layout raÃƒÂ­z --------------------------------------------------------*/
+/* ---- Layout raÃƒÆ’Ã‚Â­z --------------------------------------------------------*/
 
 #app {
   display: flex;
@@ -883,7 +883,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .cal-item--more { color: var(--text-faint); background: transparent; cursor: default; }
 
-/* ---- Estados vacÃƒÂ­os / prÃƒÂ³ximamente --------------------------------------*/
+/* ---- Estados vacÃƒÆ’Ã‚Â­os / prÃƒÆ’Ã‚Â³ximamente --------------------------------------*/
 
 .empty-state, .coming-soon {
   display: flex;
@@ -910,7 +910,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .coming-soon h2 { font-size: 22px; margin-bottom: 8px; }
 
-/* ---- Panel de ediciÃƒÂ³n de video (overlay lateral) -------------------------*/
+/* ---- Panel de ediciÃƒÆ’Ã‚Â³n de video (overlay lateral) -------------------------*/
 
 .editor-overlay {
   position: fixed;
@@ -992,7 +992,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   .editor-panel { width: 100%; }
 }
 
-/* ---- Formularios genÃƒÂ©ricos ---------------------------------------------*/
+/* ---- Formularios genÃƒÆ’Ã‚Â©ricos ---------------------------------------------*/
 
 .editor-form { display: flex; flex-direction: column; gap: 16px; }
 .form-grid {
@@ -1099,7 +1099,7 @@ input:focus, select:focus, textarea:focus {
 .checklist-item__text--done { text-decoration: line-through; color: var(--text-faint); }
 input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px; }
 
-/* ---- Etiquetas rÃƒÂ¡pidas ---------------------------------------------------*/
+/* ---- Etiquetas rÃƒÆ’Ã‚Â¡pidas ---------------------------------------------------*/
 
 .quick-add-tag { display: flex; gap: 8px; margin-top: 10px; }
 .quick-add-tag input {
@@ -1163,7 +1163,7 @@ input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px;
 }
 .comment-item__remove { position: absolute; top: 6px; right: 6px; }
 
-/* ---- ConfiguraciÃƒÂ³n -------------------------------------------------------*/
+/* ---- ConfiguraciÃƒÆ’Ã‚Â³n -------------------------------------------------------*/
 
 .settings-layout { display: flex; gap: 24px; align-items: flex-start; }
 .settings-nav {
@@ -1214,7 +1214,7 @@ input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px;
   .settings-nav { width: 100%; flex-direction: row; overflow-x: auto; }
 }
 
-/* ---- Filas de catÃƒÂ¡logos (series, formatos, estados, etc.) ----------------*/
+/* ---- Filas de catÃƒÆ’Ã‚Â¡logos (series, formatos, estados, etc.) ----------------*/
 
 .entity-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .entity-row {
@@ -1301,19 +1301,19 @@ dialog.modal::backdrop { background: var(--overlay); }
 .toast--warning .toast__icon { color: var(--warning); }
 .toast--info .toast__icon { color: var(--accent); }
 
-/* ---- Marca: versiÃƒÂ³n visible junto al nombre (v1.1.0) ----------------------*/
+/* ---- Marca: versiÃƒÆ’Ã‚Â³n visible junto al nombre (v1.1.0) ----------------------*/
 
 .brand__text { display: flex; flex-direction: column; min-width: 0; }
 .brand__version { font-size: 10px; color: var(--text-faint); }
 
-/* ---- Dashboard: mÃƒÂ©tricas compactas de Biblioteca --------------------------*/
+/* ---- Dashboard: mÃƒÆ’Ã‚Â©tricas compactas de Biblioteca --------------------------*/
 
 .stat-grid--compact { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 .stat-card--sm { padding: 10px 12px; }
 .stat-card--sm .stat-card__value { font-size: 20px; }
 
 /* ============================================================================
-   MÃƒâ€œDULO BIBLIOTECA
+   MÃƒÆ’Ã¢â‚¬Å“DULO BIBLIOTECA
    ========================================================================= */
 
 .view--library { position: relative; min-height: calc(100vh - 220px); }
@@ -1504,7 +1504,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 .library-video-picker__row:hover { background: var(--bg-hover); }
 
 /* ============================================================================
-   MÃƒâ€œDULO COSTOS (v1.2.0)
+   MÃƒÆ’Ã¢â‚¬Å“DULO COSTOS (v1.2.0)
    ========================================================================= */
 
 .view--costs { display: flex; flex-direction: column; gap: 18px; }
@@ -1702,7 +1702,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 @media (max-width:700px){ .team-view .page-heading{flex-direction:column}.team-grid{grid-template-columns:1fr}.team-card{flex-wrap:wrap}.team-card__actions{position:absolute;right:.75rem;top:.75rem} }
 
 
-/* ---- AutenticaciÃƒÂ³n ----------------------------------------------------- */
+/* ---- AutenticaciÃƒÆ’Ã‚Â³n ----------------------------------------------------- */
 
 [hidden] {
   display: none !important;
@@ -1815,7 +1815,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 }
 
 
-/* ---- VinculaciÃƒÂ³n usuario Ã¢â€ â€ empleado (v1.3.1) -------------------------- */
+/* ---- VinculaciÃƒÆ’Ã‚Â³n usuario ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬Â empleado (v1.3.1) -------------------------- */
 
 .user-menu__identity {
   display: flex;
@@ -1855,7 +1855,7 @@ dialog.modal::backdrop { background: var(--overlay); }
 }
 
 
-/* ---- Notas rÃ¡pidas ----------------------------------------------------- */
+/* ---- Notas rÃƒÂ¡pidas ----------------------------------------------------- */
 .quick-notes__header { display:flex; justify-content:space-between; gap:12px; margin-bottom:12px; }
 .quick-notes__composer { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:stretch; }
 .quick-notes__composer textarea { width:100%; resize:vertical; min-height:54px; background:var(--bg-input); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; outline:none; }
@@ -1892,4 +1892,111 @@ dialog.modal::backdrop { background: var(--overlay); }
   .quick-notes__composer { grid-template-columns:1fr; }
   .thumbnail-lab__layout { grid-template-columns:1fr; }
   .thumbnail-preview-wrap { min-height:300px; }
+}
+
+
+/* ---- Biblioteca: subida por arrastrar y soltar ------------------------- */
+
+.view--library {
+  position: relative;
+}
+
+.library-drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 120;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--accent) 13%, var(--bg) 87%);
+  backdrop-filter: blur(3px);
+  pointer-events: none;
+}
+
+.view--library.library-drop-active .library-drop-overlay {
+  display: flex;
+}
+
+.library-drop-overlay__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 36px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
+  box-shadow: var(--shadow-lg);
+  color: var(--text);
+  text-align: center;
+}
+
+.library-drop-overlay__content .icon svg {
+  width: 34px;
+  height: 34px;
+}
+
+.library-drop-overlay__content strong {
+  font-size: 18px;
+}
+
+.library-drop-overlay__content span:last-child {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.library-empty-dropzone {
+  width: 100%;
+  min-height: 230px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--bg-card) 82%, transparent);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 28px;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.library-empty-dropzone:hover,
+.library-empty-dropzone.kanban-col--drag-over {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-card));
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.library-empty-dropzone__icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-hover);
+  color: var(--accent);
+  margin-bottom: 3px;
+}
+
+.library-empty-dropzone__icon .icon svg {
+  width: 25px;
+  height: 25px;
+}
+
+.library-empty-dropzone strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.library-grid.kanban-col--drag-over {
+  outline: 2px dashed var(--accent);
+  outline-offset: 6px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
 }
