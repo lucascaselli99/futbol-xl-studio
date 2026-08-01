@@ -319,7 +319,7 @@ const Components = (() => {
             <div class="dashboard-citas__canvas" style="position:relative;width:100%;aspect-ratio:1 / 1;overflow:hidden;border-radius:12px;background:#0a0a0a;">
               ${citasImages.length ? citasImages.map((item, index) => {
                 const src = item.thumbnailData || item.url || item.fileData;
-                return `<img class="dashboard-citas__image ${index === 0 ? 'is-active' : ''}" data-citas-slide="${index}" src="${escapeHtml(src)}" alt="${escapeHtml(item.name || 'Cita')}" loading="${index === 0 ? 'eager' : 'lazy'}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:${index === 0 ? 'block' : 'none'};">`;
+                return `<img class="dashboard-citas__image ${index === 0 ? 'is-active' : ''}" data-citas-slide="${index}" src="${escapeHtml(src)}" alt="${escapeHtml(item.name || 'Cita')}" loading="${index === 0 ? 'eager' : 'lazy'}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:${index === 0 ? 'block' : 'none'};">`;
               }).join('') : `<div class="dashboard-citas__empty">${icon('image')}<strong>La carpeta “citas” está vacía</strong><span>Agregá imágenes desde Biblioteca y aparecerán acá automáticamente.</span></div>`}
               ${citasImages.length > 1 ? `
                 <button class="dashboard-citas__arrow dashboard-citas__arrow--prev" data-action="dashboard-citas-prev" aria-label="Imagen anterior">${icon('chevronLeft')}</button>
