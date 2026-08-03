@@ -4623,7 +4623,7 @@ if (localStorage.getItem('guestMode') === 'true') {
     const el = e.target;
     const video = currentVideo();
 
-    if (el.dataset.episodeStatus) {
+    if (el.hasAttribute('data-episode-status')) {
       const planner = currentSeriesPlanner();
       const season = planner?.seasons.find((x) => x.id === el.dataset.seasonId);
       const episode = season?.episodes.find((x) => x.id === el.dataset.episodeId);
