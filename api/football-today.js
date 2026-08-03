@@ -4,6 +4,17 @@ function sendJson(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+function dateInTimeZone(date, timeZone) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
@@ -16,7 +27,14 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const response = await fetch('https://api.football-data.org/v4/matches', {
+    const timeZone = 'America/Argentina/Buenos_Aires';
+    const now = new Date();
+    const until = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const dateFrom = dateInTimeZone(now, timeZone);
+    const dateTo = dateInTimeZone(until, timeZone);
+    const params = new URLSearchParams({ dateFrom, dateTo });
+
+    const response = await fetch(`https://api.football-data.org/v4/matches?${params.toString()}`, {
       headers: { 'X-Auth-Token': apiKey },
     });
     const data = await response.json();
@@ -47,8 +65,13 @@ module.exports = async function handler(req, res) {
       };
     });
 
-    res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=300');
-    return sendJson(res, 200, { matches, updatedAt: new Date().toISOString() });
+    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=900');
+    return sendJson(res, 200, {
+      matches,
+      dateFrom,
+      dateTo,
+      updatedAt: new Date().toISOString(),
+    });
   } catch (error) {
     console.error('[Football-Data]', error);
     return sendJson(res, 500, { error: 'No se pudieron cargar los partidos.' });
