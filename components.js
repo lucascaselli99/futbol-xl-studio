@@ -1029,35 +1029,45 @@ const Components = (() => {
       </button>`;
     }).join('');
 
+    const expandedSeasonIds = Array.isArray(ctx.expandedSeasonIds) ? ctx.expandedSeasonIds : [];
     const seasonsHtml = (selected.seasons || []).map((season) => {
       const episodes = season.episodes || [];
       const seasonPublished = episodes.filter((episode) => episode.status === 'published').length;
       const seasonPct = episodes.length ? Math.round((seasonPublished / episodes.length) * 100) : 0;
-      return `<section class="planner-season-card">
+      const isExpanded = expandedSeasonIds.includes(season.id);
+      const toggleLabel = isExpanded ? 'Contraer temporada' : 'Desplegar temporada';
+      return `<section class="planner-season-card ${isExpanded ? 'is-expanded' : 'is-collapsed'}">
         <div class="planner-season-card__header">
+          <button class="planner-season-toggle" data-action="planner-toggle-season" data-season-id="${season.id}" aria-expanded="${isExpanded}" aria-label="${toggleLabel}" title="${toggleLabel}">
+            <span class="planner-season-toggle__chevron">${icon('chevronRight')}</span>
+          </button>
           <div class="planner-season-card__heading">
             <span class="planner-season-card__badge">T${season.number}</span>
             <div><span class="planner-kicker">TEMPORADA ${season.number}</span><input data-season-field="title" data-season-id="${season.id}" value="${escapeHtml(season.title || `Temporada ${season.number}`)}" /></div>
           </div>
           <div class="planner-season-card__summary"><strong>${seasonPublished}/${episodes.length}</strong><span>publicados</span><div class="planner-mini-progress"><span style="width:${seasonPct}%"></span></div></div>
-          <button class="btn btn--secondary btn--sm" data-action="planner-add-episode" data-season-id="${season.id}">${icon('plus')} Capítulo</button>
+          <button class="btn btn--secondary btn--sm planner-season-add-episode" data-action="planner-add-episode" data-season-id="${season.id}">${icon('plus')} Capítulo</button>
         </div>
-        <textarea class="planner-season-notes" data-season-field="notes" data-season-id="${season.id}" rows="2" placeholder="Notas de esta temporada…">${escapeHtml(season.notes || '')}</textarea>
-        <div class="planner-episodes">
-          ${episodes.length ? episodes.map((episode) => `<article class="planner-episode-card ${statusClass[episode.status] || 'is-pending'}">
-            <span class="planner-episode-card__number">${episode.number}</span>
-            <div class="planner-episode-card__content">
-              <input data-episode-field="title" data-season-id="${season.id}" data-episode-id="${episode.id}" value="${escapeHtml(episode.title || '')}" />
-              <textarea data-episode-field="notes" data-season-id="${season.id}" data-episode-id="${episode.id}" rows="2" placeholder="Notas, referencias o ideas del capítulo…">${escapeHtml(episode.notes || '')}</textarea>
+        <div class="planner-season-card__collapsible" aria-hidden="${!isExpanded}">
+          <div class="planner-season-card__collapsible-inner">
+            <textarea class="planner-season-notes" data-season-field="notes" data-season-id="${season.id}" rows="2" placeholder="Notas de esta temporada…">${escapeHtml(season.notes || '')}</textarea>
+            <div class="planner-episodes">
+              ${episodes.length ? episodes.map((episode) => `<article class="planner-episode-card ${statusClass[episode.status] || 'is-pending'}">
+                <span class="planner-episode-card__number">${episode.number}</span>
+                <div class="planner-episode-card__content">
+                  <input data-episode-field="title" data-season-id="${season.id}" data-episode-id="${episode.id}" value="${escapeHtml(episode.title || '')}" />
+                  <textarea data-episode-field="notes" data-season-id="${season.id}" data-episode-id="${episode.id}" rows="2" placeholder="Notas, referencias o ideas del capítulo…">${escapeHtml(episode.notes || '')}</textarea>
+                </div>
+                <select class="planner-status-select ${statusClass[episode.status] || 'is-pending'}" data-episode-status data-season-id="${season.id}" data-episode-id="${episode.id}">
+                  ${Object.entries(statusLabels).map(([value, label]) => `<option value="${value}" ${episode.status === value ? 'selected' : ''}>${label}</option>`).join('')}
+                </select>
+                <div class="planner-episode-card__actions">
+                  <button class="btn btn--secondary btn--sm" data-action="planner-create-video" data-season-id="${season.id}" data-id="${episode.id}">${episode.videoId ? 'Abrir proyecto' : 'Crear proyecto'}</button>
+                  <button class="icon-btn icon-btn--sm" data-action="planner-delete-episode" data-season-id="${season.id}" data-id="${episode.id}" title="Eliminar">${icon('trash')}</button>
+                </div>
+              </article>`).join('') : `<div class="planner-season-empty"><span>${icon('video')}</span><p>Todavía no hay capítulos en esta temporada.</p></div>`}
             </div>
-            <select class="planner-status-select ${statusClass[episode.status] || 'is-pending'}" data-episode-status data-season-id="${season.id}" data-episode-id="${episode.id}">
-              ${Object.entries(statusLabels).map(([value, label]) => `<option value="${value}" ${episode.status === value ? 'selected' : ''}>${label}</option>`).join('')}
-            </select>
-            <div class="planner-episode-card__actions">
-              <button class="btn btn--secondary btn--sm" data-action="planner-create-video" data-season-id="${season.id}" data-id="${episode.id}">${episode.videoId ? 'Abrir proyecto' : 'Crear proyecto'}</button>
-              <button class="icon-btn icon-btn--sm" data-action="planner-delete-episode" data-season-id="${season.id}" data-id="${episode.id}" title="Eliminar">${icon('trash')}</button>
-            </div>
-          </article>`).join('') : `<div class="planner-season-empty"><span>${icon('video')}</span><p>Todavía no hay capítulos en esta temporada.</p></div>`}
+          </div>
         </div>
       </section>`;
     }).join('');
