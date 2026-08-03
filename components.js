@@ -375,8 +375,8 @@ const Components = (() => {
           <section class="panel football-today-panel">
             <div class="football-today__header">
               <div>
-                <h3>Partidos de hoy</h3>
-                <p class="muted small">Horarios de Argentina</p>
+                <h3>Próximos partidos</h3>
+                <p class="muted small">Próximos 7 días · horarios de Argentina</p>
               </div>
               <button class="icon-btn football-today__refresh" data-action="football-refresh" title="Actualizar partidos" aria-label="Actualizar partidos">${icon('repeat')}</button>
             </div>
