@@ -98,6 +98,8 @@ const DB = (() => {
     'expenses',
     'subscriptions',
     'employees',
+    'quickNotes',
+    'seriesPlanner',
   ];
 
   // Nombre de tabla en Supabase para cada colección (snake_case, como es
@@ -123,6 +125,8 @@ const DB = (() => {
     expenses: 'expenses',
     subscriptions: 'subscriptions',
     employees: 'employees',
+    quickNotes: 'quick_notes',
+    seriesPlanner: 'series_planner',
   };
 
   // Columna que actúa de clave primaria en cada tabla (equivalente al
@@ -819,6 +823,9 @@ const DB = (() => {
       recipients,
       expenses,
       subscriptions,
+      employees,
+      quickNotes,
+      seriesPlanner,
     ] = await Promise.all([
       getAll('videos'),
       getAll('series'),
@@ -839,6 +846,9 @@ const DB = (() => {
       getAll('recipients'),
       getAll('expenses'),
       getAll('subscriptions'),
+      getAll('employees'),
+      getAll('quickNotes'),
+      getAll('seriesPlanner'),
     ]);
     return {
       appName: 'Fútbol XL Studio',
@@ -865,6 +875,9 @@ const DB = (() => {
         recipients,
         expenses,
         subscriptions,
+        employees,
+        quickNotes,
+        seriesPlanner,
       },
     };
   }
