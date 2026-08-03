@@ -1014,11 +1014,13 @@ const Components = (() => {
       const stats = itemStats(item);
       const initials = String(item.name || 'Formato').split(/\s+/).filter(Boolean).slice(0, 3).map((part) => part[0]).join('').toUpperCase();
       return `<button class="planner-format-card planner-format-card--${index % 6} ${item.id === ctx.selectedPlannerId ? 'is-active' : ''}" data-action="planner-select" data-id="${item.id}">
-        <div class="planner-format-card__cover">
-          <span class="planner-format-card__orb planner-format-card__orb--one"></span>
-          <span class="planner-format-card__orb planner-format-card__orb--two"></span>
-          <span class="planner-format-card__initials">${escapeHtml(initials)}</span>
+        <div class="planner-format-card__cover ${item.coverUrl ? 'has-image' : ''}">
+          ${item.coverUrl ? `<img class="planner-cover-image" src="${escapeHtml(item.coverUrl)}" alt="Portada de ${escapeHtml(item.name || 'la serie')}" />` : `
+            <span class="planner-format-card__orb planner-format-card__orb--one"></span>
+            <span class="planner-format-card__orb planner-format-card__orb--two"></span>
+            <span class="planner-format-card__initials">${escapeHtml(initials)}</span>`}
           <strong>${escapeHtml(item.name || 'Sin título')}</strong>
+          <span class="planner-cover-change" role="button" tabindex="0" data-action="planner-change-cover" data-id="${item.id}" title="Cambiar portada">✎ Cambiar portada</span>
         </div>
         <div class="planner-format-card__body">
           <div class="planner-format-card__top"><div><h3>${escapeHtml(item.name || 'Sin título')}</h3><p>${stats.seasons} temporada${stats.seasons === 1 ? '' : 's'}</p></div><span class="planner-format-card__menu">•••</span></div>
@@ -1087,9 +1089,10 @@ const Components = (() => {
         </section>
 
         <aside class="planner-detail-panel">
-          <div class="planner-detail-panel__cover planner-format-card--${Math.max(0, items.findIndex((item) => item.id === selected.id)) % 6}">
-            <span class="planner-format-card__orb planner-format-card__orb--one"></span><span class="planner-format-card__orb planner-format-card__orb--two"></span>
+          <div class="planner-detail-panel__cover planner-format-card--${Math.max(0, items.findIndex((item) => item.id === selected.id)) % 6} ${selected.coverUrl ? 'has-image' : ''}">
+            ${selected.coverUrl ? `<img class="planner-cover-image" src="${escapeHtml(selected.coverUrl)}" alt="Portada de ${escapeHtml(selected.name || 'la serie')}" />` : `<span class="planner-format-card__orb planner-format-card__orb--one"></span><span class="planner-format-card__orb planner-format-card__orb--two"></span>`}
             <strong>${escapeHtml(selected.name || 'Sin título')}</strong>
+            <button class="planner-detail-cover-change" type="button" data-action="planner-change-cover" data-id="${selected.id}">${icon('image')} Cambiar portada</button>
           </div>
           <div class="planner-detail-panel__body">
             <div class="planner-detail-title-row"><input class="planner-title-input" data-planner-field="name" value="${escapeHtml(selected.name || '')}" /><button class="icon-btn" data-action="planner-delete" data-id="${selected.id}" title="Eliminar formato">${icon('trash')}</button></div>
@@ -1109,6 +1112,8 @@ const Components = (() => {
           </div>
         </aside>
       </div>
+
+      <input id="planner-cover-input" type="file" accept="image/jpeg,image/png,image/webp" hidden />
 
       <section class="planner-seasons-section">
         <div class="planner-section-heading planner-section-heading--seasons"><div><span class="planner-kicker">ESTRUCTURA</span><h2>Temporadas y capítulos</h2></div><button class="btn btn--secondary" data-action="planner-add-season">${icon('plus')} Agregar temporada</button></div>
