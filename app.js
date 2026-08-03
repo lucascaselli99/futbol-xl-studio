@@ -883,7 +883,7 @@ if (localStorage.getItem('guestMode') === 'true') {
 
       const matches = Array.isArray(data.matches) ? data.matches : [];
       if (!matches.length) {
-        container.innerHTML = '<div class="football-today__empty">No hay partidos disponibles para hoy.</div>';
+        container.innerHTML = '<div class="football-today__empty">No hay partidos disponibles en los próximos 7 días.</div>';
         return;
       }
 
@@ -893,12 +893,26 @@ if (localStorage.getItem('guestMode') === 'true') {
         return statusDiff || new Date(a.utcDate) - new Date(b.utcDate);
       });
 
+      const timeZone = 'America/Argentina/Buenos_Aires';
       const timeFormatter = new Intl.DateTimeFormat('es-AR', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false,
-        timeZone: 'America/Argentina/Buenos_Aires',
+        timeZone,
       });
+      const dayFormatter = new Intl.DateTimeFormat('es-AR', {
+        weekday: 'short',
+        day: '2-digit',
+        month: '2-digit',
+        timeZone,
+      });
+      const dateKeyFormatter = new Intl.DateTimeFormat('en-CA', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        timeZone,
+      });
+      const todayKey = dateKeyFormatter.format(new Date());
 
       const statusLabel = (match) => {
         if (['IN_PLAY', 'PAUSED', 'LIVE'].includes(match.status)) return '<span class="football-match__status is-live">En juego</span>';
@@ -906,11 +920,19 @@ if (localStorage.getItem('guestMode') === 'true') {
         return `<span class="football-match__time">${timeFormatter.format(new Date(match.utcDate))}</span>`;
       };
 
-      container.innerHTML = `<div class="football-match-list">${matches.slice(0, 6).map((match) => {
+      let lastDateKey = '';
+      container.innerHTML = `<div class="football-match-list">${matches.slice(0, 8).map((match) => {
+        const matchDate = new Date(match.utcDate);
+        const dateKey = dateKeyFormatter.format(matchDate);
+        const dayLabel = dateKey === todayKey ? 'Hoy' : dayFormatter.format(matchDate).replace('.', '');
+        const dateHeading = dateKey !== lastDateKey
+          ? `<div class="football-match-date">${Utils.escapeHtml(dayLabel)}</div>`
+          : '';
+        lastDateKey = dateKey;
         const homeScore = match.score?.home;
         const awayScore = match.score?.away;
         const hasScore = Number.isFinite(homeScore) && Number.isFinite(awayScore);
-        return `<article class="football-match">
+        return `${dateHeading}<article class="football-match">
           <div class="football-match__competition">${Utils.escapeHtml(match.competition || 'Fútbol')}</div>
           <div class="football-match__row">
             <div class="football-match__teams">
