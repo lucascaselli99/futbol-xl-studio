@@ -106,9 +106,6 @@
   async function init() {
     const authRoot = document.getElementById('auth-root');
     const appRoot = document.getElementById('app');
-    state.quickNotes = readQuickNotes();
-    state.seriesPlanner = readSeriesPlanner();
-    state.ui.selectedSeriesPlannerId = state.seriesPlanner[0]?.id || null;
     // ===== MODO INVITADO =====
 if (localStorage.getItem('guestMode') === 'true') {
   state.authUser = {
@@ -151,6 +148,7 @@ if (localStorage.getItem('guestMode') === 'true') {
     await DB.seedLibraryIfEmpty();
     await DB.seedCostsTaxonomyIfEmpty();
     await DB.seedCostsSampleDataIfEmpty();
+    await migrateLocalPlanningDataToSupabase();
     await loadAllFromDB();
 
     state.ui.videosView = state.settings.defaultView || 'kanban';
@@ -279,6 +277,8 @@ if (localStorage.getItem('guestMode') === 'true') {
       expenses,
       subscriptions,
       employees,
+      quickNotes,
+      seriesPlanner,
     ] = await Promise.all([
       DB.getAll('videos'),
       DB.getAll('series'),
@@ -300,6 +300,8 @@ if (localStorage.getItem('guestMode') === 'true') {
       DB.getAll('expenses'),
       DB.getAll('subscriptions'),
       DB.getAll('employees'),
+      DB.getAll('quickNotes'),
+      DB.getAll('seriesPlanner'),
     ]);
     state.videos = videos;
     state.series = series;
@@ -321,36 +323,55 @@ if (localStorage.getItem('guestMode') === 'true') {
     state.expenses = expenses;
     state.subscriptions = subscriptions;
     state.employees = employees;
+    state.quickNotes = quickNotes;
+    state.seriesPlanner = seriesPlanner;
+    state.ui.selectedSeriesPlannerId = state.seriesPlanner[0]?.id || null;
     linkCurrentUserToEmployee();
   }
 
-  function readQuickNotes() {
+  async function migrateLocalPlanningDataToSupabase() {
+    let localQuickNotes = [];
+    let localSeriesPlanner = [];
+
     try {
-      const parsed = JSON.parse(localStorage.getItem('fxlQuickNotes') || '[]');
-      return Array.isArray(parsed) ? parsed : [];
+      const parsedNotes = JSON.parse(localStorage.getItem('fxlQuickNotes') || '[]');
+      if (Array.isArray(parsedNotes)) localQuickNotes = parsedNotes;
     } catch (error) {
-      console.warn('[Fútbol XL Studio] No se pudieron leer las notas rápidas:', error);
-      return [];
+      console.warn('[Fútbol XL Studio] No se pudieron leer las notas rápidas locales para migrarlas:', error);
+    }
+
+    try {
+      const parsedPlanner = JSON.parse(localStorage.getItem('fxlSeriesPlanner') || '[]');
+      if (Array.isArray(parsedPlanner)) localSeriesPlanner = parsedPlanner;
+    } catch (error) {
+      console.warn('[Fútbol XL Studio] No se pudo leer la planificación local para migrarla:', error);
+    }
+
+    try {
+      if (localQuickNotes.length) await DB.bulkPut('quickNotes', localQuickNotes);
+      if (localSeriesPlanner.length) await DB.bulkPut('seriesPlanner', localSeriesPlanner);
+
+      // Una vez confirmada la copia en Supabase, eliminamos los datos de trabajo locales.
+      localStorage.removeItem('fxlQuickNotes');
+      localStorage.removeItem('fxlSeriesPlanner');
+    } catch (error) {
+      console.error('[Fútbol XL Studio] No se pudieron migrar Notas rápidas o Formatos a Supabase:', error);
+      Utils.toast('No se pudieron migrar los datos locales a Supabase. No se eliminaron del navegador.', 'error');
     }
   }
 
   function saveQuickNotes() {
-    localStorage.setItem('fxlQuickNotes', JSON.stringify(state.quickNotes));
-  }
-
-
-  function readSeriesPlanner() {
-    try {
-      const parsed = JSON.parse(localStorage.getItem('fxlSeriesPlanner') || '[]');
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-      console.warn('[Fútbol XL Studio] No se pudo leer Formatos:', error);
-      return [];
-    }
+    DB.bulkPut('quickNotes', state.quickNotes).catch((error) => {
+      console.error('[Fútbol XL Studio] No se pudieron guardar las notas rápidas:', error);
+      Utils.toast('No se pudieron guardar las notas rápidas en Supabase.', 'error');
+    });
   }
 
   function saveSeriesPlanner() {
-    localStorage.setItem('fxlSeriesPlanner', JSON.stringify(state.seriesPlanner));
+    DB.bulkPut('seriesPlanner', state.seriesPlanner).catch((error) => {
+      console.error('[Fútbol XL Studio] No se pudo guardar Formatos:', error);
+      Utils.toast('No se pudo guardar Formatos en Supabase.', 'error');
+    });
   }
 
   function currentSeriesPlanner() {
@@ -380,6 +401,10 @@ if (localStorage.getItem('guestMode') === 'true') {
     if (!item || !window.confirm(`¿Eliminar “${item.name}” y toda su planificación?`)) return;
     state.seriesPlanner = state.seriesPlanner.filter((x) => x.id !== id);
     state.ui.selectedSeriesPlannerId = state.seriesPlanner[0]?.id || null;
+    DB.remove('seriesPlanner', id).catch((error) => {
+      console.error('[Fútbol XL Studio] No se pudo eliminar el formato de Supabase:', error);
+      Utils.toast('No se pudo eliminar el formato de Supabase.', 'error');
+    });
     saveSeriesPlanner();
     renderMain();
   }
@@ -469,6 +494,10 @@ if (localStorage.getItem('guestMode') === 'true') {
 
   function deleteQuickNote(id) {
     state.quickNotes = state.quickNotes.filter((note) => note.id !== id);
+    DB.remove('quickNotes', id).catch((error) => {
+      console.error('[Fútbol XL Studio] No se pudo eliminar la nota rápida:', error);
+      Utils.toast('No se pudo eliminar la nota rápida de Supabase.', 'error');
+    });
     saveQuickNotes();
     renderMain();
   }
@@ -494,6 +523,7 @@ if (localStorage.getItem('guestMode') === 'true') {
     state.videos.unshift(video);
     await DB.put('videos', video);
     state.quickNotes = state.quickNotes.filter((item) => item.id !== id);
+    await DB.remove('quickNotes', id);
     saveQuickNotes();
     Utils.toast('Idea convertida en proyecto', 'success');
     openVideoEditor(video.id, 'general');
