@@ -2360,6 +2360,7 @@ border-radius:12px;padding:12px 14px;font:inherit;transition:.2s}
 .football-today__spinner { width:16px; height:16px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:football-spin .7s linear infinite; }
 @keyframes football-spin { to { transform:rotate(360deg); } }
 .football-match-list { display:flex; flex-direction:column; }
+.football-match-date { padding:10px 2px 4px; color:var(--accent); font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
 .football-match { padding:10px 2px; border-bottom:1px solid var(--border-soft); }
 .football-match:last-child { border-bottom:0; }
 .football-match__competition { margin-bottom:6px; color:var(--text-faint); font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
