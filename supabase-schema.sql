@@ -93,7 +93,10 @@ declare
     'currencies',
     'recipients',
     'expenses',
-    'subscriptions'
+    'subscriptions',
+    'employees',
+    'quick_notes',
+    'series_planner'
   ];
 begin
   foreach t in array tables loop
