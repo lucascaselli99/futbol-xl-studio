@@ -360,18 +360,37 @@ if (localStorage.getItem('guestMode') === 'true') {
     }
   }
 
+  // Las escrituras se encadenan para evitar que dos guardados simultáneos
+  // lleguen a Supabase fuera de orden y un estado viejo pise al más reciente.
+  let quickNotesSaveQueue = Promise.resolve();
+  let seriesPlannerSaveQueue = Promise.resolve();
+
+  function cloneForSave(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
   function saveQuickNotes() {
-    DB.bulkPut('quickNotes', state.quickNotes).catch((error) => {
-      console.error('[Fútbol XL Studio] No se pudieron guardar las notas rápidas:', error);
-      Utils.toast('No se pudieron guardar las notas rápidas en Supabase.', 'error');
-    });
+    const snapshot = cloneForSave(state.quickNotes);
+    quickNotesSaveQueue = quickNotesSaveQueue
+      .then(() => DB.bulkPut('quickNotes', snapshot))
+      .catch((error) => {
+        console.error('[Fútbol XL Studio] No se pudieron guardar las notas rápidas:', error);
+        Utils.toast('No se pudieron guardar las notas rápidas en Supabase.', 'error');
+        throw error;
+      });
+    return quickNotesSaveQueue;
   }
 
   function saveSeriesPlanner() {
-    DB.bulkPut('seriesPlanner', state.seriesPlanner).catch((error) => {
-      console.error('[Fútbol XL Studio] No se pudo guardar Formatos:', error);
-      Utils.toast('No se pudo guardar Formatos en Supabase.', 'error');
-    });
+    const snapshot = cloneForSave(state.seriesPlanner);
+    seriesPlannerSaveQueue = seriesPlannerSaveQueue
+      .then(() => DB.bulkPut('seriesPlanner', snapshot))
+      .catch((error) => {
+        console.error('[Fútbol XL Studio] No se pudo guardar Formatos:', error);
+        Utils.toast('No se pudo guardar Formatos en Supabase.', 'error');
+        throw error;
+      });
+    return seriesPlannerSaveQueue;
   }
 
   function currentSeriesPlanner() {
@@ -4611,8 +4630,19 @@ if (localStorage.getItem('guestMode') === 'true') {
       if (!episode) return;
       episode.status = el.value;
       planner.updatedAt = Utils.nowISO();
-      saveSeriesPlanner();
-      renderMain();
+      try {
+        await saveSeriesPlanner();
+        renderMain();
+      } catch (error) {
+        // Si Supabase rechaza el cambio, recargamos el valor real para no
+        // mostrar un estado que después se pierde al refrescar la página.
+        const freshPlanner = await DB.get('seriesPlanner', planner.id).catch(() => null);
+        if (freshPlanner) {
+          const index = state.seriesPlanner.findIndex((item) => item.id === planner.id);
+          if (index >= 0) state.seriesPlanner[index] = freshPlanner;
+        }
+        renderMain();
+      }
       return;
     }
 
