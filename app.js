@@ -903,18 +903,24 @@ if (localStorage.getItem('guestMode') === 'true') {
       container.innerHTML = `
         <div class="youtube-stats__channel">
           ${thumbnail}
-          <div>
+          <div class="youtube-stats__identity">
             <strong>${title}</strong>
-            <span>Estadísticas públicas del canal</span>
+            <span>Canal conectado</span>
           </div>
         </div>
-        <div class="youtube-stats__main">
-          <strong>${subscribers}</strong>
-          <span>suscriptores</span>
-        </div>
-        <div class="youtube-stats__grid">
-          <div><strong>${views}</strong><span>vistas totales</span></div>
-          <div><strong>${videos}</strong><span>videos públicos</span></div>
+        <div class="youtube-stats__metrics">
+          <div class="youtube-stats__metric youtube-stats__metric--primary">
+            <strong>${subscribers}</strong>
+            <span>Suscriptores</span>
+          </div>
+          <div class="youtube-stats__metric">
+            <strong>${views}</strong>
+            <span>Vistas</span>
+          </div>
+          <div class="youtube-stats__metric">
+            <strong>${videos}</strong>
+            <span>Videos</span>
+          </div>
         </div>`;
     } catch (error) {
       console.error('[YouTube Stats]', error);
