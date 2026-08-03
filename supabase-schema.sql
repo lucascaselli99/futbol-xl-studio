@@ -228,3 +228,45 @@ with check (true);
 -- (`auth.uid()`), lo cual es un cambio de arquitectura más grande que no
 -- estaba pedido en esta migración.
 -- =========================================================================
+
+
+-- =========================================================================
+-- PORTADAS DE FORMATOS — SUPABASE STORAGE
+-- =========================================================================
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'series-covers',
+  'series-covers',
+  true,
+  10485760,
+  array['image/jpeg', 'image/png', 'image/webp']
+)
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "fxl_series_covers_select" on storage.objects;
+create policy "fxl_series_covers_select"
+on storage.objects for select
+to anon, authenticated
+using (bucket_id = 'series-covers');
+
+drop policy if exists "fxl_series_covers_insert" on storage.objects;
+create policy "fxl_series_covers_insert"
+on storage.objects for insert
+to anon, authenticated
+with check (bucket_id = 'series-covers');
+
+drop policy if exists "fxl_series_covers_update" on storage.objects;
+create policy "fxl_series_covers_update"
+on storage.objects for update
+to anon, authenticated
+using (bucket_id = 'series-covers')
+with check (bucket_id = 'series-covers');
+
+drop policy if exists "fxl_series_covers_delete" on storage.objects;
+create policy "fxl_series_covers_delete"
+on storage.objects for delete
+to anon, authenticated
+using (bucket_id = 'series-covers');
