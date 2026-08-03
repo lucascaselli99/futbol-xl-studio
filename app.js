@@ -858,6 +858,76 @@ if (localStorage.getItem('guestMode') === 'true') {
   function renderMain() {
     const ctx = buildBaseCtx();
     document.getElementById('main-content').innerHTML = renderRoute(ctx);
+    if (state.ui.route === 'home') {
+      queueMicrotask(() => loadFootballToday());
+    }
+  }
+
+  let footballTodayLoading = false;
+
+  async function loadFootballToday(force = false) {
+    const container = document.getElementById('football-today-content');
+    if (!container || footballTodayLoading) return;
+
+    footballTodayLoading = true;
+    const refreshButton = document.querySelector('[data-action="football-refresh"]');
+    refreshButton?.classList.add('is-loading');
+    container.innerHTML = '<div class="football-today__loading"><span class="football-today__spinner"></span> Cargando partidos…</div>';
+
+    try {
+      const response = await fetch('/api/football-today' + (force ? '?refresh=1' : ''), {
+        cache: force ? 'reload' : 'default',
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'No se pudieron cargar los partidos.');
+
+      const matches = Array.isArray(data.matches) ? data.matches : [];
+      if (!matches.length) {
+        container.innerHTML = '<div class="football-today__empty">No hay partidos disponibles para hoy.</div>';
+        return;
+      }
+
+      const priority = { IN_PLAY: 0, PAUSED: 0, LIVE: 0, TIMED: 1, SCHEDULED: 1, FINISHED: 2 };
+      matches.sort((a, b) => {
+        const statusDiff = (priority[a.status] ?? 3) - (priority[b.status] ?? 3);
+        return statusDiff || new Date(a.utcDate) - new Date(b.utcDate);
+      });
+
+      const timeFormatter = new Intl.DateTimeFormat('es-AR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: 'America/Argentina/Buenos_Aires',
+      });
+
+      const statusLabel = (match) => {
+        if (['IN_PLAY', 'PAUSED', 'LIVE'].includes(match.status)) return '<span class="football-match__status is-live">En juego</span>';
+        if (match.status === 'FINISHED') return '<span class="football-match__status">Final</span>';
+        return `<span class="football-match__time">${timeFormatter.format(new Date(match.utcDate))}</span>`;
+      };
+
+      container.innerHTML = `<div class="football-match-list">${matches.slice(0, 6).map((match) => {
+        const homeScore = match.score?.home;
+        const awayScore = match.score?.away;
+        const hasScore = Number.isFinite(homeScore) && Number.isFinite(awayScore);
+        return `<article class="football-match">
+          <div class="football-match__competition">${Utils.escapeHtml(match.competition || 'Fútbol')}</div>
+          <div class="football-match__row">
+            <div class="football-match__teams">
+              <div class="football-match__team">${match.homeCrest ? `<img src="${Utils.escapeHtml(match.homeCrest)}" alt="" loading="lazy">` : ''}<span>${Utils.escapeHtml(match.home || 'Local')}</span>${hasScore ? `<strong>${homeScore}</strong>` : ''}</div>
+              <div class="football-match__team">${match.awayCrest ? `<img src="${Utils.escapeHtml(match.awayCrest)}" alt="" loading="lazy">` : ''}<span>${Utils.escapeHtml(match.away || 'Visitante')}</span>${hasScore ? `<strong>${awayScore}</strong>` : ''}</div>
+            </div>
+            <div class="football-match__meta">${statusLabel(match)}</div>
+          </div>
+        </article>`;
+      }).join('')}</div>`;
+    } catch (error) {
+      console.error('[Football Today]', error);
+      container.innerHTML = `<div class="football-today__error"><strong>No se pudieron cargar los partidos.</strong><span>${Utils.escapeHtml(error.message || '')}</span><button class="btn btn--ghost btn--sm" data-action="football-refresh">Reintentar</button></div>`;
+    } finally {
+      footballTodayLoading = false;
+      refreshButton?.classList.remove('is-loading');
+    }
   }
 
   function renderRoute(ctx) {
@@ -3969,6 +4039,9 @@ if (localStorage.getItem('guestMode') === 'true') {
         break;
       case 'dashboard-citas-next':
         moveDashboardCitasSlider(1);
+        break;
+      case 'football-refresh':
+        await loadFootballToday(true);
         break;
       case 'clear-search':
         state.ui.search = '';
