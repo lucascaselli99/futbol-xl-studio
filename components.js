@@ -372,9 +372,17 @@ const Components = (() => {
             </ul>` : emptyMini('Todavía no hay actividad')}
           </section>
 
-          <section class="panel">
-            <h3>Distribución por formato</h3>
-            ${formatDist.length ? distBars(formatDist) : emptyMini('Sin datos')}
+          <section class="panel football-today-panel">
+            <div class="football-today__header">
+              <div>
+                <h3>Partidos de hoy</h3>
+                <p class="muted small">Horarios de Argentina</p>
+              </div>
+              <button class="icon-btn football-today__refresh" data-action="football-refresh" title="Actualizar partidos" aria-label="Actualizar partidos">${icon('repeat')}</button>
+            </div>
+            <div id="football-today-content" class="football-today__content">
+              <div class="football-today__loading"><span class="football-today__spinner"></span> Cargando partidos…</div>
+            </div>
           </section>
 
           <section class="panel">
