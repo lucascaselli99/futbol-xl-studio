@@ -406,10 +406,31 @@ if (localStorage.getItem('guestMode') === 'true') {
   }
 
   function openPlannerCoverPicker(plannerId) {
-    const input = document.getElementById('planner-cover-input');
-    if (!input) return;
-    input.dataset.plannerId = plannerId || currentSeriesPlanner()?.id || '';
-    input.value = '';
+    const resolvedPlannerId = plannerId || currentSeriesPlanner()?.id || '';
+    if (!resolvedPlannerId) {
+      Utils.toast('No se pudo identificar la serie.', 'error');
+      return;
+    }
+
+    // Creamos el selector en el momento del clic. Esto evita depender de un
+    // input oculto que puede desaparecer cuando la vista se vuelve a renderizar.
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg,image/png,image/webp';
+    input.style.position = 'fixed';
+    input.style.left = '-9999px';
+    input.style.opacity = '0';
+
+    input.addEventListener('change', async () => {
+      const file = input.files?.[0];
+      try {
+        if (file) await uploadPlannerCover(resolvedPlannerId, file);
+      } finally {
+        input.remove();
+      }
+    }, { once: true });
+
+    document.body.appendChild(input);
     input.click();
   }
 
