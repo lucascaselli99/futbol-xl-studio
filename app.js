@@ -859,7 +859,69 @@ if (localStorage.getItem('guestMode') === 'true') {
     const ctx = buildBaseCtx();
     document.getElementById('main-content').innerHTML = renderRoute(ctx);
     if (state.ui.route === 'home') {
-      queueMicrotask(() => loadFootballToday());
+      queueMicrotask(() => {
+        loadFootballToday();
+        loadYoutubeStats();
+      });
+    }
+  }
+
+  let youtubeStatsLoading = false;
+
+  function formatCompactNumber(value) {
+    const number = Number(value || 0);
+    return new Intl.NumberFormat('es-AR', {
+      notation: number >= 1000000 ? 'compact' : 'standard',
+      maximumFractionDigits: 1,
+    }).format(number);
+  }
+
+  async function loadYoutubeStats(force = false) {
+    const container = document.getElementById('youtube-stats-content');
+    if (!container || youtubeStatsLoading) return;
+
+    youtubeStatsLoading = true;
+    const refreshButton = document.querySelector('[data-action="youtube-refresh"]');
+    refreshButton?.classList.add('is-loading');
+    container.innerHTML = '<div class="youtube-stats__loading"><span class="youtube-stats__spinner"></span> Cargando canal…</div>';
+
+    try {
+      const response = await fetch('/api/youtube-stats' + (force ? '?refresh=1' : ''), {
+        cache: force ? 'reload' : 'default',
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'No se pudieron cargar las estadísticas de YouTube.');
+
+      const title = Utils.escapeHtml(data.title || 'Fútbol XL');
+      const thumbnail = data.thumbnail
+        ? `<img class="youtube-stats__avatar" src="${Utils.escapeHtml(data.thumbnail)}" alt="${title}" loading="lazy">`
+        : '<div class="youtube-stats__avatar youtube-stats__avatar--fallback">FXL</div>';
+      const subscribers = data.hiddenSubscribers ? 'Ocultos' : formatCompactNumber(data.subscribers);
+      const views = formatCompactNumber(data.views);
+      const videos = formatCompactNumber(data.videos);
+
+      container.innerHTML = `
+        <div class="youtube-stats__channel">
+          ${thumbnail}
+          <div>
+            <strong>${title}</strong>
+            <span>Estadísticas públicas del canal</span>
+          </div>
+        </div>
+        <div class="youtube-stats__main">
+          <strong>${subscribers}</strong>
+          <span>suscriptores</span>
+        </div>
+        <div class="youtube-stats__grid">
+          <div><strong>${views}</strong><span>vistas totales</span></div>
+          <div><strong>${videos}</strong><span>videos públicos</span></div>
+        </div>`;
+    } catch (error) {
+      console.error('[YouTube Stats]', error);
+      container.innerHTML = `<div class="youtube-stats__error"><strong>No se pudo cargar YouTube.</strong><span>${Utils.escapeHtml(error.message || '')}</span><button class="btn btn--ghost btn--sm" data-action="youtube-refresh">Reintentar</button></div>`;
+    } finally {
+      youtubeStatsLoading = false;
+      refreshButton?.classList.remove('is-loading');
     }
   }
 
@@ -4064,6 +4126,9 @@ if (localStorage.getItem('guestMode') === 'true') {
         break;
       case 'football-refresh':
         await loadFootballToday(true);
+        break;
+      case 'youtube-refresh':
+        await loadYoutubeStats(true);
         break;
       case 'clear-search':
         state.ui.search = '';
