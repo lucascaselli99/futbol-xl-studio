@@ -1019,11 +1019,10 @@ const Components = (() => {
             <span class="planner-format-card__orb planner-format-card__orb--one"></span>
             <span class="planner-format-card__orb planner-format-card__orb--two"></span>
             <span class="planner-format-card__initials">${escapeHtml(initials)}</span>`}
-          <strong>${escapeHtml(item.name || 'Sin título')}</strong>
           <span class="planner-cover-change" role="button" tabindex="0" data-action="planner-change-cover" data-id="${item.id}" title="Cambiar portada">✎ Cambiar portada</span>
         </div>
         <div class="planner-format-card__body">
-          <div class="planner-format-card__top"><div><p>${stats.seasons} temporada${stats.seasons === 1 ? "" : "s"}</p></div><span class="planner-format-card__menu">•••</span></div>
+          <div class="planner-format-card__top"><div><p>${stats.seasons} temporada${stats.seasons === 1 ? '' : 's'}</p></div><span class="planner-format-card__menu">•••</span></div>
           <div class="planner-format-card__progress"><span style="width:${stats.pct}%"></span></div>
           <div class="planner-format-card__progress-label"><span>${stats.pct}% completado</span><strong>${stats.pct}%</strong></div>
           <div class="planner-format-card__meta"><span>▣ ${stats.episodes.length} capítulos</span><span>✓ ${stats.published} publicados</span></div>
