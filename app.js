@@ -395,6 +395,81 @@ if (localStorage.getItem('guestMode') === 'true') {
     return seriesPlannerSaveQueue;
   }
 
+
+  const SERIES_COVERS_BUCKET = 'series-covers';
+
+  function seriesCoversStorage() {
+    if (typeof Supa === 'undefined' || !Supa.client) {
+      throw new Error('Supabase no está configurado.');
+    }
+    return Supa.client.storage.from(SERIES_COVERS_BUCKET);
+  }
+
+  function openPlannerCoverPicker(plannerId) {
+    const input = document.getElementById('planner-cover-input');
+    if (!input) return;
+    input.dataset.plannerId = plannerId || currentSeriesPlanner()?.id || '';
+    input.value = '';
+    input.click();
+  }
+
+  async function uploadPlannerCover(plannerId, file) {
+    const planner = state.seriesPlanner.find((item) => item.id === plannerId);
+    if (!planner || !file) return;
+    if (!file.type || !file.type.startsWith('image/')) {
+      Utils.toast('Elegí una imagen JPG, PNG o WebP.', 'error');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      Utils.toast('La portada no puede superar los 10 MB.', 'error');
+      return;
+    }
+
+    const oldPath = planner.coverPath || '';
+    const oldUrl = planner.coverUrl || '';
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const path = `${planner.id}/${Date.now()}-${Utils.uuid()}.${ext}`;
+
+    try {
+      Utils.toast('Subiendo portada…', 'info');
+      const storage = seriesCoversStorage();
+      const { error: uploadError } = await storage.upload(path, file, {
+        cacheControl: '3600',
+        contentType: file.type,
+        upsert: false,
+      });
+      if (uploadError) throw uploadError;
+
+      const { data } = storage.getPublicUrl(path);
+      const publicUrl = data?.publicUrl || '';
+      if (!publicUrl) throw new Error('Supabase no devolvió la URL pública de la portada.');
+
+      planner.coverPath = path;
+      planner.coverUrl = publicUrl;
+      planner.updatedAt = Utils.nowISO();
+
+      try {
+        await saveSeriesPlanner();
+      } catch (saveError) {
+        await storage.remove([path]).catch(() => {});
+        planner.coverPath = oldPath;
+        planner.coverUrl = oldUrl;
+        throw saveError;
+      }
+
+      if (oldPath && oldPath !== path) {
+        const { error: removeError } = await storage.remove([oldPath]);
+        if (removeError) console.warn('[Fútbol XL Studio] No se pudo eliminar la portada anterior:', removeError.message);
+      }
+
+      renderMain();
+      Utils.toast('Portada actualizada', 'success');
+    } catch (error) {
+      console.error('[Fútbol XL Studio] No se pudo subir la portada:', error);
+      Utils.toast(`No se pudo subir la portada: ${error.message || 'error desconocido'}`, 'error');
+    }
+  }
+
   function currentSeriesPlanner() {
     return state.seriesPlanner.find((item) => item.id === state.ui.selectedSeriesPlannerId) || state.seriesPlanner[0] || null;
   }
@@ -407,6 +482,8 @@ if (localStorage.getItem('guestMode') === 'true') {
       name: name.trim(),
       description: '',
       notes: '',
+      coverUrl: '',
+      coverPath: '',
       seasons: [],
       createdAt: Utils.nowISO(),
       updatedAt: Utils.nowISO(),
@@ -3836,6 +3913,9 @@ if (localStorage.getItem('guestMode') === 'true') {
         state.ui.selectedSeriesPlannerId = id;
         renderMain();
         break;
+      case 'planner-change-cover':
+        openPlannerCoverPicker(id);
+        break;
       case 'planner-delete':
         deleteSeriesPlanner(id);
         break;
@@ -4651,6 +4731,14 @@ if (localStorage.getItem('guestMode') === 'true') {
   async function onGlobalChange(e) {
     const el = e.target;
     const video = currentVideo();
+
+    if (el.id === 'planner-cover-input') {
+      const file = el.files?.[0];
+      const plannerId = el.dataset.plannerId || currentSeriesPlanner()?.id;
+      if (file && plannerId) await uploadPlannerCover(plannerId, file);
+      el.value = '';
+      return;
+    }
 
     if (el.hasAttribute('data-episode-status')) {
       const planner = currentSeriesPlanner();
