@@ -385,6 +385,19 @@ const Components = (() => {
             </div>
           </section>
 
+          <section class="panel youtube-stats-panel">
+            <div class="youtube-stats__header">
+              <div>
+                <h3>Canal de YouTube</h3>
+                <p class="muted small">Métricas públicas de Fútbol XL</p>
+              </div>
+              <button class="icon-btn youtube-stats__refresh" data-action="youtube-refresh" title="Actualizar YouTube" aria-label="Actualizar YouTube">${icon('repeat')}</button>
+            </div>
+            <div id="youtube-stats-content" class="youtube-stats__content">
+              <div class="youtube-stats__loading"><span class="youtube-stats__spinner"></span> Cargando canal…</div>
+            </div>
+          </section>
+
           <section class="panel">
             <h3>Distribución por serie</h3>
             ${seriesDist.length ? distBars(seriesDist) : emptyMini('Sin datos')}
