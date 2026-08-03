@@ -90,6 +90,8 @@
       showCostFilters: false,
       thumbnailLab: { title: '', image: '', device: 'desktop' },
       selectedSeriesPlannerId: null,
+      // Estado visual por sesión: temporadas desplegadas en el módulo Formatos.
+      plannerExpandedSeasons: {},
     },
   };
 
@@ -492,12 +494,36 @@ if (localStorage.getItem('guestMode') === 'true') {
     openVideoEditor(video.id, 'general');
   }
 
+  function getExpandedPlannerSeasonIds(planner) {
+    if (!planner) return [];
+    const key = planner.id;
+    const stored = state.ui.plannerExpandedSeasons[key];
+    if (Array.isArray(stored)) return stored;
+
+    // Primera visita: solo la primera temporada comienza desplegada.
+    const initial = planner.seasons?.[0]?.id ? [planner.seasons[0].id] : [];
+    state.ui.plannerExpandedSeasons[key] = initial;
+    return initial;
+  }
+
+  function togglePlannerSeason(seasonId) {
+    const planner = currentSeriesPlanner();
+    if (!planner || !seasonId) return;
+    const current = getExpandedPlannerSeasonIds(planner);
+    state.ui.plannerExpandedSeasons[planner.id] = current.includes(seasonId)
+      ? current.filter((id) => id !== seasonId)
+      : [...current, seasonId];
+    renderMain();
+  }
+
   function renderSeriesPlannerRoute(ctx) {
+    const planner = currentSeriesPlanner();
     return Components.renderSeriesPlanner({
       ...ctx,
       plannerItems: state.seriesPlanner,
       selectedPlannerId: state.ui.selectedSeriesPlannerId,
-      selectedPlanner: currentSeriesPlanner(),
+      selectedPlanner: planner,
+      expandedSeasonIds: getExpandedPlannerSeasonIds(planner),
     });
   }
 
@@ -3815,6 +3841,9 @@ if (localStorage.getItem('guestMode') === 'true') {
         break;
       case 'planner-add-season':
         addPlannerSeason();
+        break;
+      case 'planner-toggle-season':
+        togglePlannerSeason(actionEl.dataset.seasonId);
         break;
       case 'planner-add-episode':
         addPlannerEpisode(actionEl.dataset.seasonId);
