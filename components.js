@@ -909,6 +909,14 @@ const Components = (() => {
       .slice()
       .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es'));
 
+    // Los proyectos publicados/finalizados dejan de mostrarse en la tarjeta
+    // del empleado, aunque conserven el responsable para el historial.
+    const finalStateIds = new Set(
+      (ctx.states || [])
+        .filter((state) => state.isFinal || /publicad[oa]|published/i.test(String(state.name || '')))
+        .map((state) => state.id)
+    );
+
     const priorityById = Object.fromEntries(
       (ctx.priorities || []).map((priority) => [priority.id, priority])
     );
@@ -932,7 +940,7 @@ const Components = (() => {
           const ownerIds = Array.isArray(video.ownerIds)
             ? video.ownerIds.filter(Boolean)
             : (video.ownerId ? [video.ownerId] : []);
-          return ownerIds.includes(employee.id);
+          return ownerIds.includes(employee.id) && !finalStateIds.has(video.stateId);
         })
         .slice()
         .sort((a, b) => {
