@@ -898,7 +898,12 @@ const Components = (() => {
 
     const cards = employees.map((employee) => {
       const videos = (ctx.videos || [])
-        .filter((video) => video.ownerId === employee.id)
+        .filter((video) => {
+          const ownerIds = Array.isArray(video.ownerIds)
+            ? video.ownerIds.filter(Boolean)
+            : (video.ownerId ? [video.ownerId] : []);
+          return ownerIds.includes(employee.id);
+        })
         .slice()
         .sort((a, b) => {
           const priorityDifference = priorityRank(b) - priorityRank(a);
