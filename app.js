@@ -3709,10 +3709,23 @@ if (localStorage.getItem('guestMode') === 'true') {
     video.driveLinks[key].url = url;
   }
 
-  function commitDriveLinkChange(video, key) {
-    pushHistory(video, 'link-change', `Enlace actualizado: ${video.driveLinks[key].label}`);
-    touchAndSaveNow(video);
+  async function commitDriveLinkChange(video, key) {
+    const link = video.driveLinks?.[key] || null;
+    pushHistory(video, 'link-change', `Enlace actualizado: ${link?.label || key}`);
+    await touchAndSaveNow(video);
+
+    // Avisamos únicamente cuando se agregó una URL válida. Al borrar un
+    // enlace no se genera notificación ni correo.
+    if (link?.url && Utils.looksLikeUrl(link.url)) {
+      await notifyProjectResource(
+        video,
+        { name: link.label || 'Enlace de Drive' },
+        { verb: 'ha agregado', type: 'project_drive_link' }
+      );
+    }
+
     renderEditorBody();
+    renderMain();
   }
 
   async function addAdditionalLink(video) {
@@ -4805,7 +4818,7 @@ if (localStorage.getItem('guestMode') === 'true') {
         const v = currentVideo();
         if (v) {
           updateDriveLinkModel(v, actionEl.dataset.key, '');
-          commitDriveLinkChange(v, actionEl.dataset.key);
+          await commitDriveLinkChange(v, actionEl.dataset.key);
         }
         break;
       }
@@ -5645,7 +5658,7 @@ if (localStorage.getItem('guestMode') === 'true') {
     }
     if (video && el.dataset.driveUrl) {
       updateDriveLinkModel(video, el.dataset.driveUrl, el.value);
-      commitDriveLinkChange(video, el.dataset.driveUrl);
+      await commitDriveLinkChange(video, el.dataset.driveUrl);
       return;
     }
 
