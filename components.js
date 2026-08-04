@@ -1038,7 +1038,7 @@ const Components = (() => {
           <div class="team-card__body">
             <div class="team-card__heading">
               <div>
-                <h3>${escapeHtml(employee.name)} ${employee.id === currentEmployeeId ? '<span class="account-link-badge">Tu cuenta</span>' : ''}</h3>
+                <h3>${escapeHtml(employee.name)} ${employee.id === currentEmployeeId ? '<span class="account-link-badge">Tu cuenta</span>' : ''} ${employee.isAdmin ? '<span class="account-link-badge">Administrador</span>' : ''}</h3>
                 <p class="muted">${escapeHtml(employee.role || 'Sin rol')}</p>
               </div>
               <span class="pill ${employee.active === false ? 'pill--outline' : ''}">${employee.active === false ? 'Inactivo' : 'Activo'}</span>
@@ -1070,6 +1070,7 @@ const Components = (() => {
         <label class="field"><span>Email</span><input id="employee-email" type="email" value="${escapeHtml(employee.email || '')}" /></label>
         <label class="field"><span>WhatsApp / teléfono</span><input id="employee-phone" type="text" value="${escapeHtml(employee.phone || '')}" /></label>
         <label class="field field--checkbox"><input id="employee-active" type="checkbox" ${employee.active === false ? '' : 'checked'} /><span>Empleado activo</span></label>
+        <label class="field field--checkbox field--wide"><input id="employee-admin" type="checkbox" ${employee.isAdmin ? 'checked' : ''} /><span>Administrador: recibe en la campana y por email toda la actividad de recursos del estudio, incluso la propia.</span></label>
       </div></div>
       <div class="modal__footer"><button class="btn btn--ghost" data-action="modal-cancel">Cancelar</button><button class="btn btn--primary" data-action="save-employee" data-id="${employee.id || ''}">${editing ? 'Guardar cambios' : 'Crear empleado'}</button></div>`;
   }
