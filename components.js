@@ -52,6 +52,7 @@ const Components = (() => {
     users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-2a5.5 5.5 0 0 1 11 0v2"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.5A5 5 0 0 1 21 19v1"/></svg>',
     wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 13.5h3"/></svg>',
     lightbulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6M10 22h4"/><path d="M8.2 14.5A7 7 0 1 1 15.8 14.5C14.8 15.3 14.5 16 14.5 17h-5c0-1-.3-1.7-1.3-2.5Z"/></svg>',
+    bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>',
     repeat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 2 21 6l-4 4"/><path d="M3 12v-1a5 5 0 0 1 5-5h13"/><path d="M7 22 3 18l4-4"/><path d="M21 12v1a5 5 0 0 1-5 5H3"/></svg>',
   };
 
@@ -167,7 +168,16 @@ const Components = (() => {
   /* ------------------------------------------------------------------ */
 
   function renderTopbar(ctx) {
-    const { search, saveState, route, authUser, currentEmployee } = ctx;
+    const {
+      search,
+      saveState,
+      route,
+      authUser,
+      currentEmployee,
+      notifications = [],
+      notificationsOpen = false,
+    } = ctx;
+
     const titles = {
       home: 'Inicio',
       videos: 'Videos',
@@ -180,6 +190,59 @@ const Components = (() => {
       analytics: 'Analytics',
       settings: 'Configuración',
     };
+
+    const allEmployeeNotifications = currentEmployee
+      ? notifications
+          .filter((notification) => notification.recipientEmployeeId === currentEmployee.id)
+          .slice()
+          .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+      : [];
+    const employeeNotifications = allEmployeeNotifications.slice(0, 20);
+    const unreadCount = allEmployeeNotifications.filter((notification) => !notification.read).length;
+
+    const notificationCenter = currentEmployee ? `
+      <div class="notifications-center">
+        <button
+          class="icon-btn notifications-trigger ${unreadCount ? 'has-unread' : ''}"
+          data-action="notifications-toggle"
+          title="Notificaciones"
+          aria-label="Notificaciones${unreadCount ? `, ${unreadCount} sin leer` : ''}"
+          aria-expanded="${notificationsOpen ? 'true' : 'false'}"
+        >
+          ${icon('bell')}
+          ${unreadCount ? `<span class="notifications-badge">${unreadCount > 99 ? '99+' : unreadCount}</span>` : ''}
+        </button>
+        <div class="notifications-menu" ${notificationsOpen ? '' : 'hidden'}>
+          <div class="notifications-menu__header">
+            <div>
+              <strong>Notificaciones</strong>
+              <span>${unreadCount ? `${unreadCount} sin leer` : 'Todo al día'}</span>
+            </div>
+            ${unreadCount ? `<button class="btn btn--ghost btn--sm" data-action="notifications-mark-all-read">Marcar todas</button>` : ''}
+          </div>
+          <div class="notifications-list">
+            ${employeeNotifications.length ? employeeNotifications.map((notification) => `
+              <button
+                class="notification-item ${notification.read ? '' : 'is-unread'}"
+                data-action="notification-open"
+                data-id="${notification.id}"
+              >
+                <span class="notification-item__avatar">${escapeHtml(String(notification.actorName || '?').trim().charAt(0).toUpperCase() || '?')}</span>
+                <span class="notification-item__body">
+                  <span class="notification-item__message">${escapeHtml(notification.message || 'Nueva actividad en un proyecto')}</span>
+                  <span class="notification-item__time">${formatDateTime(notification.createdAt)}</span>
+                </span>
+                ${notification.read ? '' : '<span class="notification-item__dot" aria-hidden="true"></span>'}
+              </button>`).join('') : `
+              <div class="notifications-empty">
+                ${icon('bell')}
+                <strong>No hay notificaciones</strong>
+                <span>La actividad de tus proyectos aparecerá acá.</span>
+              </div>`}
+          </div>
+        </div>
+      </div>` : '';
+
     return `
       <header class="topbar">
         <button class="icon-btn topbar__menu-btn" data-action="toggle-mobile-sidebar" title="Menú">${icon('menu')}</button>
@@ -194,6 +257,7 @@ const Components = (() => {
             <span class="save-indicator__dot"></span>
             <span class="save-indicator__text">${saveState === 'saving' ? 'Guardando…' : 'Guardado'}</span>
           </span>
+          ${notificationCenter}
           <button class="btn btn--primary" data-action="new-video">${icon('plus')} <span>Nuevo video</span></button>
           <div class="user-menu">
             <div class="user-menu__identity">
@@ -1562,6 +1626,10 @@ const Components = (() => {
         <div class="library-tab-header">
           <p class="muted small">Recursos de la Biblioteca asociados a este video. La relación es solo por referencia: no se duplica ningún archivo.</p>
           <div class="settings-actions-row">
+            <label class="btn btn--primary">
+              ${icon('upload')} Subir archivo
+              <input id="project-resource-file-input" data-video-id="${video.id}" type="file" multiple hidden />
+            </label>
             <button class="btn btn--secondary" data-action="open-link-library-picker" data-id="${video.id}">${icon('link')} Agregar desde Biblioteca</button>
             <button class="btn btn--ghost" data-action="create-library-item-for-video" data-id="${video.id}">${icon('plus')} Crear recurso nuevo</button>
           </div>
