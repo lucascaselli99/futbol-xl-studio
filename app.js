@@ -2973,6 +2973,53 @@ if (localStorage.getItem('guestMode') === 'true') {
   /* Creación / edición / borrado de videos                              */
   /* ------------------------------------------------------------------ */
 
+  function getVideoOwnerIds(video) {
+    const ids = Array.isArray(video?.ownerIds) ? video.ownerIds.filter(Boolean) : [];
+    if (video?.ownerId && !ids.includes(video.ownerId)) ids.unshift(video.ownerId);
+    return [...new Set(ids)];
+  }
+
+  function syncVideoOwners(video) {
+    const ownerIds = getVideoOwnerIds(video);
+    video.ownerIds = ownerIds;
+    video.ownerId = ownerIds[0] || null;
+    video.owner = ownerIds
+      .map((id) => state.employees.find((employee) => employee.id === id)?.name)
+      .filter(Boolean)
+      .join(', ');
+    return ownerIds;
+  }
+
+  async function toggleVideoOwner(video, employeeId, checked) {
+    const previousIds = getVideoOwnerIds(video);
+    const nextIds = checked
+      ? [...new Set([...previousIds, employeeId])]
+      : previousIds.filter((id) => id !== employeeId);
+
+    if (previousIds.length === nextIds.length && previousIds.every((id, index) => id === nextIds[index])) return;
+
+    video.ownerIds = nextIds;
+    syncVideoOwners(video);
+
+    const employee = state.employees.find((item) => item.id === employeeId);
+    pushHistory(
+      video,
+      'owner-change',
+      checked
+        ? `Responsable agregado: "${employee?.name || 'Sin nombre'}"`
+        : `Responsable quitado: "${employee?.name || 'Sin nombre'}"`
+    );
+
+    await touchAndSaveNow(video);
+
+    if (checked && employee?.email && !previousIds.includes(employeeId)) {
+      await sendAssignmentEmail(video, employee);
+    }
+
+    renderEditorBody();
+    renderMain();
+  }
+
   function blankVideo(stateId) {
     const now = Utils.nowISO();
     const initialState = stateId || (state.states.find((s) => s.isInitial) || state.states[0] || {}).id;
@@ -2993,6 +3040,7 @@ if (localStorage.getItem('guestMode') === 'true') {
       finalDuration: '',
       owner: '',
       ownerId: null,
+      ownerIds: [],
       favorite: false,
       archived: false,
       tagIds: [],
@@ -3167,12 +3215,12 @@ if (localStorage.getItem('guestMode') === 'true') {
         await maybeApplyTemplate(video, newFormat.defaultChecklistTemplateId, `el formato "${newFormat.name}"`);
       }
     } else if (field === 'ownerId') {
-      video.ownerId = value || null;
+      video.ownerIds = value ? [value] : [];
+      syncVideoOwners(video);
       const employee = state.employees.find((item) => item.id === value);
-      video.owner = employee ? employee.name : '';
       pushHistory(video, 'owner-change', `Responsable cambiado a "${employee ? employee.name : 'Sin responsable'}"`);
       if (employee && employee.email && prev !== value) {
-        setTimeout(() => sendAssignmentEmail(video, employee), 0);
+        await sendAssignmentEmail(video, employee);
       }
     } else if (field === 'targetDate' || field === 'publishDate') {
       video[field] = value || null;
@@ -3968,7 +4016,7 @@ if (localStorage.getItem('guestMode') === 'true') {
   async function deleteEmployee(employeeId) {
     const employee = state.employees.find((x) => x.id === employeeId);
     if (!employee) return;
-    const assigned = state.videos.filter((v) => v.ownerId === employeeId).length;
+    const assigned = state.videos.filter((v) => getVideoOwnerIds(v).includes(employeeId)).length;
     const ok = await Utils.confirmDialog({
       title: 'Eliminar empleado',
       message: assigned
@@ -3978,9 +4026,9 @@ if (localStorage.getItem('guestMode') === 'true') {
       confirmText: 'Eliminar',
     });
     if (!ok) return;
-    for (const video of state.videos.filter((v) => v.ownerId === employeeId)) {
-      video.ownerId = null;
-      video.owner = '';
+    for (const video of state.videos.filter((v) => getVideoOwnerIds(v).includes(employeeId))) {
+      video.ownerIds = getVideoOwnerIds(video).filter((id) => id !== employeeId);
+      syncVideoOwners(video);
       await DB.put('videos', video);
     }
     await DB.remove('employees', employeeId);
@@ -5077,6 +5125,11 @@ if (localStorage.getItem('guestMode') === 'true') {
       const list = state.ui.library.selectedIds;
       state.ui.library.selectedIds = el.checked ? [...list, el.dataset.id] : list.filter((x) => x !== el.dataset.id);
       renderMain();
+      return;
+    }
+
+    if (video && el.hasAttribute('data-owner-toggle')) {
+      await toggleVideoOwner(video, el.dataset.employeeId, el.checked);
       return;
     }
 
