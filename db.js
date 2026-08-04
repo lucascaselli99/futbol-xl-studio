@@ -100,6 +100,7 @@ const DB = (() => {
     'employees',
     'quickNotes',
     'seriesPlanner',
+    'notifications',
   ];
 
   // Nombre de tabla en Supabase para cada colección (snake_case, como es
@@ -127,6 +128,7 @@ const DB = (() => {
     employees: 'employees',
     quickNotes: 'quick_notes',
     seriesPlanner: 'series_planner',
+    notifications: 'notifications',
   };
 
   // Columna que actúa de clave primaria en cada tabla (equivalente al
@@ -826,6 +828,7 @@ const DB = (() => {
       employees,
       quickNotes,
       seriesPlanner,
+      notifications,
     ] = await Promise.all([
       getAll('videos'),
       getAll('series'),
@@ -849,6 +852,7 @@ const DB = (() => {
       getAll('employees'),
       getAll('quickNotes'),
       getAll('seriesPlanner'),
+      getAll('notifications'),
     ]);
     return {
       appName: 'Fútbol XL Studio',
@@ -878,6 +882,7 @@ const DB = (() => {
         employees,
         quickNotes,
         seriesPlanner,
+        notifications,
       },
     };
   }
@@ -892,7 +897,7 @@ const DB = (() => {
     // Las colecciones agregadas después de la v1.0.0 son opcionales: un
     // respaldo viejo puede no tenerlas y se importa igual, solo que sin
     // ese módulo (Biblioteca y/o Costos, según qué versión lo generó).
-    const optional = ['libraryFolders', 'libraryItems', 'expenseCategories', 'expenseTypes', 'paymentMethods', 'currencies', 'recipients', 'expenses', 'subscriptions'];
+    const optional = ['libraryFolders', 'libraryItems', 'expenseCategories', 'expenseTypes', 'paymentMethods', 'currencies', 'recipients', 'expenses', 'subscriptions', 'employees', 'quickNotes', 'seriesPlanner', 'notifications'];
     for (const key of optional) {
       if (obj.data[key] !== undefined && !Array.isArray(obj.data[key])) {
         return `La colección "${key}" del respaldo es inválida.`;
@@ -938,6 +943,10 @@ const DB = (() => {
       'recipients',
       'expenses',
       'subscriptions',
+      'employees',
+      'quickNotes',
+      'seriesPlanner',
+      'notifications',
     ];
     for (const col of collections) {
       if (Array.isArray(data[col]) && data[col].length) {
