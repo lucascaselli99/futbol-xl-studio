@@ -1235,6 +1235,37 @@ const Components = (() => {
     return legacy + options;
   }
 
+  function renderOwnerMultiSelect(employees, video) {
+    const selectedIds = Array.isArray(video.ownerIds)
+      ? video.ownerIds.filter(Boolean)
+      : (video.ownerId ? [video.ownerId] : []);
+    const selectedEmployees = employees.filter((employee) => selectedIds.includes(employee.id));
+    const chips = selectedEmployees.length
+      ? selectedEmployees.map((employee) => `<span class="owner-chip">${escapeHtml(employee.name || 'Sin nombre')}</span>`).join('')
+      : '<span class="owner-multiselect__placeholder">Sin responsables</span>';
+    const options = employees
+      .filter((employee) => employee.active !== false || selectedIds.includes(employee.id))
+      .slice()
+      .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es'))
+      .map((employee) => `
+        <label class="owner-option">
+          <input type="checkbox" data-owner-toggle data-employee-id="${employee.id}" ${selectedIds.includes(employee.id) ? 'checked' : ''} />
+          <span>${escapeHtml(employee.name || 'Sin nombre')}${employee.active === false ? ' (inactivo)' : ''}</span>
+        </label>`)
+      .join('');
+
+    return `
+      <details class="owner-multiselect">
+        <summary>
+          <span class="owner-multiselect__chips">${chips}</span>
+          <span class="owner-multiselect__arrow">⌄</span>
+        </summary>
+        <div class="owner-multiselect__menu">
+          ${options || '<p class="muted small">No hay empleados activos.</p>'}
+        </div>
+      </details>`;
+  }
+
   function renderEditorGeneral(video, ctx) {
     return `
       <div class="editor-form">
@@ -1268,10 +1299,10 @@ const Components = (() => {
             <span>Tipo de contenido</span>
             <select data-field="contentTypeId">${selectOptions(ctx.contentTypes, video.contentTypeId)}</select>
           </label>
-          <label class="field">
-            <span>Responsable del proyecto</span>
-            <select data-field="ownerId">${employeeOptions(ctx.employees || [], video.ownerId, video.owner)}</select>
-          </label>
+          <div class="field">
+            <span>Responsables del proyecto</span>
+            ${renderOwnerMultiSelect(ctx.employees || [], video)}
+          </div>
 
           <label class="field">
             <span>Fecha objetivo</span>
