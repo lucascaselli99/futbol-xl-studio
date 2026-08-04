@@ -45,6 +45,7 @@
     subscriptions: [],
     employees: [],
     quickNotes: [],
+    recordingTasks: [],
     seriesPlanner: [],
     authUser: null,
     currentEmployee: null,
@@ -325,7 +326,12 @@ if (localStorage.getItem('guestMode') === 'true') {
     state.expenses = expenses;
     state.subscriptions = subscriptions;
     state.employees = employees;
-    state.quickNotes = quickNotes;
+    // Las tareas de grabación reutilizan el store quickNotes para no requerir
+    // una migración de base de datos. Se distinguen mediante kind='recording'.
+    state.quickNotes = quickNotes.filter((item) => item.kind !== 'recording');
+    state.recordingTasks = quickNotes
+      .filter((item) => item.kind === 'recording')
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
     state.seriesPlanner = seriesPlanner;
     state.ui.selectedSeriesPlannerId = state.seriesPlanner[0]?.id || null;
     linkCurrentUserToEmployee();
@@ -372,7 +378,9 @@ if (localStorage.getItem('guestMode') === 'true') {
   }
 
   function saveQuickNotes() {
-    const snapshot = cloneForSave(state.quickNotes);
+    // El store quickNotes también contiene la jornada de grabación.
+    // Guardamos ambas colecciones juntas para que ninguna escritura pise a la otra.
+    const snapshot = cloneForSave([...state.quickNotes, ...state.recordingTasks]);
     quickNotesSaveQueue = quickNotesSaveQueue
       .then(() => DB.bulkPut('quickNotes', snapshot))
       .catch((error) => {
@@ -629,7 +637,7 @@ if (localStorage.getItem('guestMode') === 'true') {
     const input = document.getElementById('quick-note-input');
     const text = input?.value.trim();
     if (!text) return;
-    state.quickNotes.unshift({ id: Utils.uuid(), text, createdAt: Utils.nowISO() });
+    state.quickNotes.unshift({ id: Utils.uuid(), kind: 'note', text, createdAt: Utils.nowISO() });
     saveQuickNotes();
     renderMain();
     setTimeout(() => document.getElementById('quick-note-input')?.focus(), 0);
@@ -670,6 +678,92 @@ if (localStorage.getItem('guestMode') === 'true') {
     saveQuickNotes();
     Utils.toast('Idea convertida en proyecto', 'success');
     openVideoEditor(video.id, 'general');
+  }
+
+
+  /* ------------------------------------------------------------------ */
+  /* Jornada de grabación                                                */
+  /* ------------------------------------------------------------------ */
+
+  async function addRecordingTask() {
+    const input = document.getElementById('recording-task-input');
+    const text = input?.value.trim();
+    if (!text) return;
+
+    const task = {
+      id: Utils.uuid(),
+      kind: 'recording',
+      text,
+      done: false,
+      createdAt: Utils.nowISO(),
+      updatedAt: Utils.nowISO(),
+    };
+
+    state.recordingTasks.unshift(task);
+    try {
+      await DB.put('quickNotes', task);
+    } catch (error) {
+      state.recordingTasks = state.recordingTasks.filter((item) => item.id !== task.id);
+      console.error('[Fútbol XL Studio] No se pudo guardar la tarea de grabación:', error);
+      Utils.toast('No se pudo guardar la tarea de grabación.', 'error');
+      return;
+    }
+
+    renderMain();
+    setTimeout(() => document.getElementById('recording-task-input')?.focus(), 0);
+  }
+
+  async function toggleRecordingTask(id, done) {
+    const task = state.recordingTasks.find((item) => item.id === id);
+    if (!task) return;
+
+    const previous = task.done;
+    task.done = Boolean(done);
+    task.updatedAt = Utils.nowISO();
+
+    try {
+      await DB.put('quickNotes', task);
+    } catch (error) {
+      task.done = previous;
+      console.error('[Fútbol XL Studio] No se pudo actualizar la tarea de grabación:', error);
+      Utils.toast('No se pudo actualizar la tarea de grabación.', 'error');
+    }
+    renderMain();
+  }
+
+  async function deleteRecordingTask(id) {
+    const previous = state.recordingTasks.slice();
+    state.recordingTasks = state.recordingTasks.filter((item) => item.id !== id);
+
+    try {
+      await DB.remove('quickNotes', id);
+    } catch (error) {
+      state.recordingTasks = previous;
+      console.error('[Fútbol XL Studio] No se pudo eliminar la tarea de grabación:', error);
+      Utils.toast('No se pudo eliminar la tarea de grabación.', 'error');
+    }
+    renderMain();
+  }
+
+  async function clearCompletedRecordingTasks() {
+    const completedIds = state.recordingTasks.filter((item) => item.done).map((item) => item.id);
+    if (!completedIds.length) {
+      Utils.toast('No hay grabaciones completadas para limpiar.', 'info');
+      return;
+    }
+
+    const previous = state.recordingTasks.slice();
+    state.recordingTasks = state.recordingTasks.filter((item) => !item.done);
+
+    try {
+      await Promise.all(completedIds.map((id) => DB.remove('quickNotes', id)));
+      Utils.toast('Grabaciones completadas eliminadas', 'success');
+    } catch (error) {
+      state.recordingTasks = previous;
+      console.error('[Fútbol XL Studio] No se pudieron limpiar las tareas grabadas:', error);
+      Utils.toast('No se pudieron limpiar las tareas grabadas.', 'error');
+    }
+    renderMain();
   }
 
   function normalizeEmail(value) {
@@ -720,6 +814,7 @@ if (localStorage.getItem('guestMode') === 'true') {
       subscriptions: state.subscriptions,
       employees: state.employees,
       quickNotes: state.quickNotes,
+      recordingTasks: state.recordingTasks,
       thumbnailLab: state.ui.thumbnailLab,
       authUser: state.authUser,
       currentEmployee: state.currentEmployee,
@@ -4135,6 +4230,15 @@ if (localStorage.getItem('guestMode') === 'true') {
       case 'quick-note-to-project':
         await quickNoteToProject(id);
         break;
+      case 'recording-task-add':
+        await addRecordingTask();
+        break;
+      case 'recording-task-delete':
+        await deleteRecordingTask(id);
+        break;
+      case 'recording-task-clear-completed':
+        await clearCompletedRecordingTasks();
+        break;
       case 'planner-new':
         createSeriesPlanner();
         break;
@@ -5128,6 +5232,11 @@ if (localStorage.getItem('guestMode') === 'true') {
       return;
     }
 
+    if (el.dataset.action === 'recording-task-toggle') {
+      await toggleRecordingTask(el.dataset.id, el.checked);
+      return;
+    }
+
     if (video && el.hasAttribute('data-owner-toggle')) {
       await toggleVideoOwner(video, el.dataset.employeeId, el.checked);
       return;
@@ -5207,6 +5316,12 @@ if (localStorage.getItem('guestMode') === 'true') {
     if (e.target?.id === 'quick-note-input' && e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       addQuickNote();
+      return;
+    }
+
+    if (e.target?.id === 'recording-task-input' && e.key === 'Enter') {
+      e.preventDefault();
+      addRecordingTask();
       return;
     }
 
