@@ -900,12 +900,37 @@ const Components = (() => {
     const monthName = first.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
 
     const videosByDay = {};
+
+    // El calendario representa el plan de publicación. Las fechas guardadas
+    // como YYYY-MM-DD se leen manualmente para evitar que JavaScript las
+    // convierta a UTC y las muestre un día antes en Argentina.
+    const calendarDateParts = (value) => {
+      if (!value) return null;
+      const dateOnlyMatch = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (dateOnlyMatch) {
+        return {
+          year: Number(dateOnlyMatch[1]),
+          month: Number(dateOnlyMatch[2]) - 1,
+          day: Number(dateOnlyMatch[3]),
+        };
+      }
+
+      const parsed = new Date(value);
+      if (Number.isNaN(parsed.getTime())) return null;
+      return {
+        year: parsed.getFullYear(),
+        month: parsed.getMonth(),
+        day: parsed.getDate(),
+      };
+    };
+
     videos.forEach((v) => {
-      if (!v.targetDate) return;
-      const d = new Date(v.targetDate);
-      if (d.getFullYear() === calendarMonth.year && d.getMonth() === calendarMonth.month) {
-        const day = d.getDate();
-        (videosByDay[day] = videosByDay[day] || []).push(v);
+      const calendarDate = v.publishDate || v.targetDate || v.createdAt;
+      const parts = calendarDateParts(calendarDate);
+      if (!parts) return;
+
+      if (parts.year === calendarMonth.year && parts.month === calendarMonth.month) {
+        (videosByDay[parts.day] = videosByDay[parts.day] || []).push(v);
       }
     });
 
@@ -936,7 +961,7 @@ const Components = (() => {
           ${['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d) => `<div class="cal-weekday">${d}</div>`).join('')}
         </div>
         <div class="cal-grid">${cells}</div>
-        <p class="muted small">Vista simple basada en la fecha objetivo de cada video. Un calendario avanzado (grabaciones, entrevistas, recordatorios) llegará en una futura versión.</p>
+        <p class="muted small">Vista basada en la fecha de publicación. Si un video no tiene fecha de publicación, se usa la fecha objetivo y luego la fecha de creación.</p>
       </div>`;
   }
 
