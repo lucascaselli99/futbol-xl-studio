@@ -791,9 +791,19 @@ if (localStorage.getItem('guestMode') === 'true') {
 
   function notificationRecipientIds(video) {
     const actorId = state.currentEmployee?.id || null;
-    return getVideoOwnerIds(video)
-      .filter((employeeId) => employeeId && employeeId !== actorId)
-      .filter((employeeId, index, list) => list.indexOf(employeeId) === index)
+
+    // Los responsables reciben la actividad de sus proyectos, excepto quien
+    // realizó la acción. Los administradores activos reciben TODA la actividad
+    // del estudio, incluso cuando ellos mismos realizaron la acción: esto les
+    // permite confirmar que el flujo de notificaciones funcionó correctamente.
+    const ownerIds = getVideoOwnerIds(video)
+      .filter((employeeId) => employeeId && employeeId !== actorId);
+    const adminIds = state.employees
+      .filter((employee) => employee?.isAdmin === true && employee.active !== false)
+      .map((employee) => employee.id)
+      .filter(Boolean);
+
+    return [...new Set([...ownerIds, ...adminIds])]
       .filter((employeeId) => {
         const employee = state.employees.find((item) => item.id === employeeId);
         return employee && employee.active !== false;
@@ -4469,6 +4479,7 @@ if (localStorage.getItem('guestMode') === 'true') {
       email: document.getElementById('employee-email')?.value.trim() || '',
       phone: document.getElementById('employee-phone')?.value.trim() || '',
       active: document.getElementById('employee-active')?.checked ?? true,
+      isAdmin: document.getElementById('employee-admin')?.checked ?? false,
       updatedAt: new Date().toISOString(),
       createdAt: existing?.createdAt || new Date().toISOString(),
     };
