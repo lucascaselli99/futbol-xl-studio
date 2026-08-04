@@ -800,6 +800,54 @@ if (localStorage.getItem('guestMode') === 'true') {
       });
   }
 
+  async function sendProjectResourceEmails(video, notifications) {
+    if (!video || !Array.isArray(notifications) || !notifications.length) return [];
+    if (state.authUser?.guest) return [];
+
+    const { data, error } = await Supa.client.auth.getSession();
+    if (error || !data?.session?.access_token) {
+      throw new Error('No se pudo validar la sesión de Supabase.');
+    }
+
+    const recipients = notifications
+      .map((notification) => {
+        const employee = state.employees.find((item) => item.id === notification.recipientEmployeeId);
+        return employee?.email
+          ? {
+              email: employee.email,
+              name: employee.name || 'Integrante del equipo',
+              message: notification.message,
+              resourceName: notification.resourceName,
+            }
+          : null;
+      })
+      .filter(Boolean)
+      .filter((recipient, index, list) =>
+        list.findIndex((item) => normalizeEmail(item.email) === normalizeEmail(recipient.email)) === index
+      );
+
+    if (!recipients.length) return [];
+
+    const response = await fetch('/api/send-project-resource-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${data.session.access_token}`,
+      },
+      body: JSON.stringify({
+        recipients,
+        actorName: notificationActorName(),
+        videoTitle: video.title || 'Video sin título',
+        videoId: video.id,
+        appUrl: window.location.origin,
+      }),
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || 'No se pudo enviar el aviso por email.');
+    return result.results || [];
+  }
+
   async function notifyProjectResource(video, resource, options = {}) {
     if (!video) return [];
 
@@ -831,6 +879,14 @@ if (localStorage.getItem('guestMode') === 'true') {
     try {
       await DB.bulkPut('notifications', notifications);
       state.notifications.push(...notifications);
+
+      // El aviso interno se considera la fuente principal. El correo es un
+      // complemento: si Resend falla, el recurso y la campana siguen guardados.
+      sendProjectResourceEmails(video, notifications).catch((error) => {
+        console.error('[Fútbol XL Studio] No se pudieron enviar los emails de recursos:', error);
+        Utils.toast('La notificación quedó guardada, pero el email no pudo enviarse.', 'error');
+      });
+
       return notifications;
     } catch (error) {
       console.error('[Fútbol XL Studio] El recurso se guardó, pero no se pudo crear la notificación:', error);
