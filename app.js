@@ -47,6 +47,7 @@
     quickNotes: [],
     recordingTasks: [],
     seriesPlanner: [],
+    notifications: [],
     authUser: null,
     currentEmployee: null,
     undo: [], // pila simple de acciones destructivas para Ctrl/Cmd+Z
@@ -62,6 +63,7 @@
       editorTab: 'general',
       sidebarCollapsed: false,
       mobileSidebarOpen: false,
+      notificationsOpen: false,
       collapsedColumns: [],
       calendarMonth: { year: new Date().getFullYear(), month: new Date().getMonth() },
       showFilters: false,
@@ -101,6 +103,7 @@
   let draggedLibraryKind = null; // 'folder' | 'item'
   let pendingUpload = null; // { file, folderId } usado por el flujo de "archivo pesado"
   const pendingSubscriptionPayments = new Set(); // ids de suscripciones con un pago en curso (evita doble click)
+  let notificationsChannel = null;
 
   /* ------------------------------------------------------------------ */
   /* Arranque                                                            */
@@ -153,6 +156,7 @@ if (localStorage.getItem('guestMode') === 'true') {
     await DB.seedCostsSampleDataIfEmpty();
     await migrateLocalPlanningDataToSupabase();
     await loadAllFromDB();
+    subscribeToNotifications();
 
     state.ui.videosView = state.settings.defaultView || 'kanban';
     state.ui.library.view = state.settings.libraryDefaultView || 'grid';
@@ -282,6 +286,7 @@ if (localStorage.getItem('guestMode') === 'true') {
       employees,
       quickNotes,
       seriesPlanner,
+      notifications,
     ] = await Promise.all([
       DB.getAll('videos'),
       DB.getAll('series'),
@@ -305,6 +310,10 @@ if (localStorage.getItem('guestMode') === 'true') {
       DB.getAll('employees'),
       DB.getAll('quickNotes'),
       DB.getAll('seriesPlanner'),
+      DB.getAll('notifications').catch((error) => {
+        console.warn('[Fútbol XL Studio] La tabla de notificaciones todavía no está disponible:', error.message);
+        return [];
+      }),
     ]);
     state.videos = videos;
     state.series = series;
@@ -333,6 +342,7 @@ if (localStorage.getItem('guestMode') === 'true') {
       .filter((item) => item.kind === 'recording')
       .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
     state.seriesPlanner = seriesPlanner;
+    state.notifications = notifications;
     state.ui.selectedSeriesPlannerId = state.seriesPlanner[0]?.id || null;
     linkCurrentUserToEmployee();
   }
@@ -766,6 +776,186 @@ if (localStorage.getItem('guestMode') === 'true') {
     renderMain();
   }
 
+  /* ------------------------------------------------------------------ */
+  /* Notificaciones internas del equipo                                  */
+  /* ------------------------------------------------------------------ */
+
+  function notificationActorName() {
+    const employeeName = String(state.currentEmployee?.name || '').trim();
+    if (employeeName) return employeeName;
+
+    const email = String(state.authUser?.email || '').trim();
+    if (email && email !== 'Invitado') return email.split('@')[0] || email;
+    return 'Alguien del equipo';
+  }
+
+  function notificationRecipientIds(video) {
+    const actorId = state.currentEmployee?.id || null;
+    return getVideoOwnerIds(video)
+      .filter((employeeId) => employeeId && employeeId !== actorId)
+      .filter((employeeId, index, list) => list.indexOf(employeeId) === index)
+      .filter((employeeId) => {
+        const employee = state.employees.find((item) => item.id === employeeId);
+        return employee && employee.active !== false;
+      });
+  }
+
+  async function notifyProjectResource(video, resource, options = {}) {
+    if (!video) return [];
+
+    const recipientIds = notificationRecipientIds(video);
+    if (!recipientIds.length) return [];
+
+    const actorName = notificationActorName();
+    const resourceName = String(resource?.name || options.resourceName || 'un recurso').trim() || 'un recurso';
+    const videoTitle = String(video.title || 'Video sin título').trim() || 'Video sin título';
+    const verb = options.verb || 'ha subido';
+    const now = Utils.nowISO();
+
+    const notifications = recipientIds.map((recipientEmployeeId) => ({
+      id: Utils.uuid(),
+      type: options.type || 'project_resource',
+      recipientEmployeeId,
+      actorEmployeeId: state.currentEmployee?.id || null,
+      actorName,
+      videoId: video.id,
+      videoTitle,
+      resourceId: resource?.id || null,
+      resourceName,
+      message: `${actorName} ${verb} “${resourceName}” en ${videoTitle}`,
+      read: false,
+      createdAt: now,
+      updatedAt: now,
+    }));
+
+    try {
+      await DB.bulkPut('notifications', notifications);
+      state.notifications.push(...notifications);
+      return notifications;
+    } catch (error) {
+      console.error('[Fútbol XL Studio] El recurso se guardó, pero no se pudo crear la notificación:', error);
+      Utils.toast('El recurso se guardó, pero no se pudo avisar al equipo. Ejecutá notifications.sql en Supabase.', 'error');
+      return [];
+    }
+  }
+
+  function employeeNotifications() {
+    const employeeId = state.currentEmployee?.id;
+    if (!employeeId) return [];
+    return state.notifications
+      .filter((notification) => notification.recipientEmployeeId === employeeId)
+      .slice()
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  }
+
+  async function markNotificationRead(id) {
+    const notification = state.notifications.find((item) => item.id === id);
+    if (!notification || notification.read) return notification || null;
+
+    const previousRead = notification.read;
+    notification.read = true;
+    notification.updatedAt = Utils.nowISO();
+
+    try {
+      await DB.put('notifications', notification);
+    } catch (error) {
+      notification.read = previousRead;
+      console.error('[Fútbol XL Studio] No se pudo marcar la notificación como leída:', error);
+      Utils.toast('No se pudo actualizar la notificación.', 'error');
+    }
+
+    return notification;
+  }
+
+  async function markAllNotificationsRead() {
+    const unread = employeeNotifications().filter((notification) => !notification.read);
+    if (!unread.length) return;
+
+    const now = Utils.nowISO();
+    unread.forEach((notification) => {
+      notification.read = true;
+      notification.updatedAt = now;
+    });
+
+    try {
+      await DB.bulkPut('notifications', unread);
+      renderSidebarAndTopbar();
+    } catch (error) {
+      unread.forEach((notification) => { notification.read = false; });
+      console.error('[Fútbol XL Studio] No se pudieron marcar las notificaciones como leídas:', error);
+      Utils.toast('No se pudieron actualizar las notificaciones.', 'error');
+    }
+  }
+
+  async function openNotification(id) {
+    const notification = await markNotificationRead(id);
+    if (!notification) return;
+
+    state.ui.notificationsOpen = false;
+    const video = state.videos.find((item) => item.id === notification.videoId);
+    if (!video) {
+      renderSidebarAndTopbar();
+      Utils.toast('El proyecto de esta notificación ya no está disponible.', 'info');
+      return;
+    }
+
+    state.ui.route = 'videos';
+    state.ui.mobileSidebarOpen = false;
+    state.ui.editingVideoId = null;
+    renderAll();
+    openVideoEditor(video.id, 'library');
+  }
+
+  function applyRealtimeNotification(payload) {
+    const eventType = payload?.eventType;
+    const row = eventType === 'DELETE' ? payload.old : payload.new;
+    const notification = row?.data;
+    const id = notification?.id || row?.id;
+    if (!id) return;
+
+    if (eventType === 'DELETE') {
+      state.notifications = state.notifications.filter((item) => item.id !== id);
+      renderSidebarAndTopbar();
+      return;
+    }
+
+    const index = state.notifications.findIndex((item) => item.id === id);
+    if (index >= 0) state.notifications[index] = notification;
+    else state.notifications.push(notification);
+
+    if (
+      eventType === 'INSERT'
+      && notification.recipientEmployeeId === state.currentEmployee?.id
+      && !notification.read
+    ) {
+      Utils.toast(notification.message || 'Tenés una nueva notificación.', 'info');
+    }
+
+    renderSidebarAndTopbar();
+  }
+
+  function subscribeToNotifications() {
+    if (!Supa.client || !state.currentEmployee?.id) return;
+
+    if (notificationsChannel) {
+      Supa.client.removeChannel(notificationsChannel);
+      notificationsChannel = null;
+    }
+
+    notificationsChannel = Supa.client
+      .channel(`fxl-notifications-${state.currentEmployee.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications' },
+        applyRealtimeNotification
+      )
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.warn('[Fútbol XL Studio] Supabase Realtime no pudo escuchar la tabla notifications.');
+        }
+      });
+  }
+
   function normalizeEmail(value) {
     return String(value || '').trim().toLowerCase();
   }
@@ -815,6 +1005,8 @@ if (localStorage.getItem('guestMode') === 'true') {
       employees: state.employees,
       quickNotes: state.quickNotes,
       recordingTasks: state.recordingTasks,
+      notifications: state.notifications,
+      notificationsOpen: state.ui.notificationsOpen,
       thumbnailLab: state.ui.thumbnailLab,
       authUser: state.authUser,
       currentEmployee: state.currentEmployee,
@@ -1916,6 +2108,73 @@ if (localStorage.getItem('guestMode') === 'true') {
     if (addedCount) Utils.toast(`${addedCount} archivo(s) agregado(s) a la Biblioteca`, 'success');
   }
 
+  async function handleProjectResourceUpload(files, videoId) {
+    const video = state.videos.find((item) => item.id === videoId);
+    if (!video) {
+      Utils.toast('No se pudo identificar el proyecto.', 'error');
+      return;
+    }
+
+    const limitBytes = 50 * 1024 * 1024;
+    let addedCount = 0;
+
+    for (const file of Array.from(files || [])) {
+      if (file.size > limitBytes) {
+        Utils.toast(`"${file.name}" supera el límite de 50 MB configurado en Supabase.`, 'error');
+        continue;
+      }
+
+      const resourceType = Utils.resourceTypeFromFile(file.type, file.name);
+      let thumbnailData = null;
+      if (resourceType === 'image') {
+        const dataUrl = await Utils.readFileAsDataURL(file);
+        thumbnailData = state.settings.libraryCompressThumbnails
+          ? await Utils.generateThumbnail(dataUrl, 320, state.settings.libraryThumbnailQuality || 0.72)
+          : dataUrl;
+      }
+
+      let uploaded = null;
+      try {
+        Utils.toast(`Subiendo ${file.name}…`, 'info');
+        uploaded = await uploadLibraryBlob(file, file.name, file.type);
+        const created = await createItem({
+          folderId: state.settings.libraryDefaultFolderId || null,
+          name: file.name,
+          resourceType,
+          storageMode: 'file',
+          storageProvider: 'supabase',
+          storagePath: uploaded.path,
+          url: uploaded.url,
+          fileData: null,
+          thumbnailData,
+          mimeType: file.type,
+          fileSize: file.size,
+          linkedVideoIds: [video.id],
+        });
+
+        if (!created) {
+          await storageClient().remove([uploaded.path]);
+          continue;
+        }
+
+        addedCount++;
+        await notifyProjectResource(video, created, {
+          type: 'project_resource_uploaded',
+          verb: 'ha subido',
+        });
+      } catch (error) {
+        if (uploaded?.path) await storageClient().remove([uploaded.path]);
+        Utils.toast(error.message || `No se pudo subir ${file.name}`, 'error');
+      }
+    }
+
+    if (addedCount) {
+      Utils.toast(`${addedCount} archivo(s) agregado(s) a ${video.title || 'este proyecto'}`, 'success');
+      renderEditorBody();
+      renderMain();
+    }
+  }
+
   /* ---- Pegar imagen desde el portapapeles (Ctrl/Cmd+V) ---- */
 
   let pendingPastedImage = null;
@@ -2167,9 +2426,22 @@ if (localStorage.getItem('guestMode') === 'true') {
   async function submitRelateVideos(itemId) {
     const item = libItem(itemId);
     if (!item) return;
+
+    const previous = new Set(item.linkedVideoIds || []);
     const checked = Array.from(document.querySelectorAll('#relate-video-list input[type=checkbox]:checked')).map((el) => el.dataset.videoId);
     item.linkedVideoIds = checked;
     await saveItem(item);
+
+    for (const videoId of checked.filter((id) => !previous.has(id))) {
+      const video = state.videos.find((entry) => entry.id === videoId);
+      if (video) {
+        await notifyProjectResource(video, item, {
+          type: 'project_resource_linked',
+          verb: 'ha agregado',
+        });
+      }
+    }
+
     document.getElementById('generic-modal').close();
     renderMain();
     if (state.ui.library.detailItemId === itemId) renderEditorOverlay();
@@ -2185,7 +2457,10 @@ if (localStorage.getItem('guestMode') === 'true') {
   }
 
   async function submitLinkPicker(videoId) {
+    const video = state.videos.find((item) => item.id === videoId);
     const checked = new Set(Array.from(document.querySelectorAll('#link-picker-list input[type=checkbox]:checked')).map((el) => el.dataset.itemId));
+    const newlyLinked = [];
+
     for (const it of state.libraryItems) {
       const has = (it.linkedVideoIds || []).includes(videoId);
       const shouldHave = checked.has(it.id);
@@ -2195,8 +2470,19 @@ if (localStorage.getItem('guestMode') === 'true') {
       } else if (!has && shouldHave) {
         it.linkedVideoIds = [...(it.linkedVideoIds || []), videoId];
         await saveItem(it);
+        newlyLinked.push(it);
       }
     }
+
+    if (video) {
+      for (const item of newlyLinked) {
+        await notifyProjectResource(video, item, {
+          type: 'project_resource_linked',
+          verb: 'ha agregado',
+        });
+      }
+    }
+
     document.getElementById('generic-modal').close();
     renderEditorBody();
   }
@@ -2218,9 +2504,10 @@ if (localStorage.getItem('guestMode') === 'true') {
       linkedVideoIds: [videoId],
     });
     if (!item) return; // no se pudo persistir (ver createItem); ya se mostró el toast de error
+
     // Cerramos el editor de video y abrimos el detalle del recurso recién
-    // creado para que el usuario complete tipo/URL/archivo. El video sigue
-    // accesible desde "Videos relacionados" en el propio recurso.
+    // creado para que el usuario complete tipo/URL/archivo. La notificación
+    // se envía cuando se carga la URL, no al crear este registro vacío.
     state.ui.editingVideoId = null;
     state.ui.library.detailItemId = item.id;
     renderEditorOverlay();
@@ -3528,6 +3815,10 @@ if (localStorage.getItem('guestMode') === 'true') {
     video.thumbnail = dataUrl;
     pushHistory(video, 'thumbnail', 'Miniatura actualizada');
     await touchAndSaveNow(video);
+    await notifyProjectResource(video, { name: file.name }, {
+      type: 'project_thumbnail_uploaded',
+      verb: 'ha actualizado',
+    });
     renderEditorBody();
     renderMain();
   }
@@ -3540,14 +3831,26 @@ if (localStorage.getItem('guestMode') === 'true') {
   }
 
   async function handleImageUpload(video, files) {
+    const addedImages = [];
     for (const file of Array.from(files || [])) {
       const proceed = await checkFileSize(file);
       if (!proceed) continue;
       const dataUrl = await Utils.readFileAsDataURL(file);
+      const image = { id: Utils.uuid(), name: file.name, size: file.size, dataUrl };
       video.images = video.images || [];
-      video.images.push({ id: Utils.uuid(), name: file.name, size: file.size, dataUrl });
+      video.images.push(image);
+      addedImages.push(image);
     }
+
+    if (!addedImages.length) return;
+
     await touchAndSaveNow(video);
+    for (const image of addedImages) {
+      await notifyProjectResource(video, image, {
+        type: 'project_reference_uploaded',
+        verb: 'ha subido',
+      });
+    }
     renderEditorBody();
   }
 
@@ -4189,6 +4492,11 @@ if (localStorage.getItem('guestMode') === 'true') {
       if (!closest(e.target, '.dropdown')) m.setAttribute('hidden', '');
     });
 
+    if (state.ui.notificationsOpen && !closest(e.target, '.notifications-center')) {
+      state.ui.notificationsOpen = false;
+      document.querySelector('.notifications-menu')?.setAttribute('hidden', '');
+    }
+
     const actionEl = closest(e.target, '[data-action]');
     if (!actionEl) return;
     const action = actionEl.dataset.action;
@@ -4217,6 +4525,16 @@ if (localStorage.getItem('guestMode') === 'true') {
         state.ui.mobileSidebarOpen = true;
         renderSidebarAndTopbar();
         document.querySelector('.sidebar')?.classList.add('sidebar--mobile-open');
+        break;
+      case 'notifications-toggle':
+        state.ui.notificationsOpen = !state.ui.notificationsOpen;
+        renderSidebarAndTopbar();
+        break;
+      case 'notification-open':
+        await openNotification(id);
+        break;
+      case 'notifications-mark-all-read':
+        await markAllNotificationsRead();
         break;
       case 'quick-note-add':
         addQuickNote();
@@ -5147,6 +5465,12 @@ if (localStorage.getItem('guestMode') === 'true') {
       return;
     }
 
+    if (el.id === 'project-resource-file-input') {
+      await handleProjectResourceUpload(el.files, el.dataset.videoId);
+      el.value = '';
+      return;
+    }
+
     if (el.id === 'library-sort') {
       state.ui.library.sort = el.value;
       renderMain();
@@ -5213,13 +5537,30 @@ if (localStorage.getItem('guestMode') === 'true') {
 
     const libraryItem = currentLibraryDetailItem();
     if (libraryItem && el.dataset.itemField) {
-      if (el.dataset.itemField === 'url' && el.value && !Utils.looksLikeUrl(el.value)) {
+      const field = el.dataset.itemField;
+      const previousValue = libraryItem[field];
+
+      if (field === 'url' && el.value && !Utils.looksLikeUrl(el.value)) {
         Utils.toast('La URL debe empezar con http:// o https://', 'error');
         el.value = libraryItem.url || '';
         return;
       }
-      libraryItem[el.dataset.itemField] = el.value;
+
+      libraryItem[field] = el.value;
       await saveItem(libraryItem);
+
+      if (field === 'url' && !previousValue && el.value) {
+        for (const videoId of libraryItem.linkedVideoIds || []) {
+          const linkedVideo = state.videos.find((item) => item.id === videoId);
+          if (linkedVideo) {
+            await notifyProjectResource(linkedVideo, libraryItem, {
+              type: 'project_resource_link_added',
+              verb: 'ha agregado',
+            });
+          }
+        }
+      }
+
       renderEditorOverlay();
       renderMain();
       return;
@@ -5329,6 +5670,11 @@ if (localStorage.getItem('guestMode') === 'true') {
     const meta = e.ctrlKey || e.metaKey;
 
     if (e.key === 'Escape') {
+      if (state.ui.notificationsOpen) {
+        state.ui.notificationsOpen = false;
+        renderSidebarAndTopbar();
+        return;
+      }
       if (state.ui.editingVideoId) {
         closeVideoEditor();
         return;
