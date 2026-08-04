@@ -211,7 +211,7 @@ const Components = (() => {
   /* ------------------------------------------------------------------ */
 
   function renderDashboard(ctx) {
-    const { videos, states, series, formats, settings, quickNotes = [] } = ctx;
+    const { videos, states, series, formats, settings, quickNotes = [], recordingTasks = [] } = ctx;
     const active = videos.filter((v) => !v.archived);
     const byStateName = (name) => {
       const st = states.find((s) => s.name.toLowerCase() === name.toLowerCase());
@@ -290,6 +290,9 @@ const Components = (() => {
           .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
       : [];
 
+    const recordingCompleted = recordingTasks.filter((task) => task.done).length;
+    const recordingPending = recordingTasks.length - recordingCompleted;
+
     return `
       <div class="view view--home">
         <div class="home-header">
@@ -346,6 +349,33 @@ const Components = (() => {
                 </div>
               </article>`).join('')}
             </div>` : `<p class="muted small empty-mini">Todavía no guardaste ninguna idea.</p>`}
+          </section>
+
+
+          <section class="panel panel--wide recording-session-panel">
+            <div class="recording-session__header">
+              <div>
+                <h3>🎥 Jornada de grabación</h3>
+                <p class="muted small">Un punteo rápido de todo lo que querés grabar en la próxima jornada.</p>
+              </div>
+              <div class="recording-session__summary">
+                <span>${recordingPending} pendiente${recordingPending === 1 ? '' : 's'} · ${recordingCompleted} grabado${recordingCompleted === 1 ? '' : 's'}</span>
+                ${recordingCompleted ? `<button class="btn btn--ghost btn--sm" data-action="recording-task-clear-completed">Limpiar grabados</button>` : ''}
+              </div>
+            </div>
+            <div class="recording-session__composer">
+              <input id="recording-task-input" type="text" placeholder="¿Qué tenés que grabar?" autocomplete="off" />
+              <button class="btn btn--primary" data-action="recording-task-add">${icon('plus')} Agregar</button>
+            </div>
+            ${recordingTasks.length ? `<div class="recording-task-list">
+              ${recordingTasks.map((task) => `<div class="recording-task ${task.done ? 'is-done' : ''}">
+                <label class="recording-task__main">
+                  <input type="checkbox" data-action="recording-task-toggle" data-id="${task.id}" ${task.done ? 'checked' : ''} />
+                  <span class="recording-task__text">${escapeHtml(task.text)}</span>
+                </label>
+                <button class="icon-btn icon-btn--sm recording-task__delete" data-action="recording-task-delete" data-id="${task.id}" title="Eliminar">${icon('trash')}</button>
+              </div>`).join('')}
+            </div>` : `<p class="muted small empty-mini">La próxima jornada todavía está vacía.</p>`}
           </section>
 
           <section class="panel">
