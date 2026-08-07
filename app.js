@@ -1,3 +1,4 @@
+
 /**
  * app.js
  * -----------------------------------------------------------------------
@@ -1033,9 +1034,73 @@ if (localStorage.getItem('guestMode') === 'true') {
       : null;
   }
 
+  const DAILY_STADIUM_BACKGROUNDS = [
+    {
+      name: 'Estadio nocturno',
+      url: 'https://images.unsplash.com/photo-1547347298-4074fc3086f0?auto=format&fit=crop&w=2200&q=82',
+    },
+    {
+      name: 'Tribuna',
+      url: 'https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?auto=format&fit=crop&w=2200&q=82',
+    },
+    {
+      name: 'Campo de juego',
+      url: 'https://images.unsplash.com/photo-1508098682722-e99c643e7485?auto=format&fit=crop&w=2200&q=82',
+    },
+    {
+      name: 'Noche de fútbol',
+      url: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=2200&q=82',
+    },
+  ];
+
+  function dailyBackgroundIndex() {
+    const now = new Date();
+    const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) hash = ((hash << 5) - hash + key.charCodeAt(i)) | 0;
+    return Math.abs(hash) % DAILY_STADIUM_BACKGROUNDS.length;
+  }
+
+  function applyDynamicBackground() {
+    const element = document.getElementById('dynamic-bg');
+    if (!element) return;
+
+    const mode = state.settings.dynamicBackgroundMode || 'stadiums';
+    const shouldShow = mode === 'stadiums' && state.ui.route === 'home';
+
+    if (!shouldShow) {
+      element.classList.remove('is-visible');
+      element.removeAttribute('data-background-name');
+      return;
+    }
+
+    const background = DAILY_STADIUM_BACKGROUNDS[dailyBackgroundIndex()];
+    if (!background) return;
+
+    // Si ya está cargado el fondo de hoy, solo aseguramos que sea visible.
+    if (element.dataset.backgroundUrl === background.url) {
+      element.classList.add('is-visible');
+      return;
+    }
+
+    const image = new Image();
+    image.onload = () => {
+      element.style.backgroundImage = `url("${background.url}")`;
+      element.dataset.backgroundUrl = background.url;
+      element.dataset.backgroundName = background.name;
+      requestAnimationFrame(() => element.classList.add('is-visible'));
+    };
+    image.onerror = () => {
+      element.classList.remove('is-visible');
+      console.warn('[Fútbol XL Studio] No se pudo cargar el fondo dinámico del día.');
+    };
+    image.src = background.url;
+  }
+
   function applyTheme() {
     document.documentElement.setAttribute('data-theme', state.settings.theme || 'dark');
     document.documentElement.style.setProperty('--accent', state.settings.accentColor || '#3b82f6');
+    applyDynamicBackground();
   }
 
   /* ------------------------------------------------------------------ */
@@ -1211,6 +1276,7 @@ if (localStorage.getItem('guestMode') === 'true') {
   function renderMain() {
     const ctx = buildBaseCtx();
     document.getElementById('main-content').innerHTML = renderRoute(ctx);
+    applyDynamicBackground();
     if (state.ui.route === 'home') {
       queueMicrotask(() => {
         loadFootballToday();
