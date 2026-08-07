@@ -1797,6 +1797,14 @@ const Components = (() => {
               <span>Color de acento</span>
               <input type="color" data-setting="accentColor" value="${settings.accentColor || '#3b82f6'}" />
             </label>
+            <label class="field field--wide">
+              <span>Fondo del Inicio</span>
+              <select data-setting="dynamicBackgroundMode">
+                <option value="stadiums" ${(settings.dynamicBackgroundMode || 'stadiums') === 'stadiums' ? 'selected' : ''}>Estadio del día</option>
+                <option value="minimal" ${settings.dynamicBackgroundMode === 'minimal' ? 'selected' : ''}>Minimalista</option>
+              </select>
+              <small class="muted">El fondo de estadio cambia una vez por día y solo aparece en Inicio.</small>
+            </label>
           </div>
         </div>
       </div>`;
