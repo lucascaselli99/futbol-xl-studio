@@ -578,6 +578,7 @@ const DB = (() => {
       showLogoInSidebar: true,
       theme: 'dark',
       accentColor: '#3b82f6',
+      dynamicBackgroundMode: 'stadiums', // 'stadiums' | 'minimal'
       defaultView: 'kanban',
       cardsPerColumnLimit: 0,
       cardSize: 'normal',
