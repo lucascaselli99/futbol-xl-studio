@@ -1509,6 +1509,9 @@ if (localStorage.getItem('guestMode') === 'true') {
       case 'contentTypes':
         body = Components.renderContentTypesSettings(ctx);
         break;
+      case 'productionSets':
+        body = Components.renderProductionSetsSettings(ctx);
+        break;
       case 'states':
         body = Components.renderStatesSettings(ctx);
         break;
@@ -3549,6 +3552,7 @@ if (localStorage.getItem('guestMode') === 'true') {
       seriesId: null,
       formatId: null,
       contentTypeId: null,
+      setId: null,
       priorityId: defaultPriority || null,
       targetDate: null,
       publishDate: null,
@@ -3730,6 +3734,10 @@ if (localStorage.getItem('guestMode') === 'true') {
       if (newFormat && newFormat.defaultChecklistTemplateId) {
         await maybeApplyTemplate(video, newFormat.defaultChecklistTemplateId, `el formato "${newFormat.name}"`);
       }
+    } else if (field === 'setId') {
+      video.setId = value || null;
+      const newSet = (state.settings.productionSets || []).find((item) => item.id === value);
+      pushHistory(video, 'set-change', `Set cambiado a "${newSet ? newSet.name : 'Sin asignar'}"`);
     } else if (field === 'ownerId') {
       video.ownerIds = value ? [value] : [];
       syncVideoOwners(video);
@@ -4041,6 +4049,83 @@ if (localStorage.getItem('guestMode') === 'true') {
     pushHistory(v, 'state-change', `Estado cambiado de "${oldState ? oldState.name : 'Sin estado'}" a "${newState ? newState.name : 'Sin estado'}" (arrastre)`);
     await touchAndSaveNow(v);
     renderMain();
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Sets de grabación (catálogo dentro de Settings)                     */
+  /* ------------------------------------------------------------------ */
+
+  function productionSetsSorted() {
+    return (state.settings.productionSets || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
+
+  async function persistProductionSets() {
+    state.settings = await DB.saveSettings({ productionSets: state.settings.productionSets || [] });
+  }
+
+  async function addProductionSet() {
+    const list = state.settings.productionSets || [];
+    const maxOrder = list.reduce((max, set) => Math.max(max, Number(set.order) || 0), -1);
+    list.push({ id: Utils.uuid(), name: 'Nuevo set', color: '#a3a3a3', order: maxOrder + 1, archived: false });
+    state.settings.productionSets = list;
+    await persistProductionSets();
+    Utils.toast('Set creado', 'success');
+    renderSettingsBody();
+  }
+
+  async function updateProductionSetField(id, field, rawValue, el) {
+    const set = (state.settings.productionSets || []).find((item) => item.id === id);
+    if (!set) return;
+    set[field] = el?.type === 'checkbox' ? el.checked : rawValue;
+    await persistProductionSets();
+  }
+
+  const saveProductionSetsDebounced = Utils.debounce(() => {
+    persistProductionSets().catch((error) => {
+      console.error('[Fútbol XL Studio] No se pudo guardar el set:', error);
+      Utils.toast('No se pudo guardar el set', 'error');
+    });
+  }, 450);
+
+  function updateProductionSetFieldDebounced(id, field, value) {
+    const set = (state.settings.productionSets || []).find((item) => item.id === id);
+    if (!set) return;
+    set[field] = value;
+    saveProductionSetsDebounced();
+  }
+
+  async function moveProductionSet(id, dir) {
+    const list = productionSetsSorted();
+    const index = list.findIndex((item) => item.id === id);
+    const swapIndex = dir === 'up' ? index - 1 : index + 1;
+    if (index < 0 || swapIndex < 0 || swapIndex >= list.length) return;
+    const currentOrder = list[index].order;
+    list[index].order = list[swapIndex].order;
+    list[swapIndex].order = currentOrder;
+    state.settings.productionSets = list;
+    await persistProductionSets();
+    renderSettingsBody();
+  }
+
+  async function deleteProductionSet(id) {
+    const set = (state.settings.productionSets || []).find((item) => item.id === id);
+    if (!set) return;
+    const usedCount = state.videos.filter((video) => video.setId === id).length;
+    if (usedCount > 0) {
+      Utils.toast(`Este set está usado en ${usedCount} video(s). Archiválo para conservar el historial.`, 'error');
+      return;
+    }
+    const ok = await Utils.confirmDialog({
+      title: 'Eliminar set',
+      message: `¿Eliminar "${set.name}"? Esta acción no se puede deshacer.`,
+      danger: true,
+      confirmText: 'Eliminar',
+    });
+    if (!ok) return;
+    state.settings.productionSets = (state.settings.productionSets || []).filter((item) => item.id !== id);
+    await persistProductionSets();
+    Utils.toast('Set eliminado', 'success');
+    renderSettingsBody();
   }
 
   /* ------------------------------------------------------------------ */
@@ -5020,6 +5105,15 @@ if (localStorage.getItem('guestMode') === 'true') {
       case 'add-entity':
         addEntity(actionEl.dataset.entity);
         break;
+      case 'add-production-set':
+        addProductionSet();
+        break;
+      case 'move-production-set':
+        moveProductionSet(id, actionEl.dataset.dir);
+        break;
+      case 'delete-production-set':
+        deleteProductionSet(id);
+        break;
       case 'merge-selected-tags':
         mergeSelectedTags();
         break;
@@ -5507,7 +5601,7 @@ if (localStorage.getItem('guestMode') === 'true') {
       return;
     }
 
-    if (el.dataset.field && video && !['stateId', 'seriesId', 'formatId', 'contentTypeId', 'priorityId', 'ownerId'].includes(el.dataset.field)) {
+    if (el.dataset.field && video && !['stateId', 'seriesId', 'formatId', 'contentTypeId', 'setId', 'priorityId', 'ownerId'].includes(el.dataset.field)) {
       video[el.dataset.field] = el.value;
       touchAndSaveDebounced(video);
       return;
@@ -5543,6 +5637,11 @@ if (localStorage.getItem('guestMode') === 'true') {
         item.text = el.value;
         touchAndSaveDebounced(video);
       }
+      return;
+    }
+
+    if (el.dataset.productionSetField && el.dataset.id && el.type === 'text') {
+      updateProductionSetFieldDebounced(el.dataset.id, el.dataset.productionSetField, el.value);
       return;
     }
 
@@ -5770,7 +5869,7 @@ if (localStorage.getItem('guestMode') === 'true') {
       return;
     }
 
-    if (video && el.dataset.field && ['stateId', 'seriesId', 'formatId', 'contentTypeId', 'priorityId', 'ownerId', 'archived', 'favorite', 'targetDate', 'publishDate'].includes(el.dataset.field)) {
+    if (video && el.dataset.field && ['stateId', 'seriesId', 'formatId', 'contentTypeId', 'setId', 'priorityId', 'ownerId', 'archived', 'favorite', 'targetDate', 'publishDate'].includes(el.dataset.field)) {
       handleGeneralFieldChange(video, el.dataset.field, el);
       return;
     }
@@ -5823,6 +5922,12 @@ if (localStorage.getItem('guestMode') === 'true') {
 
     if (el.dataset.setting) {
       updateSetting(el.dataset.setting, el.value, el);
+      return;
+    }
+
+    if (el.dataset.productionSetField && el.dataset.id) {
+      await updateProductionSetField(el.dataset.id, el.dataset.productionSetField, el.value, el);
+      if (el.type === 'checkbox' || el.type === 'color') renderSettingsBody();
       return;
     }
 

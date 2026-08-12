@@ -1526,6 +1526,18 @@ const Components = (() => {
             <span>Tipo de contenido</span>
             <select data-field="contentTypeId">${selectOptions(ctx.contentTypes, video.contentTypeId)}</select>
           </label>
+          <label class="field">
+            <span>Set</span>
+            <select data-field="setId">
+              <option value="" ${video.setId ? '' : 'selected'}>Sin asignar</option>
+              ${(ctx.settings.productionSets || [])
+                .filter((set) => !set.archived || set.id === video.setId)
+                .slice()
+                .sort((a, b) => (a.order || 0) - (b.order || 0))
+                .map((set) => `<option value="${set.id}" ${video.setId === set.id ? 'selected' : ''}>${escapeHtml(set.name)}${set.archived ? ' (archivado)' : ''}</option>`)
+                .join('')}
+            </select>
+          </label>
           <div class="field">
             <span>Responsables del proyecto</span>
             ${renderOwnerMultiSelect(ctx.employees || [], video)}
@@ -1805,6 +1817,7 @@ const Components = (() => {
     { key: 'series', label: 'Series' },
     { key: 'formats', label: 'Formatos' },
     { key: 'contentTypes', label: 'Tipos de contenido' },
+    { key: 'productionSets', label: 'Sets' },
     { key: 'states', label: 'Estados' },
     { key: 'priorities', label: 'Prioridades' },
     { key: 'tags', label: 'Etiquetas' },
@@ -2013,6 +2026,36 @@ const Components = (() => {
           }).join('') || '<p class="muted">Todavía no hay tipos de contenido.</p>'}
         </div>
         <button class="btn btn--secondary" data-action="add-entity" data-entity="contentTypes">${icon('plus')} Nuevo tipo</button>
+      </div>`;
+  }
+
+  /* ---- Sets de grabación ---- */
+  function renderProductionSetsSettings(ctx) {
+    const items = (ctx.settings.productionSets || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+    return `
+      <div>
+        ${settingsSectionHeader('Sets de grabación', 'Creá todos los sets que necesites. Los sets archivados dejan de aparecer en proyectos nuevos, pero se conservan en los videos que ya los usan.')}
+        <div class="entity-list production-sets-list">
+          ${items.map((set, i) => {
+            const count = ctx.videos.filter((v) => v.setId === set.id).length;
+            return `
+            <div class="entity-row ${set.archived ? 'entity-row--archived' : ''}" data-id="${set.id}">
+              <div class="entity-row__reorder">
+                <button class="icon-btn icon-btn--sm" data-action="move-production-set" data-id="${set.id}" data-dir="up" title="Subir" ${i === 0 ? 'disabled' : ''}>${icon('chevronUp')}</button>
+                <button class="icon-btn icon-btn--sm" data-action="move-production-set" data-id="${set.id}" data-dir="down" title="Bajar" ${i === items.length - 1 ? 'disabled' : ''}>${icon('chevronDown')}</button>
+              </div>
+              <input type="color" data-production-set-field="color" data-id="${set.id}" value="${set.color || '#a3a3a3'}" title="Color del set" />
+              <input type="text" class="entity-row__name" data-production-set-field="name" data-id="${set.id}" value="${escapeHtml(set.name || '')}" placeholder="Nombre del set" />
+              ${entityUsageWarning(count)}
+              <label class="switch" title="Archivado">
+                <input type="checkbox" data-production-set-field="archived" data-id="${set.id}" ${set.archived ? 'checked' : ''} />
+                <span>Archivado</span>
+              </label>
+              <button class="icon-btn icon-btn--sm" data-action="delete-production-set" data-id="${set.id}" title="Eliminar">${icon('trash')}</button>
+            </div>`;
+          }).join('') || '<p class="muted">Todavía no hay sets creados.</p>'}
+        </div>
+        <button class="btn btn--secondary" data-action="add-production-set">${icon('plus')} Nuevo set</button>
       </div>`;
   }
 
@@ -3934,6 +3977,7 @@ const Components = (() => {
     renderSeriesSettings,
     renderFormatsSettings,
     renderContentTypesSettings,
+    renderProductionSetsSettings,
     renderStatesSettings,
     renderPrioritiesSettings,
     renderTagsSettings,

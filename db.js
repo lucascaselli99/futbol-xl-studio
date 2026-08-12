@@ -580,6 +580,7 @@ const DB = (() => {
       accentColor: '#3b82f6',
       dynamicBackgroundMode: 'stadiums', // 'stadiums' | 'minimal'
       weeklyContentPlan: {}, // { 'YYYY-MM-DD': { shirtsVideoId, footballVideoId } }
+      productionSets: [], // catálogo administrable de sets: [{ id, name, color, order, archived }]
       defaultView: 'kanban',
       cardsPerColumnLimit: 0,
       cardSize: 'normal',
