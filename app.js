@@ -4714,6 +4714,29 @@ if (localStorage.getItem('guestMode') === 'true') {
     renderMain();
   }
 
+  async function saveWeeklyReelSlot(weekKey, slotKey, patch) {
+    if (!weekKey || !['reel1', 'reel2', 'reel3'].includes(slotKey)) return;
+    const plans = { ...(state.settings.weeklyReelPlan || {}) };
+    const currentWeek = { ...(plans[weekKey] || {}) };
+    const currentSlot = { ...(currentWeek[slotKey] || {}) };
+    const nextSlot = { ...currentSlot, ...patch };
+    if (!nextSlot.videoId && !nextSlot.date) delete currentWeek[slotKey];
+    else currentWeek[slotKey] = nextSlot;
+    plans[weekKey] = currentWeek;
+    state.settings = await DB.saveSettings({ weeklyReelPlan: plans });
+    renderMain();
+  }
+
+  async function clearWeeklyReelSlot(weekKey, slotKey) {
+    if (!weekKey || !slotKey) return;
+    const plans = { ...(state.settings.weeklyReelPlan || {}) };
+    const currentWeek = { ...(plans[weekKey] || {}) };
+    delete currentWeek[slotKey];
+    plans[weekKey] = currentWeek;
+    state.settings = await DB.saveSettings({ weeklyReelPlan: plans });
+    renderMain();
+  }
+
   /* ------------------------------------------------------------------ */
   /* Delegación de eventos                                               */
   /* ------------------------------------------------------------------ */
@@ -4865,6 +4888,9 @@ if (localStorage.getItem('guestMode') === 'true') {
         break;
       case 'weekly-clear-slot':
         await clearWeeklyContentSlot(actionEl.dataset.weekKey, actionEl.dataset.slot);
+        break;
+      case 'weekly-reel-clear-slot':
+        await clearWeeklyReelSlot(actionEl.dataset.weekKey, actionEl.dataset.slot);
         break;
       case 'dashboard-citas-prev':
         moveDashboardCitasSlider(-1);
@@ -5917,6 +5943,16 @@ if (localStorage.getItem('guestMode') === 'true') {
 
     if (el.dataset.weeklySlotDate) {
       await saveWeeklyContentSlot(el.dataset.weekKey, el.dataset.weeklySlotDate, { date: el.value || '' });
+      return;
+    }
+
+    if (el.dataset.weeklyReelVideo) {
+      await saveWeeklyReelSlot(el.dataset.weekKey, el.dataset.weeklyReelVideo, { videoId: el.value || '' });
+      return;
+    }
+
+    if (el.dataset.weeklyReelDate) {
+      await saveWeeklyReelSlot(el.dataset.weekKey, el.dataset.weeklyReelDate, { date: el.value || '' });
       return;
     }
 

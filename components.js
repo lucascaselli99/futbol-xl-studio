@@ -370,6 +370,86 @@ const Components = (() => {
     </section>`;
   }
 
+  function renderWeeklyReelsBoard(ctx) {
+    const offset = Number(ctx.weeklyWeekOffset || 0);
+    const start = weeklyStartDate(offset);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    const weekKey = weeklyDateKey(start);
+    const plans = ctx.settings.weeklyReelPlan || {};
+    const plan = plans[weekKey] || {};
+    const activeVideos = (ctx.videos || []).filter((video) => !video.archived);
+    const stateById = Object.fromEntries((ctx.states || []).map((item) => [item.id, item]));
+    const todayKey = weeklyDateKey(new Date());
+    const dayNames = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
+    const days = Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + index);
+      return { date, key: weeklyDateKey(date), label: dayNames[index] };
+    });
+
+    const slots = [
+      { key: 'reel1', label: 'Reel 1', fallbackIndex: 0 },
+      { key: 'reel2', label: 'Reel 2', fallbackIndex: 2 },
+      { key: 'reel3', label: 'Reel 3', fallbackIndex: 5 },
+    ];
+
+    const completed = slots.filter((slot) => plan?.[slot.key]?.videoId).length;
+    const calendarLabel = `${start.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })} – ${end.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}`;
+
+    const slotHtml = slots.map((slot) => {
+      const saved = plan?.[slot.key] || {};
+      const selectedVideo = activeVideos.find((video) => video.id === saved.videoId) || null;
+      const fallbackDate = days[slot.fallbackIndex]?.key;
+      const selectedDate = saved.date || fallbackDate;
+      const st = selectedVideo ? stateById[selectedVideo.stateId] : null;
+      const videoOptions = activeVideos
+        .slice()
+        .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0))
+        .map((video) => `<option value="${video.id}" ${video.id === saved.videoId ? 'selected' : ''}>${escapeHtml(video.title || 'Sin título')}</option>`)
+        .join('');
+      const dayOptions = days.map((day) => `<option value="${day.key}" ${day.key === selectedDate ? 'selected' : ''}>${day.label} ${day.date.getDate()}</option>`).join('');
+
+      return `<article class="weekly-content-slot weekly-content-slot--reel ${selectedVideo ? 'is-ready' : ''}">
+        <div class="weekly-content-slot__top">
+          <div class="weekly-content-slot__identity"><span class="weekly-content-slot__emoji">▸</span><div><strong>${slot.label}</strong><span>${selectedVideo ? 'Semana cubierta' : 'Falta elegir reel'}</span></div></div>
+          <label class="weekly-content-day-select" title="Día de publicación"><select data-weekly-reel-date="${slot.key}" data-week-key="${weekKey}">${dayOptions}</select></label>
+        </div>
+        <div class="weekly-content-slot__body">
+          ${selectedVideo ? `<div class="weekly-content-video">
+            <div class="weekly-content-video__title">${escapeHtml(selectedVideo.title || 'Sin título')}</div>
+            <div class="weekly-content-video__meta">${st ? `<span class="weekly-content-state" style="--weekly-state:${st.color || '#777'}">${escapeHtml(st.name)}</span>` : ''}<span>${days.find((d) => d.key === selectedDate)?.label || ''} ${new Date(selectedDate + 'T12:00:00').getDate()}</span></div>
+          </div>` : `<div class="weekly-content-placeholder"><span>＋</span><div><strong>Elegí un reel</strong><small>Cuando esté listo, asignalo a esta semana.</small></div></div>`}
+          <select class="weekly-content-video-select" data-weekly-reel-video="${slot.key}" data-week-key="${weekKey}">
+            <option value="">${selectedVideo ? 'Cambiar reel…' : 'Agregar reel…'}</option>
+            ${videoOptions}
+          </select>
+          ${selectedVideo ? `<button class="weekly-content-clear" data-action="weekly-reel-clear-slot" data-slot="${slot.key}" data-week-key="${weekKey}" title="Quitar de la semana">Quitar</button>` : ''}
+        </div>
+      </article>`;
+    }).join('');
+
+    const chosenDates = new Set(slots.map((slot) => plan?.[slot.key]?.date).filter(Boolean));
+    return `<section class="weekly-content-board weekly-reels-board">
+      <div class="weekly-content-board__header">
+        <div><div class="weekly-content-board__eyebrow">REELS XL</div><h3>Frecuencia semanal Reel</h3><p>${calendarLabel} · objetivo: 3 reels por semana</p></div>
+        <div class="weekly-content-board__nav">
+          <button class="icon-btn icon-btn--sm" data-action="weekly-prev" title="Semana anterior">${icon('chevronLeft')}</button>
+          ${offset !== 0 ? `<button class="weekly-content-today" data-action="weekly-today">Esta semana</button>` : ''}
+          <button class="icon-btn icon-btn--sm" data-action="weekly-next" title="Semana siguiente">${icon('chevronRight')}</button>
+        </div>
+      </div>
+      <div class="weekly-content-days">
+        ${days.map((day) => `<div class="weekly-content-day ${day.key === todayKey ? 'is-today' : ''} ${chosenDates.has(day.key) ? 'has-content' : ''}"><span>${day.label}</span><strong>${day.date.getDate()}</strong><i></i></div>`).join('')}
+      </div>
+      <div class="weekly-content-slots weekly-content-slots--reels">${slotHtml}</div>
+      <div class="weekly-content-progress">
+        <div><strong>${completed}/3</strong><span>${completed === 3 ? 'Semana de reels lista ✓' : completed === 2 ? 'Te falta un reel' : completed === 1 ? 'Te faltan dos reels' : 'Armá tus reels'}</span></div>
+        <div class="weekly-content-progress__track"><span style="width:${(completed / 3) * 100}%"></span></div>
+      </div>
+    </section>`;
+  }
+
   function renderDashboard(ctx) {
     const { videos, states, series, formats, settings, quickNotes = [], recordingTasks = [] } = ctx;
     const active = videos.filter((v) => !v.archived);
@@ -461,6 +541,7 @@ const Components = (() => {
         <div class="dashboard-overview dashboard-overview--weekly">
           <div class="dashboard-weekly-column">
             ${renderWeeklyContentBoard(ctx)}
+            ${renderWeeklyReelsBoard(ctx)}
             <div class="stat-grid stat-grid--dashboard stat-grid--dashboard-compact">
               ${cards.map((c) => `
                 <div class="stat-card stat-card--dashboard stat-card--dashboard-compact ${c.danger ? 'stat-card--danger' : ''}">

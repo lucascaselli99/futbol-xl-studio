@@ -3164,3 +3164,32 @@ border-radius:12px;padding:12px 14px;font:inherit;transition:.2s}
   .weekly-content-progress { grid-template-columns: 1fr; gap: 7px; }
   .stat-grid--dashboard-compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+
+/* ------------------------------------------------------------------
+   Reels XL · segundo tablero semanal
+   ------------------------------------------------------------------ */
+.weekly-reels-board {
+  margin-top: 0;
+}
+
+.weekly-reels-board .weekly-content-board__eyebrow {
+  color: #b792ff;
+}
+
+.weekly-content-slots--reels {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.weekly-content-slot--reel.is-ready {
+  border-color: rgba(160, 118, 232, .34);
+  background: linear-gradient(135deg, rgba(103, 70, 160, .085), rgba(255,255,255,.018));
+}
+
+.weekly-reels-board .weekly-content-progress__track span {
+  background: linear-gradient(90deg, #7b6fd6, #9a82e8);
+}
+
+@media (max-width: 1180px) {
+  .weekly-content-slots--reels { grid-template-columns: 1fr; }
+}

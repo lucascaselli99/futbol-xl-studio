@@ -579,7 +579,8 @@ const DB = (() => {
       theme: 'dark',
       accentColor: '#3b82f6',
       dynamicBackgroundMode: 'stadiums', // 'stadiums' | 'minimal'
-      weeklyContentPlan: {}, // { 'YYYY-MM-DD': { shirtsVideoId, footballVideoId } }
+      weeklyContentPlan: {}, // { 'YYYY-MM-DD': { shirts: { videoId, date }, football: { videoId, date } } }
+      weeklyReelPlan: {}, // { 'YYYY-MM-DD': { reel1: { videoId, date }, reel2: ..., reel3: ... } }
       productionSets: [], // catálogo administrable de sets: [{ id, name, color, order, archived }]
       defaultView: 'kanban',
       cardsPerColumnLimit: 0,
