@@ -94,6 +94,7 @@
       showCostFilters: false,
       thumbnailLab: { title: '', image: '', device: 'desktop' },
       selectedSeriesPlannerId: null,
+      weeklyWeekOffset: 0,
       // Estado visual por sesión: temporadas desplegadas en el módulo Formatos.
       plannerExpandedSeasons: {},
     },
@@ -1147,6 +1148,7 @@ if (localStorage.getItem('guestMode') === 'true') {
       saveState: state.ui.saveState,
       sidebarCollapsed: state.ui.sidebarCollapsed,
       mobileSidebarOpen: state.ui.mobileSidebarOpen,
+      weeklyWeekOffset: state.ui.weeklyWeekOffset,
     };
   }
 
@@ -4603,6 +4605,30 @@ if (localStorage.getItem('guestMode') === 'true') {
     if (counter) counter.textContent = `${next + 1} / ${slides.length}`;
   }
 
+
+  async function saveWeeklyContentSlot(weekKey, slotKey, patch) {
+    if (!weekKey || !['shirts', 'football'].includes(slotKey)) return;
+    const plans = { ...(state.settings.weeklyContentPlan || {}) };
+    const currentWeek = { ...(plans[weekKey] || {}) };
+    const currentSlot = { ...(currentWeek[slotKey] || {}) };
+    const nextSlot = { ...currentSlot, ...patch };
+    if (!nextSlot.videoId && !nextSlot.date) delete currentWeek[slotKey];
+    else currentWeek[slotKey] = nextSlot;
+    plans[weekKey] = currentWeek;
+    state.settings = await DB.saveSettings({ weeklyContentPlan: plans });
+    renderMain();
+  }
+
+  async function clearWeeklyContentSlot(weekKey, slotKey) {
+    if (!weekKey || !slotKey) return;
+    const plans = { ...(state.settings.weeklyContentPlan || {}) };
+    const currentWeek = { ...(plans[weekKey] || {}) };
+    delete currentWeek[slotKey];
+    plans[weekKey] = currentWeek;
+    state.settings = await DB.saveSettings({ weeklyContentPlan: plans });
+    renderMain();
+  }
+
   /* ------------------------------------------------------------------ */
   /* Delegación de eventos                                               */
   /* ------------------------------------------------------------------ */
@@ -4739,6 +4765,21 @@ if (localStorage.getItem('guestMode') === 'true') {
       case 'thumbnail-lab-clear':
         state.ui.thumbnailLab = { title: '', image: '', device: 'desktop' };
         renderMain();
+        break;
+      case 'weekly-prev':
+        state.ui.weeklyWeekOffset = Number(state.ui.weeklyWeekOffset || 0) - 1;
+        renderMain();
+        break;
+      case 'weekly-next':
+        state.ui.weeklyWeekOffset = Number(state.ui.weeklyWeekOffset || 0) + 1;
+        renderMain();
+        break;
+      case 'weekly-today':
+        state.ui.weeklyWeekOffset = 0;
+        renderMain();
+        break;
+      case 'weekly-clear-slot':
+        await clearWeeklyContentSlot(actionEl.dataset.weekKey, actionEl.dataset.slot);
         break;
       case 'dashboard-citas-prev':
         moveDashboardCitasSlider(-1);
@@ -5767,6 +5808,16 @@ if (localStorage.getItem('guestMode') === 'true') {
         el.value = '';
         renderMain();
       }
+      return;
+    }
+
+    if (el.dataset.weeklySlotVideo) {
+      await saveWeeklyContentSlot(el.dataset.weekKey, el.dataset.weeklySlotVideo, { videoId: el.value || '' });
+      return;
+    }
+
+    if (el.dataset.weeklySlotDate) {
+      await saveWeeklyContentSlot(el.dataset.weekKey, el.dataset.weeklySlotDate, { date: el.value || '' });
       return;
     }
 
