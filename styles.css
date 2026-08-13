@@ -3193,3 +3193,30 @@ border-radius:12px;padding:12px 14px;font:inherit;transition:.2s}
 @media (max-width: 1180px) {
   .weekly-content-slots--reels { grid-template-columns: 1fr; }
 }
+
+/* Semana XL: selector flexible entre Camisetas y Fútbol */
+.weekly-content-type-select {
+  display: inline-flex;
+  max-width: 132px;
+}
+
+.weekly-content-type-select select {
+  appearance: none;
+  width: auto;
+  max-width: 132px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  padding: 0 16px 0 0;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  outline: none;
+}
+
+.weekly-content-type-select select:hover,
+.weekly-content-type-select select:focus {
+  color: var(--accent);
+}

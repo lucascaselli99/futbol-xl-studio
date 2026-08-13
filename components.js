@@ -309,9 +309,13 @@ const Components = (() => {
     });
 
     const slots = [
-      { key: 'shirts', label: 'Camisetas', emoji: '👕', fallbackIndex: 2, tone: 'shirts' },
-      { key: 'football', label: 'Fútbol', emoji: '⚽', fallbackIndex: 6, tone: 'football' },
+      { key: 'shirts', defaultType: 'shirts', fallbackIndex: 2 },
+      { key: 'football', defaultType: 'football', fallbackIndex: 6 },
     ];
+    const weeklyTypeMeta = {
+      shirts: { label: 'Camisetas', emoji: '👕', tone: 'shirts' },
+      football: { label: 'Fútbol', emoji: '⚽', tone: 'football' },
+    };
 
     const completed = slots.filter((slot) => plan?.[slot.key]?.videoId).length;
     const monthStart = new Date(start.getFullYear(), start.getMonth(), 1);
@@ -319,6 +323,8 @@ const Components = (() => {
 
     const slotHtml = slots.map((slot) => {
       const saved = plan?.[slot.key] || {};
+      const selectedType = saved.type || slot.defaultType;
+      const typeMeta = weeklyTypeMeta[selectedType] || weeklyTypeMeta[slot.defaultType];
       const selectedVideo = activeVideos.find((video) => video.id === saved.videoId) || null;
       const fallbackDate = days[slot.fallbackIndex]?.key;
       const selectedDate = saved.date || fallbackDate;
@@ -330,9 +336,9 @@ const Components = (() => {
         .join('');
       const dayOptions = days.map((day) => `<option value="${day.key}" ${day.key === selectedDate ? 'selected' : ''}>${day.label} ${day.date.getDate()}</option>`).join('');
 
-      return `<article class="weekly-content-slot weekly-content-slot--${slot.tone} ${selectedVideo ? 'is-ready' : ''}">
+      return `<article class="weekly-content-slot weekly-content-slot--${typeMeta.tone} ${selectedVideo ? 'is-ready' : ''}">
         <div class="weekly-content-slot__top">
-          <div class="weekly-content-slot__identity"><span class="weekly-content-slot__emoji">${slot.emoji}</span><div><strong>${slot.label}</strong><span>${selectedVideo ? 'Semana cubierta' : 'Falta elegir video'}</span></div></div>
+          <div class="weekly-content-slot__identity"><span class="weekly-content-slot__emoji">${typeMeta.emoji}</span><div><label class="weekly-content-type-select" title="Tipo de contenido"><select data-weekly-slot-type="${slot.key}" data-week-key="${weekKey}"><option value="shirts" ${selectedType === 'shirts' ? 'selected' : ''}>Camisetas</option><option value="football" ${selectedType === 'football' ? 'selected' : ''}>Fútbol</option></select></label><span>${selectedVideo ? 'Semana cubierta' : 'Falta elegir video'}</span></div></div>
           <label class="weekly-content-day-select" title="Día de publicación"><select data-weekly-slot-date="${slot.key}" data-week-key="${weekKey}">${dayOptions}</select></label>
         </div>
         <div class="weekly-content-slot__body">
@@ -352,7 +358,7 @@ const Components = (() => {
     const chosenDates = new Set(slots.map((slot) => plan?.[slot.key]?.date).filter(Boolean));
     return `<section class="weekly-content-board">
       <div class="weekly-content-board__header">
-        <div><div class="weekly-content-board__eyebrow">SEMANA XL</div><h3>Tu frecuencia semanal</h3><p>${calendarLabel} · 1 de camisetas + 1 de fútbol</p></div>
+        <div><div class="weekly-content-board__eyebrow">SEMANA XL</div><h3>Tu frecuencia semanal</h3><p>${calendarLabel} · 2 videos por semana</p></div>
         <div class="weekly-content-board__nav">
           <button class="icon-btn icon-btn--sm" data-action="weekly-prev" title="Semana anterior">${icon('chevronLeft')}</button>
           ${offset !== 0 ? `<button class="weekly-content-today" data-action="weekly-today">Esta semana</button>` : ''}

@@ -5946,6 +5946,11 @@ if (localStorage.getItem('guestMode') === 'true') {
       return;
     }
 
+    if (el.dataset.weeklySlotType) {
+      await saveWeeklyContentSlot(el.dataset.weekKey, el.dataset.weeklySlotType, { type: el.value || '' });
+      return;
+    }
+
     if (el.dataset.weeklyReelVideo) {
       await saveWeeklyReelSlot(el.dataset.weekKey, el.dataset.weeklyReelVideo, { videoId: el.value || '' });
       return;
