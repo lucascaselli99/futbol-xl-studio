@@ -1759,24 +1759,63 @@ const Components = (() => {
       </div>`;
   }
 
+  function renderChecklistSection(title, items, opts = {}) {
+    const progress = checklistProgress(items);
+    const templateId = opts.templateId || '';
+    return `
+      <section class="checklist-section ${templateId ? 'checklist-section--template' : 'checklist-section--general'}">
+        <div class="checklist-section__header">
+          <div class="checklist-section__title-wrap">
+            <h4>${escapeHtml(title)}</h4>
+            <span class="small muted">${progress.done}/${progress.total} · ${Math.round(progress.pct)}%</span>
+          </div>
+          <div class="checklist-section__actions">
+            <div class="checklist-section__mini-progress">${progressBar(progress.pct, { small: true })}</div>
+            ${templateId ? `<button class="icon-btn icon-btn--sm" data-action="remove-checklist-template-group" data-template-id="${templateId}" title="Quitar esta plantilla">${icon('trash')}</button>` : ''}
+          </div>
+        </div>
+        <div class="checklist-section__items">
+          ${items.map((item, i) => renderChecklistItem(item, 0, i, items.length, null)).join('') || '<p class="muted small">Sin tareas.</p>'}
+        </div>
+      </section>`;
+  }
+
   function renderEditorChecklist(video, ctx) {
-    const progress = checklistProgress(video.checklist);
+    const checklist = video.checklist || [];
+    const progress = checklistProgress(checklist);
+    const generalItems = checklist.filter((item) => !item.templateGroupId);
+    const templateGroups = [];
+    const seen = new Set();
+    checklist.forEach((item) => {
+      if (!item.templateGroupId || seen.has(item.templateGroupId)) return;
+      seen.add(item.templateGroupId);
+      const template = ctx.templates.find((t) => t.id === item.templateGroupId);
+      templateGroups.push({
+        id: item.templateGroupId,
+        name: template?.name || item.templateGroupName || 'Checklist',
+        items: checklist.filter((candidate) => candidate.templateGroupId === item.templateGroupId),
+      });
+    });
+    const appliedIds = new Set(templateGroups.map((group) => group.id));
+
     return `
       <div class="editor-form">
-        <div class="checklist-header">
+        <div class="checklist-header checklist-header--multi">
           <div class="checklist-header__progress">
             ${progressBar(progress.pct)}
-            <span class="small muted">${progress.done}/${progress.total} completadas (${Math.round(progress.pct)}%)</span>
+            <span class="small muted">Progreso total · ${progress.done}/${progress.total} completadas (${Math.round(progress.pct)}%)</span>
           </div>
           <select id="apply-template-select">
-            <option value="">Aplicar plantilla…</option>
-            ${ctx.templates.map((t) => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('')}
+            <option value="">+ Agregar plantilla…</option>
+            ${ctx.templates.map((t) => `<option value="${t.id}" ${appliedIds.has(t.id) ? 'disabled' : ''}>${escapeHtml(t.name)}${appliedIds.has(t.id) ? ' · agregada' : ''}</option>`).join('')}
           </select>
         </div>
-        <div class="checklist-list" id="checklist-list">
-          ${(video.checklist || []).map((item, i) => renderChecklistItem(item, 0, i, video.checklist.length, null)).join('') || '<p class="muted small">Sin tareas todavía.</p>'}
+        <div class="checklist-sections" id="checklist-list">
+          ${generalItems.length ? renderChecklistSection('Checklist general', generalItems) : ''}
+          ${templateGroups.map((group) => renderChecklistSection(group.name, group.items, { templateId: group.id })).join('')}
+          ${!checklist.length ? '<p class="muted small">Sin tareas todavía. Agregá una tarea o sumá una plantilla.</p>' : ''}
         </div>
-        <button class="btn btn--ghost" data-action="add-checklist-item">${icon('plus')} Agregar tarea</button>
+        <button class="btn btn--ghost" data-action="add-checklist-item">${icon('plus')} Agregar tarea general</button>
       </div>`;
   }
 

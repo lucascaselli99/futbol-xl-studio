@@ -3757,32 +3757,34 @@ if (localStorage.getItem('guestMode') === 'true') {
     renderMain();
   }
 
+  function videoHasChecklistTemplate(video, templateId) {
+    return (video.checklist || []).some((item) => item.templateGroupId === templateId);
+  }
+
   async function maybeApplyTemplate(video, templateId, sourceLabel) {
     const template = state.templates.find((t) => t.id === templateId);
     if (!template) return;
-    if (video.checklist && video.checklist.length) {
-      const ok = await Utils.confirmDialog({
-        title: 'Aplicar checklist predeterminado',
-        message: `¿Querés aplicar el checklist predeterminado de ${sourceLabel} ("${template.name}")? Esto reemplazará el checklist actual del video.`,
-        confirmText: 'Aplicar',
-      });
-      if (!ok) return;
-    }
+    if (videoHasChecklistTemplate(video, templateId)) return;
     applyTemplateToVideo(video, template);
   }
 
-  function cloneTemplateItems(items) {
+  function cloneTemplateItems(items, template = null) {
     return (items || []).map((it) => ({
       id: Utils.uuid(),
       text: it.text,
       done: false,
+      templateGroupId: template?.id || null,
+      templateGroupName: template?.name || null,
       subtasks: (it.subtasks || []).map((s) => ({ id: Utils.uuid(), text: s.text, done: false })),
     }));
   }
 
   function applyTemplateToVideo(video, template) {
-    video.checklist = cloneTemplateItems(template.items);
-    pushHistory(video, 'checklist-template', `Checklist aplicado desde la plantilla "${template.name}"`);
+    video.checklist = video.checklist || [];
+    if (videoHasChecklistTemplate(video, template.id)) return false;
+    video.checklist.push(...cloneTemplateItems(template.items, template));
+    pushHistory(video, 'checklist-template', `Checklist agregado desde la plantilla "${template.name}"`);
+    return true;
   }
 
   /* ------------------------------------------------------------------ */
@@ -3886,24 +3888,60 @@ if (localStorage.getItem('guestMode') === 'true') {
    * o subtareas de un mismo padre).
    */
   async function moveChecklistItem(video, itemId, parentId, dir) {
-    const list = parentId ? (video.checklist.find((i) => i.id === parentId) || {}).subtasks : video.checklist;
-    if (!list) return;
-    const idx = list.findIndex((i) => i.id === itemId);
-    const swapWith = dir === 'up' ? idx - 1 : idx + 1;
-    if (idx < 0 || swapWith < 0 || swapWith >= list.length) return;
-    const tmp = list[idx];
-    list[idx] = list[swapWith];
-    list[swapWith] = tmp;
+    if (parentId) {
+      const list = (video.checklist.find((i) => i.id === parentId) || {}).subtasks;
+      if (!list) return;
+      const idx = list.findIndex((i) => i.id === itemId);
+      const swapWith = dir === 'up' ? idx - 1 : idx + 1;
+      if (idx < 0 || swapWith < 0 || swapWith >= list.length) return;
+      [list[idx], list[swapWith]] = [list[swapWith], list[idx]];
+    } else {
+      const list = video.checklist || [];
+      const idx = list.findIndex((i) => i.id === itemId);
+      if (idx < 0) return;
+      const groupId = list[idx].templateGroupId || null;
+      const sameGroupIndexes = list.map((item, index) => ({ item, index }))
+        .filter((entry) => (entry.item.templateGroupId || null) === groupId)
+        .map((entry) => entry.index);
+      const pos = sameGroupIndexes.indexOf(idx);
+      const targetPos = dir === 'up' ? pos - 1 : pos + 1;
+      if (pos < 0 || targetPos < 0 || targetPos >= sameGroupIndexes.length) return;
+      const swapWith = sameGroupIndexes[targetPos];
+      [list[idx], list[swapWith]] = [list[swapWith], list[idx]];
+    }
     await touchAndSaveNow(video);
     renderEditorBody();
+  }
+
+  async function removeChecklistTemplateGroup(video, templateId) {
+    if (!templateId) return;
+    const template = state.templates.find((t) => t.id === templateId);
+    const templateName = template?.name || (video.checklist || []).find((item) => item.templateGroupId === templateId)?.templateGroupName || 'Plantilla';
+    const ok = await Utils.confirmDialog({
+      title: 'Quitar checklist',
+      message: `¿Querés quitar del proyecto la checklist "${templateName}" y todas sus tareas?`,
+      confirmText: 'Quitar',
+    });
+    if (!ok) return;
+    video.checklist = (video.checklist || []).filter((item) => item.templateGroupId !== templateId);
+    pushHistory(video, 'checklist-template-remove', `Checklist "${templateName}" quitado del proyecto`);
+    await touchAndSaveNow(video);
+    renderEditorBody();
+    renderMain();
   }
 
   async function applySelectedTemplate(video, templateId) {
     if (!templateId) return;
     const template = state.templates.find((t) => t.id === templateId);
     if (!template) return;
-    await maybeApplyTemplate(video, templateId, `la plantilla`);
+    if (videoHasChecklistTemplate(video, templateId)) {
+      Utils.toast('Esa plantilla ya está agregada en este proyecto.', 'info');
+      return;
+    }
+    const applied = applyTemplateToVideo(video, template);
+    if (!applied) return;
     await touchAndSaveNow(video);
+    Utils.toast(`Checklist "${template.name}" agregada`, 'success');
     renderEditorBody();
     renderMain();
   }
@@ -5080,6 +5118,9 @@ if (localStorage.getItem('guestMode') === 'true') {
         break;
       case 'add-checklist-item':
         if (currentVideo()) addChecklistItem(currentVideo());
+        break;
+      case 'remove-checklist-template-group':
+        if (currentVideo()) removeChecklistTemplateGroup(currentVideo(), actionEl.dataset.templateId);
         break;
       case 'toggle-video-tag':
         if (currentVideo()) toggleVideoTag(currentVideo(), id);

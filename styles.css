@@ -3220,3 +3220,53 @@ border-radius:12px;padding:12px 14px;font:inherit;transition:.2s}
 .weekly-content-type-select select:focus {
   color: var(--accent);
 }
+
+
+/* Checklist por bloques / múltiples plantillas */
+.checklist-header--multi {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.checklist-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.checklist-section {
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-card) 92%, transparent);
+  overflow: hidden;
+}
+.checklist-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-soft);
+  background: color-mix(in srgb, var(--bg-hover) 48%, transparent);
+}
+.checklist-section__title-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+.checklist-section__title-wrap h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+.checklist-section__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.checklist-section__mini-progress { width: 92px; }
+.checklist-section__items { padding: 6px 8px 8px; }
+.checklist-section__items .checklist-item__row { border-radius: 7px; }
+@media (max-width: 680px) {
+  .checklist-section__mini-progress { display: none; }
+  .checklist-section__title-wrap { align-items: flex-start; flex-direction: column; gap: 2px; }
+}
