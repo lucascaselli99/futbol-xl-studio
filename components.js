@@ -1667,7 +1667,8 @@ const Components = (() => {
         <div class="drive-field__label">${escapeHtml(def.label)}</div>
         <div class="drive-field__input">
           ${link.url ? `<span class="drive-field__icon">${linkIcon(link.url)}</span>` : ''}
-          <input type="text" data-drive-url="${key}" placeholder="Pegar enlace de Drive / Docs / YouTube…" value="${escapeHtml(link.url || '')}" />
+          <input type="text" data-drive-url="${key}" placeholder="Pegar enlace o elegir desde Drive…" value="${escapeHtml(link.url || '')}" />
+          <button class="btn btn--secondary btn--sm drive-picker-button" data-action="google-drive-pick-slot" data-key="${key}" type="button" title="Elegir archivo o carpeta desde Google Drive">${icon('search')} Drive</button>
         </div>
         <div class="drive-field__actions">
           <button class="icon-btn icon-btn--sm" data-action="open-link" data-url="${escapeHtml(link.url || '')}" title="Abrir" ${!link.url ? 'disabled' : ''}>${icon('external')}</button>
@@ -1695,7 +1696,10 @@ const Components = (() => {
         <div class="drive-fields">
           ${Object.entries(slots).map(([key, def]) => driveField(key, def, video)).join('')}
         </div>
-        <h4>Enlaces adicionales</h4>
+        <div class="editor-section-title-row">
+          <h4>Enlaces adicionales</h4>
+          <button class="btn btn--secondary btn--sm" data-action="google-drive-pick-additional" type="button">${icon('plus')} Elegir desde Drive</button>
+        </div>
         <div class="additional-links" id="additional-links">
           ${additional.map((l) => `
             <div class="drive-field" data-link-id="${l.id}">
@@ -1949,6 +1953,7 @@ const Components = (() => {
     { key: 'tags', label: 'Etiquetas' },
     { key: 'templates', label: 'Plantillas de checklist' },
     { key: 'library', label: 'Biblioteca' },
+    { key: 'googleDrive', label: 'Google Drive' },
     { key: 'preferences', label: 'Preferencias' },
     { key: 'backup', label: 'Datos y respaldo' },
   ];
@@ -2387,6 +2392,40 @@ const Components = (() => {
   }
 
   /* ---- Preferencias ---- */
+  function renderGoogleDriveSettings(ctx) {
+    const config = ctx.googleDriveConfig || {};
+    const configured = Boolean(config.clientId && config.apiKey && config.appId);
+    const connected = Boolean(ctx.googleDriveConnected);
+    return `
+      <div>
+        ${settingsSectionHeader('Google Drive', 'Conectá Fútbol XL Studio con el selector oficial de Google Drive para adjuntar archivos y carpetas sin copiar enlaces a mano.')}
+        <div class="settings-card google-drive-settings-card">
+          <div class="integration-status-row">
+            <div>
+              <h4>Google Picker</h4>
+              <p class="muted small">La autorización se hace directamente con Google. Fútbol XL Studio no guarda tu contraseña ni un token permanente.</p>
+            </div>
+            <span class="integration-status ${configured ? 'is-ready' : 'is-missing'}">${configured ? (connected ? 'Conectado' : 'Listo para conectar') : 'Falta configurar'}</span>
+          </div>
+          ${configured ? `
+            <div class="google-drive-settings-actions">
+              <button class="btn btn--primary" data-action="google-drive-connect" type="button">${icon('link')} ${connected ? 'Reconectar Drive' : 'Conectar Google Drive'}</button>
+              ${connected ? `<button class="btn btn--ghost" data-action="google-drive-disconnect" type="button">Desconectar esta sesión</button>` : ''}
+            </div>
+            <p class="muted small">Después, en cada proyecto → Enlaces de Drive, vas a ver un botón <strong>Drive</strong> junto a cada campo.</p>
+          ` : `
+            <div class="integration-setup-box">
+              <strong>Faltan 3 variables en Vercel</strong>
+              <code>GOOGLE_DRIVE_CLIENT_ID</code>
+              <code>GOOGLE_DRIVE_API_KEY</code>
+              <code>GOOGLE_DRIVE_APP_ID</code>
+              <p class="muted small">El App ID es el número de proyecto de Google Cloud. No uses un Client Secret en el navegador.</p>
+            </div>
+          `}
+        </div>
+      </div>`;
+  }
+
   function renderPreferencesSettings(ctx) {
     const { settings } = ctx;
     return `
@@ -4111,6 +4150,7 @@ const Components = (() => {
     renderPreferencesSettings,
     renderBackupSettings,
     renderLibrarySettings,
+    renderGoogleDriveSettings,
     renderEditorLibraryTab,
     // Biblioteca
     LIBRARY_QUICK_FILTERS,

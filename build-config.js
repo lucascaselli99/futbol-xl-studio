@@ -17,6 +17,9 @@
  * Variables):
  *   - SUPABASE_URL              -> ej: https://wpugmybtretxcdiowasj.supabase.co
  *   - SUPABASE_PUBLISHABLE_KEY  -> tu clave publicable (anon key) de Supabase
+ *   - GOOGLE_DRIVE_CLIENT_ID     -> OAuth Client ID web de Google Cloud
+ *   - GOOGLE_DRIVE_API_KEY       -> API key restringida a Picker + Drive
+ *   - GOOGLE_DRIVE_APP_ID        -> número de proyecto (Project number) de Google Cloud
  *
  * Y en Project Settings → Build & Development Settings:
  *   - Framework Preset: Other
@@ -33,6 +36,9 @@ const path = require('path');
 
 const url = process.env.SUPABASE_URL || '';
 const anonKey = process.env.SUPABASE_PUBLISHABLE_KEY || '';
+const googleDriveClientId = process.env.GOOGLE_DRIVE_CLIENT_ID || '';
+const googleDriveApiKey = process.env.GOOGLE_DRIVE_API_KEY || '';
+const googleDriveAppId = process.env.GOOGLE_DRIVE_APP_ID || '';
 
 if (!url || !anonKey) {
   console.warn(
@@ -49,6 +55,9 @@ const contents = `/**
  */
 window.FXL_SUPABASE_URL = ${JSON.stringify(url)};
 window.FXL_SUPABASE_ANON_KEY = ${JSON.stringify(anonKey)};
+window.FXL_GOOGLE_DRIVE_CLIENT_ID = ${JSON.stringify(googleDriveClientId)};
+window.FXL_GOOGLE_DRIVE_API_KEY = ${JSON.stringify(googleDriveApiKey)};
+window.FXL_GOOGLE_DRIVE_APP_ID = ${JSON.stringify(googleDriveAppId)};
 `;
 
 fs.writeFileSync(path.join(__dirname, 'config.js'), contents, 'utf8');

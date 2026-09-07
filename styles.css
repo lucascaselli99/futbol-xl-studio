@@ -3270,3 +3270,71 @@ border-radius:12px;padding:12px 14px;font:inherit;transition:.2s}
   .checklist-section__mini-progress { display: none; }
   .checklist-section__title-wrap { align-items: flex-start; flex-direction: column; gap: 2px; }
 }
+
+
+/* ====================================================================== */
+/* Google Drive / Picker                                                   */
+/* ====================================================================== */
+.drive-picker-button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  gap: 5px;
+}
+.drive-picker-button .icon { width: 14px; height: 14px; }
+.editor-section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+.editor-section-title-row h4 { margin: 0; }
+.google-drive-settings-card { display: grid; gap: 18px; }
+.integration-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+}
+.integration-status-row h4 { margin: 0 0 5px; }
+.integration-status-row p { margin: 0; max-width: 640px; }
+.integration-status {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.integration-status.is-ready {
+  color: #69dc8e;
+  border-color: rgba(105,220,142,.35);
+  background: rgba(105,220,142,.08);
+}
+.integration-status.is-missing {
+  color: #f0b35b;
+  border-color: rgba(240,179,91,.35);
+  background: rgba(240,179,91,.08);
+}
+.google-drive-settings-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.integration-setup-box {
+  display: grid;
+  gap: 9px;
+  border: 1px dashed var(--border);
+  background: var(--bg-input);
+  border-radius: 10px;
+  padding: 14px;
+}
+.integration-setup-box code {
+  display: block;
+  width: fit-content;
+  padding: 4px 7px;
+  border-radius: 6px;
+  background: var(--bg-hover);
+  color: var(--text);
+}
+@media (max-width: 760px) {
+  .drive-field__input { flex-wrap: wrap; }
+  .drive-picker-button { width: 100%; justify-content: center; }
+  .integration-status-row { flex-direction: column; }
+}

@@ -16,3 +16,8 @@
  */
 window.FXL_SUPABASE_URL = 'https://wpugmybtretxcdiowasj.supabase.co';
 window.FXL_SUPABASE_ANON_KEY = 'PEGÁ_ACÁ_TU_PUBLISHABLE_KEY';
+
+// Google Drive / Google Picker (valores públicos del cliente web).
+window.FXL_GOOGLE_DRIVE_CLIENT_ID = 'PEGÁ_ACÁ_TU_CLIENT_ID.apps.googleusercontent.com';
+window.FXL_GOOGLE_DRIVE_API_KEY = 'PEGÁ_ACÁ_TU_API_KEY';
+window.FXL_GOOGLE_DRIVE_APP_ID = 'PEGÁ_ACÁ_TU_PROJECT_NUMBER';

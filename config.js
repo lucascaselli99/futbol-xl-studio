@@ -16,3 +16,8 @@
  */
 window.FXL_SUPABASE_URL = 'https://wpugmybtretxcdiowasj.supabase.co';
 window.FXL_SUPABASE_ANON_KEY = 'sb_publishable_F63gy4nKqkh5UVxZYaBekA_ilovNXQ5';
+
+// Google Drive / Google Picker. En producción build-config.js pisa estos valores.
+window.FXL_GOOGLE_DRIVE_CLIENT_ID = '';
+window.FXL_GOOGLE_DRIVE_API_KEY = '';
+window.FXL_GOOGLE_DRIVE_APP_ID = '';

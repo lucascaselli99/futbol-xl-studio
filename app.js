@@ -107,6 +107,13 @@
   const pendingSubscriptionPayments = new Set(); // ids de suscripciones con un pago en curso (evita doble click)
   let notificationsChannel = null;
 
+  // Google Drive / Picker: el access token vive solo en memoria durante esta sesión.
+  let googleDriveAccessToken = null;
+  let googleDriveTokenExpiresAt = 0;
+  let googleDriveTokenClient = null;
+  let googlePickerLoadPromise = null;
+  let googleIdentityLoadPromise = null;
+
   /* ------------------------------------------------------------------ */
   /* Arranque                                                            */
   /* ------------------------------------------------------------------ */
@@ -1149,6 +1156,8 @@ if (localStorage.getItem('guestMode') === 'true') {
       sidebarCollapsed: state.ui.sidebarCollapsed,
       mobileSidebarOpen: state.ui.mobileSidebarOpen,
       weeklyWeekOffset: state.ui.weeklyWeekOffset,
+      googleDriveConfig: getGoogleDriveConfig(),
+      googleDriveConnected: Boolean(googleDriveAccessToken && Date.now() < googleDriveTokenExpiresAt),
     };
   }
 
@@ -1526,6 +1535,9 @@ if (localStorage.getItem('guestMode') === 'true') {
         break;
       case 'library':
         body = Components.renderLibrarySettings(ctx);
+        break;
+      case 'googleDrive':
+        body = Components.renderGoogleDriveSettings(ctx);
         break;
       case 'preferences':
         body = Components.renderPreferencesSettings(ctx);
@@ -3788,6 +3800,251 @@ if (localStorage.getItem('guestMode') === 'true') {
   }
 
   /* ------------------------------------------------------------------ */
+  /* Google Drive / Google Picker                                        */
+  /* ------------------------------------------------------------------ */
+
+  function getGoogleDriveConfig() {
+    return {
+      clientId: String(window.FXL_GOOGLE_DRIVE_CLIENT_ID || '').trim(),
+      apiKey: String(window.FXL_GOOGLE_DRIVE_API_KEY || '').trim(),
+      appId: String(window.FXL_GOOGLE_DRIVE_APP_ID || '').trim(),
+    };
+  }
+
+  function isGoogleDriveConfigured() {
+    const config = getGoogleDriveConfig();
+    return Boolean(config.clientId && config.apiKey && config.appId);
+  }
+
+  function loadScriptOnce(src, id) {
+    return new Promise((resolve, reject) => {
+      const existing = document.getElementById(id);
+      if (existing) {
+        if (existing.dataset.loaded === 'true') return resolve();
+        existing.addEventListener('load', () => resolve(), { once: true });
+        existing.addEventListener('error', () => reject(new Error(`No se pudo cargar ${src}`)), { once: true });
+        return;
+      }
+      const script = document.createElement('script');
+      script.id = id;
+      script.src = src;
+      script.async = true;
+      script.defer = true;
+      script.addEventListener('load', () => { script.dataset.loaded = 'true'; resolve(); }, { once: true });
+      script.addEventListener('error', () => reject(new Error(`No se pudo cargar ${src}`)), { once: true });
+      document.head.appendChild(script);
+    });
+  }
+
+  async function ensureGoogleDriveLibraries() {
+    if (!isGoogleDriveConfigured()) {
+      throw new Error('Google Drive todavía no está configurado.');
+    }
+
+    if (!googleIdentityLoadPromise) {
+      googleIdentityLoadPromise = loadScriptOnce('https://accounts.google.com/gsi/client', 'fxl-google-identity');
+    }
+    if (!googlePickerLoadPromise) {
+      googlePickerLoadPromise = (async () => {
+        await loadScriptOnce('https://apis.google.com/js/api.js', 'fxl-google-api');
+        await new Promise((resolve, reject) => {
+          if (!window.gapi?.load) return reject(new Error('Google API Loader no está disponible.'));
+          window.gapi.load('picker', {
+            callback: resolve,
+            onerror: () => reject(new Error('No se pudo cargar Google Picker.')),
+            timeout: 12000,
+            ontimeout: () => reject(new Error('Google Picker tardó demasiado en cargar.')),
+          });
+        });
+      })();
+    }
+
+    await Promise.all([googleIdentityLoadPromise, googlePickerLoadPromise]);
+    if (!window.google?.accounts?.oauth2 || !window.google?.picker) {
+      throw new Error('Google Drive no terminó de inicializarse.');
+    }
+  }
+
+  async function requestGoogleDriveToken(forceConsent = false) {
+    await ensureGoogleDriveLibraries();
+    const config = getGoogleDriveConfig();
+
+    if (googleDriveAccessToken && Date.now() < googleDriveTokenExpiresAt - 60000) {
+      return googleDriveAccessToken;
+    }
+
+    if (!googleDriveTokenClient) {
+      googleDriveTokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: config.clientId,
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: () => {},
+        error_callback: () => {},
+      });
+    }
+
+    return new Promise((resolve, reject) => {
+      googleDriveTokenClient.callback = (response) => {
+        if (response?.error || !response?.access_token) {
+          reject(new Error(response?.error_description || response?.error || 'Google no devolvió un token de acceso.'));
+          return;
+        }
+        googleDriveAccessToken = response.access_token;
+        const expiresIn = Number(response.expires_in || 3600);
+        googleDriveTokenExpiresAt = Date.now() + expiresIn * 1000;
+        localStorage.setItem('fxlGoogleDriveAuthorized', 'true');
+        resolve(googleDriveAccessToken);
+      };
+      googleDriveTokenClient.error_callback = (error) => {
+        reject(new Error(error?.message || error?.type || 'No se pudo abrir la autorización de Google.'));
+      };
+
+      const hadAuthorization = localStorage.getItem('fxlGoogleDriveAuthorized') === 'true';
+      googleDriveTokenClient.requestAccessToken({ prompt: forceConsent || !hadAuthorization ? 'consent' : '' });
+    });
+  }
+
+  function googlePickerDocToLink(doc) {
+    const picker = window.google.picker;
+    const id = doc[picker.Document.ID] || '';
+    const name = doc[picker.Document.NAME] || 'Archivo de Drive';
+    const mimeType = doc[picker.Document.MIME_TYPE] || '';
+    const pickerUrl = doc[picker.Document.URL] || '';
+    const isFolder = mimeType === 'application/vnd.google-apps.folder';
+    const url = pickerUrl || (isFolder
+      ? `https://drive.google.com/drive/folders/${encodeURIComponent(id)}`
+      : `https://drive.google.com/open?id=${encodeURIComponent(id)}`);
+    return { id, name, mimeType, url, isFolder };
+  }
+
+  async function saveGoogleDriveSlotSelection(video, key, selected) {
+    video.driveLinks = video.driveLinks || {};
+    const current = video.driveLinks[key] || { label: key };
+    video.driveLinks[key] = {
+      ...current,
+      url: selected.url,
+      fileId: selected.id,
+      fileName: selected.name,
+      mimeType: selected.mimeType,
+      source: 'google-picker',
+    };
+    pushHistory(video, 'link-change', `Drive: ${current.label || key} → ${selected.name}`);
+    await touchAndSaveNow(video);
+    await notifyProjectResource(
+      video,
+      { name: selected.name },
+      { verb: 'ha agregado desde Google Drive', type: 'project_drive_link' }
+    );
+    renderEditorBody();
+    renderMain();
+  }
+
+  async function saveGoogleDriveAdditionalSelections(video, selections) {
+    video.additionalLinks = video.additionalLinks || [];
+    const existingIds = new Set(video.additionalLinks.map((item) => item.fileId).filter(Boolean));
+    const fresh = selections.filter((item) => !existingIds.has(item.id));
+    if (!fresh.length) {
+      Utils.toast('Esos archivos ya estaban agregados.', 'info');
+      return;
+    }
+    fresh.forEach((item) => {
+      video.additionalLinks.push({
+        id: Utils.uuid(),
+        label: item.name,
+        url: item.url,
+        fileId: item.id,
+        mimeType: item.mimeType,
+        source: 'google-picker',
+      });
+    });
+    pushHistory(video, 'link-change', `${fresh.length} recurso(s) agregado(s) desde Google Drive`);
+    await touchAndSaveNow(video);
+    for (const item of fresh) {
+      await notifyProjectResource(
+        video,
+        { name: item.name },
+        { verb: 'ha agregado desde Google Drive', type: 'project_drive_link' }
+      );
+    }
+    renderEditorBody();
+    renderMain();
+  }
+
+  async function openGoogleDrivePicker({ video, key = null, multiple = false } = {}) {
+    if (!video) return;
+    if (!isGoogleDriveConfigured()) {
+      Utils.toast('Primero configurá Google Drive en Configuración → Google Drive.', 'error');
+      state.ui.route = 'settings';
+      state.ui.settingsSection = 'googleDrive';
+      renderAll();
+      return;
+    }
+
+    try {
+      const token = await requestGoogleDriveToken(false);
+      const config = getGoogleDriveConfig();
+      const pickerApi = window.google.picker;
+      const view = new pickerApi.DocsView(pickerApi.ViewId.DOCS)
+        .setIncludeFolders(true)
+        .setSelectFolderEnabled(true)
+        .setMode(pickerApi.DocsViewMode.LIST);
+
+      const builder = new pickerApi.PickerBuilder()
+        .setDeveloperKey(config.apiKey)
+        .setAppId(config.appId)
+        .setOAuthToken(token)
+        .setTitle(multiple ? 'Elegí archivos o carpetas para el proyecto' : 'Elegí un archivo o carpeta')
+        .addView(view)
+        .setCallback(async (data) => {
+          if (data.action === pickerApi.Action.CANCEL) return;
+          if (data.action !== pickerApi.Action.PICKED) return;
+          const docs = data[pickerApi.Response.DOCUMENTS] || [];
+          const selections = docs.map(googlePickerDocToLink).filter((item) => item.id && item.url);
+          if (!selections.length) return;
+          try {
+            if (key) await saveGoogleDriveSlotSelection(video, key, selections[0]);
+            else await saveGoogleDriveAdditionalSelections(video, selections);
+            Utils.toast(key ? 'Recurso de Drive agregado' : `${selections.length} recurso(s) de Drive agregado(s)`, 'success');
+          } catch (error) {
+            console.error('[Fútbol XL Studio] No se pudo guardar la selección de Drive:', error);
+            Utils.toast('Se eligió el archivo, pero no se pudo guardar en el proyecto.', 'error');
+          }
+        });
+
+      if (multiple) builder.enableFeature(pickerApi.Feature.MULTISELECT_ENABLED);
+      builder.build().setVisible(true);
+    } catch (error) {
+      console.error('[Fútbol XL Studio] Google Drive:', error);
+      Utils.toast(error.message || 'No se pudo conectar con Google Drive.', 'error');
+    }
+  }
+
+  async function connectGoogleDriveFromSettings() {
+    if (!isGoogleDriveConfigured()) {
+      Utils.toast('Faltan las variables de Google Drive en Vercel.', 'error');
+      return;
+    }
+    try {
+      await requestGoogleDriveToken(true);
+      Utils.toast('Google Drive conectado para esta sesión.', 'success');
+      renderMain();
+    } catch (error) {
+      console.error('[Fútbol XL Studio] No se pudo conectar Google Drive:', error);
+      Utils.toast(error.message || 'No se pudo conectar Google Drive.', 'error');
+    }
+  }
+
+  function disconnectGoogleDrive() {
+    const token = googleDriveAccessToken;
+    googleDriveAccessToken = null;
+    googleDriveTokenExpiresAt = 0;
+    if (token && window.google?.accounts?.oauth2?.revoke) {
+      window.google.accounts.oauth2.revoke(token, () => {});
+    }
+    Utils.toast('Google Drive desconectado de esta sesión.', 'success');
+    renderMain();
+  }
+
+  /* ------------------------------------------------------------------ */
   /* Enlaces de Drive                                                    */
   /* ------------------------------------------------------------------ */
 
@@ -5069,6 +5326,22 @@ if (localStorage.getItem('guestMode') === 'true') {
       case 'editor-tab':
         state.ui.editorTab = actionEl.dataset.tab;
         renderEditorBody();
+        break;
+      case 'google-drive-pick-slot': {
+        const video = currentVideo();
+        if (video) await openGoogleDrivePicker({ video, key: actionEl.dataset.key, multiple: false });
+        break;
+      }
+      case 'google-drive-pick-additional': {
+        const video = currentVideo();
+        if (video) await openGoogleDrivePicker({ video, multiple: true });
+        break;
+      }
+      case 'google-drive-connect':
+        await connectGoogleDriveFromSettings();
+        break;
+      case 'google-drive-disconnect':
+        disconnectGoogleDrive();
         break;
       case 'open-link': {
         const url = actionEl.dataset.url;
