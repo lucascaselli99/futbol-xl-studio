@@ -1731,11 +1731,45 @@ const Components = (() => {
   }
 
   function renderEditorScript(video, ctx) {
+    const scriptLink = video?.driveLinks?.script || {};
+    const hasGoogleDoc = Boolean(scriptLink.fileId && scriptLink.mimeType === 'application/vnd.google-apps.document');
+    const syncedAt = scriptLink.syncedAt ? formatDateTime(scriptLink.syncedAt) : '';
+    const mainFolder = video?.driveLinks?.mainFolder || {};
+    const willUseMainFolder = Boolean(mainFolder.fileId && mainFolder.mimeType === 'application/vnd.google-apps.folder');
+
+    const scriptField = `
+      <div class="field field--wide textarea-field script-doc-field">
+        <div class="textarea-field__header">
+          <span>Guion</span>
+          <button class="icon-btn icon-btn--sm" data-action="copy-field" data-field="script" title="Copiar contenido">${icon('copy')}</button>
+        </div>
+        <textarea data-field="script" rows="10" placeholder="Escribí el guion del video…">${escapeHtml(video.script || '')}</textarea>
+        <div class="google-doc-bar ${hasGoogleDoc ? 'is-linked' : ''}">
+          <div class="google-doc-bar__info">
+            <span class="google-doc-bar__icon">DOC</span>
+            <div>
+              <strong>${hasGoogleDoc ? 'Google Doc vinculado' : 'Convertir este guion en Google Docs'}</strong>
+              <span>${hasGoogleDoc
+                ? `${escapeHtml(scriptLink.fileName || 'Guion')}${syncedAt ? ` · Última sincronización: ${escapeHtml(syncedAt)}` : ''}`
+                : `${willUseMainFolder ? 'Se creará dentro de la carpeta principal del proyecto.' : 'Se creará en Mi unidad y quedará enlazado al proyecto.'}`}</span>
+            </div>
+          </div>
+          <div class="google-doc-bar__actions">
+            ${hasGoogleDoc ? `
+              <button class="btn btn--secondary btn--sm" data-action="google-doc-open" type="button">${icon('external')} Abrir en Docs</button>
+              <button class="btn btn--primary btn--sm" data-action="google-doc-update" type="button">${icon('repeat')} Actualizar Doc</button>
+            ` : `
+              <button class="btn btn--primary btn--sm" data-action="google-doc-create" type="button">${icon('plus')} Crear Google Doc</button>
+            `}
+          </div>
+        </div>
+      </div>`;
+
     return `
       <div class="editor-form">
         ${textAreaField('idea', 'Idea principal', video.idea, { rows: 2 })}
         ${textAreaField('hook', 'Gancho inicial', video.hook, { rows: 2 })}
-        ${textAreaField('script', 'Guion', video.script, { rows: 8 })}
+        ${scriptField}
         ${textAreaField('researchNotes', 'Notas de investigación', video.researchNotes, { rows: 4 })}
         ${textAreaField('editNotes', 'Notas de edición', video.editNotes, { rows: 4 })}
         ${textAreaField('thumbnailNotes', 'Notas para miniatura', video.thumbnailNotes, { rows: 3 })}

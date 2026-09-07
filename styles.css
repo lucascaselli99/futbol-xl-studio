@@ -1012,6 +1012,46 @@ input:focus, select:focus, textarea:focus {
   font-family: inherit;
 }
 
+.google-doc-bar {
+  margin-top: 6px;
+  padding: 12px 13px;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.google-doc-bar.is-linked {
+  border-color: color-mix(in srgb, var(--success) 42%, var(--border-soft));
+  background: color-mix(in srgb, var(--success) 5%, var(--bg-card));
+}
+.google-doc-bar__info { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.google-doc-bar__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  color: #8ab4ff;
+  background: rgba(66, 133, 244, .12);
+  border: 1px solid rgba(66, 133, 244, .24);
+}
+.google-doc-bar__info strong { display: block; font-size: 12px; color: var(--text); margin-bottom: 2px; }
+.google-doc-bar__info span { display: block; font-size: 11px; color: var(--text-muted); line-height: 1.35; white-space: normal; }
+.google-doc-bar__actions { display: flex; gap: 8px; flex: 0 0 auto; }
+@media (max-width: 760px) {
+  .google-doc-bar { align-items: flex-start; flex-direction: column; }
+  .google-doc-bar__actions { width: 100%; }
+  .google-doc-bar__actions .btn { flex: 1; }
+}
+
+
 
 .drive-fields, .additional-links { display: flex; flex-direction: column; gap: 8px; }
 .drive-field {

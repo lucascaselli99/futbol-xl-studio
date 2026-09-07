@@ -3916,6 +3916,180 @@ if (localStorage.getItem('guestMode') === 'true') {
     return { id, name, mimeType, url, isFolder };
   }
 
+  function getGoogleDocLink(video) {
+    const link = video?.driveLinks?.script || null;
+    if (!link?.fileId || link.mimeType !== 'application/vnd.google-apps.document') return null;
+    return {
+      fileId: link.fileId,
+      fileName: link.fileName || `${video.title || 'Sin título'} - Guion`,
+      url: link.url || `https://docs.google.com/document/d/${encodeURIComponent(link.fileId)}/edit`,
+    };
+  }
+
+  function googleDocBodyFromVideo(video) {
+    const title = String(video?.title || 'Sin título').trim() || 'Sin título';
+    const script = String(video?.script || '').trim();
+    return `${title}\n\n${script}`.trimEnd() + '\n';
+  }
+
+  async function googleAuthorizedFetch(url, options = {}) {
+    const token = await requestGoogleDriveToken(false);
+    const headers = new Headers(options.headers || {});
+    headers.set('Authorization', `Bearer ${token}`);
+    if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+
+    const response = await fetch(url, { ...options, headers });
+    const text = await response.text();
+    let payload = null;
+    if (text) {
+      try { payload = JSON.parse(text); } catch (_) { payload = { raw: text }; }
+    }
+    if (!response.ok) {
+      const message = payload?.error?.message || payload?.error_description || `Google respondió con error ${response.status}.`;
+      const error = new Error(message);
+      error.status = response.status;
+      error.payload = payload;
+      throw error;
+    }
+    return payload || {};
+  }
+
+  function googleDocsApiHelpMessage(error) {
+    const message = String(error?.message || '');
+    const reason = JSON.stringify(error?.payload || {});
+    if (/has not been used|disabled|accessnotconfigured|SERVICE_DISABLED/i.test(`${message} ${reason}`)) {
+      return 'Falta habilitar Google Docs API en el proyecto de Google Cloud.';
+    }
+    if (error?.status === 401 || error?.status === 403) {
+      return 'Google no autorizó la operación. Probá reconectar Drive y volver a intentar.';
+    }
+    return message || 'No se pudo trabajar con Google Docs.';
+  }
+
+  async function createGoogleDocFromVideo(video) {
+    if (!video) return;
+    if (!String(video.script || '').trim()) {
+      Utils.toast('Escribí algo en el campo Guion antes de crear el Google Doc.', 'error');
+      return;
+    }
+    if (!isGoogleDriveConfigured()) {
+      Utils.toast('Primero configurá Google Drive en Configuración → Google Drive.', 'error');
+      return;
+    }
+
+    const currentScriptLink = video.driveLinks?.script;
+    if (currentScriptLink?.url && !getGoogleDocLink(video)) {
+      const replace = window.confirm('El proyecto ya tiene un enlace en “Guion”. ¿Querés reemplazarlo por el nuevo Google Doc?');
+      if (!replace) return;
+    }
+
+    let createdDocId = null;
+    try {
+      Utils.toast('Creando Google Doc…', 'info');
+      const parentFolder = video.driveLinks?.mainFolder;
+      const parents = parentFolder?.fileId && parentFolder?.mimeType === 'application/vnd.google-apps.folder'
+        ? [parentFolder.fileId]
+        : undefined;
+      const fileName = `${String(video.title || 'Sin título').trim() || 'Sin título'} - Guion`;
+      const metadata = {
+        name: fileName,
+        mimeType: 'application/vnd.google-apps.document',
+        ...(parents ? { parents } : {}),
+      };
+
+      const created = await googleAuthorizedFetch('https://www.googleapis.com/drive/v3/files?fields=id,name,mimeType,webViewLink', {
+        method: 'POST',
+        body: JSON.stringify(metadata),
+      });
+      const docId = created.id;
+      createdDocId = docId || null;
+      if (!docId) throw new Error('Google Drive no devolvió el ID del documento.');
+
+      await googleAuthorizedFetch(`https://docs.googleapis.com/v1/documents/${encodeURIComponent(docId)}:batchUpdate`, {
+        method: 'POST',
+        body: JSON.stringify({
+          requests: [{ insertText: { location: { index: 1 }, text: googleDocBodyFromVideo(video) } }],
+        }),
+      });
+
+      video.driveLinks = video.driveLinks || {};
+      video.driveLinks.script = {
+        ...(video.driveLinks.script || { label: 'Guion' }),
+        label: 'Guion',
+        url: created.webViewLink || `https://docs.google.com/document/d/${docId}/edit`,
+        fileId: docId,
+        fileName: created.name || fileName,
+        mimeType: 'application/vnd.google-apps.document',
+        source: 'google-docs',
+        syncedAt: new Date().toISOString(),
+      };
+      pushHistory(video, 'google-doc-create', `Google Doc creado: ${video.driveLinks.script.fileName}`);
+      await touchAndSaveNow(video);
+      renderEditorBody();
+      renderMain();
+      Utils.toast(parents ? 'Google Doc creado dentro de la carpeta principal.' : 'Google Doc creado en Mi unidad.', 'success');
+    } catch (error) {
+      console.error('[Fútbol XL Studio] Crear Google Doc:', error);
+      // Si Drive llegó a crear el archivo pero Docs API falló, limpiamos el documento vacío.
+      if (createdDocId) {
+        try {
+          await googleAuthorizedFetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(createdDocId)}`, { method: 'DELETE' });
+        } catch (cleanupError) {
+          console.warn('[Fútbol XL Studio] No se pudo eliminar el Google Doc incompleto:', cleanupError);
+        }
+      }
+      Utils.toast(googleDocsApiHelpMessage(error), 'error');
+    }
+  }
+
+  async function updateGoogleDocFromVideo(video) {
+    const doc = getGoogleDocLink(video);
+    if (!video || !doc) {
+      Utils.toast('Este proyecto todavía no tiene un Google Doc vinculado.', 'error');
+      return;
+    }
+    if (!String(video.script || '').trim()) {
+      Utils.toast('El guion está vacío. No se actualizó el Google Doc.', 'error');
+      return;
+    }
+    const ok = window.confirm('Esto reemplazará el contenido actual del Google Doc por el guion que está en Fútbol XL Studio. ¿Continuar?');
+    if (!ok) return;
+
+    try {
+      Utils.toast('Actualizando Google Doc…', 'info');
+      const documentData = await googleAuthorizedFetch(`https://docs.googleapis.com/v1/documents/${encodeURIComponent(doc.fileId)}`, { method: 'GET' });
+      const content = documentData?.body?.content || [];
+      const lastEndIndex = content.reduce((max, item) => Math.max(max, Number(item.endIndex || 0)), 0);
+      const requests = [];
+      // Google Docs conserva un salto de párrafo final que no puede eliminarse.
+      if (lastEndIndex > 2) {
+        requests.push({ deleteContentRange: { range: { startIndex: 1, endIndex: lastEndIndex - 1 } } });
+      }
+      requests.push({ insertText: { location: { index: 1 }, text: googleDocBodyFromVideo(video) } });
+
+      await googleAuthorizedFetch(`https://docs.googleapis.com/v1/documents/${encodeURIComponent(doc.fileId)}:batchUpdate`, {
+        method: 'POST',
+        body: JSON.stringify({ requests }),
+      });
+
+      const desiredName = `${String(video.title || 'Sin título').trim() || 'Sin título'} - Guion`;
+      await googleAuthorizedFetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(doc.fileId)}?fields=id,name`, {
+        method: 'PATCH',
+        body: JSON.stringify({ name: desiredName }),
+      });
+
+      video.driveLinks.script.syncedAt = new Date().toISOString();
+      video.driveLinks.script.fileName = desiredName;
+      pushHistory(video, 'google-doc-update', 'Google Doc del guion actualizado desde Fútbol XL Studio');
+      await touchAndSaveNow(video);
+      renderEditorBody();
+      Utils.toast('Google Doc actualizado.', 'success');
+    } catch (error) {
+      console.error('[Fútbol XL Studio] Actualizar Google Doc:', error);
+      Utils.toast(googleDocsApiHelpMessage(error), 'error');
+    }
+  }
+
   async function saveGoogleDriveSlotSelection(video, key, selected) {
     video.driveLinks = video.driveLinks || {};
     const current = video.driveLinks[key] || { label: key };
@@ -5327,6 +5501,23 @@ if (localStorage.getItem('guestMode') === 'true') {
         state.ui.editorTab = actionEl.dataset.tab;
         renderEditorBody();
         break;
+      case 'google-doc-create': {
+        const video = currentVideo();
+        if (video) await createGoogleDocFromVideo(video);
+        break;
+      }
+      case 'google-doc-update': {
+        const video = currentVideo();
+        if (video) await updateGoogleDocFromVideo(video);
+        break;
+      }
+      case 'google-doc-open': {
+        const video = currentVideo();
+        const doc = getGoogleDocLink(video);
+        if (doc?.url) window.open(doc.url, '_blank', 'noopener');
+        else Utils.toast('Este proyecto todavía no tiene un Google Doc vinculado.', 'error');
+        break;
+      }
       case 'google-drive-pick-slot': {
         const video = currentVideo();
         if (video) await openGoogleDrivePicker({ video, key: actionEl.dataset.key, multiple: false });
