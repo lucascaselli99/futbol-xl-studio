@@ -1737,13 +1737,77 @@ const Components = (() => {
     const mainFolder = video?.driveLinks?.mainFolder || {};
     const willUseMainFolder = Boolean(mainFolder.fileId && mainFolder.mimeType === 'application/vnd.google-apps.folder');
 
+    const scriptInitialHtml = video.scriptHtml
+      ? String(video.scriptHtml)
+      : escapeHtml(video.script || '').replace(/\n/g, '<br>');
+    const scriptWordCount = String(video.script || '').trim() ? String(video.script || '').trim().split(/\s+/).length : 0;
+
     const scriptField = `
-      <div class="field field--wide textarea-field script-doc-field">
-        <div class="textarea-field__header">
-          <span>Guion</span>
-          <button class="icon-btn icon-btn--sm" data-action="copy-field" data-field="script" title="Copiar contenido">${icon('copy')}</button>
+      <div class="field field--wide script-doc-field script-editor-card">
+        <div class="script-editor-card__header">
+          <div>
+            <span class="script-editor-card__eyebrow">GUION</span>
+            <strong>Editor de guion</strong>
+          </div>
+          <div class="script-editor-card__header-actions">
+            <span class="script-autosave-pill" data-script-autosave-state>● Autoguardado activo</span>
+            <button class="icon-btn icon-btn--sm" data-action="copy-field" data-field="script" title="Copiar contenido">${icon('copy')}</button>
+          </div>
         </div>
-        <textarea data-field="script" rows="10" placeholder="Escribí el guion del video…">${escapeHtml(video.script || '')}</textarea>
+
+        <div class="script-rich-toolbar" role="toolbar" aria-label="Formato del guion">
+          <select class="script-rich-toolbar__select" data-script-block aria-label="Estilo de párrafo">
+            <option value="">Texto</option>
+            <option value="p">Párrafo</option>
+            <option value="h2">Título</option>
+            <option value="h3">Subtítulo</option>
+            <option value="blockquote">Cita</option>
+          </select>
+          <select class="script-rich-toolbar__select" data-script-font aria-label="Tipografía">
+            <option value="">Tipografía</option>
+            <option value="Arial">Arial</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Trebuchet MS">Trebuchet MS</option>
+          </select>
+          <select class="script-rich-toolbar__select script-rich-toolbar__select--size" data-script-size aria-label="Tamaño">
+            <option value="">Tamaño</option>
+            <option value="2">12</option>
+            <option value="3">14</option>
+            <option value="4">18</option>
+            <option value="5">24</option>
+            <option value="6">32</option>
+            <option value="7">40</option>
+          </select>
+          <span class="script-rich-toolbar__divider"></span>
+          <button type="button" class="script-rich-toolbar__btn" data-action="rich-script-command" data-command="bold" title="Negrita"><strong>B</strong></button>
+          <button type="button" class="script-rich-toolbar__btn" data-action="rich-script-command" data-command="italic" title="Cursiva"><em>I</em></button>
+          <button type="button" class="script-rich-toolbar__btn" data-action="rich-script-command" data-command="underline" title="Subrayado"><u>U</u></button>
+          <span class="script-rich-toolbar__divider"></span>
+          <button type="button" class="script-rich-toolbar__btn" data-action="rich-script-command" data-command="insertUnorderedList" title="Lista con viñetas">•≡</button>
+          <button type="button" class="script-rich-toolbar__btn" data-action="rich-script-command" data-command="insertOrderedList" title="Lista numerada">1.</button>
+          <button type="button" class="script-rich-toolbar__btn" data-action="rich-script-command" data-command="justifyLeft" title="Alinear a la izquierda">≡</button>
+          <button type="button" class="script-rich-toolbar__btn" data-action="rich-script-command" data-command="justifyCenter" title="Centrar">≡</button>
+          <button type="button" class="script-rich-toolbar__btn" data-action="rich-script-command" data-command="justifyRight" title="Alinear a la derecha">≡</button>
+          <label class="script-rich-toolbar__color" title="Color del texto">
+            <span>A</span><input type="color" value="#e8e8ea" data-script-color aria-label="Color del texto" />
+          </label>
+          <button type="button" class="script-rich-toolbar__btn script-rich-toolbar__btn--clear" data-action="rich-script-command" data-command="removeFormat" title="Quitar formato">Tx</button>
+        </div>
+
+        <div class="script-rich-editor"
+          data-rich-script-editor
+          contenteditable="true"
+          role="textbox"
+          aria-multiline="true"
+          data-placeholder="Escribí el guion del video…">${scriptInitialHtml}</div>
+
+        <div class="script-editor-card__footer">
+          <span><strong data-script-word-count>${scriptWordCount}</strong> palabras</span>
+          <span data-script-save-hint>Los cambios se guardan automáticamente mientras escribís.</span>
+        </div>
+
         <div class="google-doc-bar ${hasGoogleDoc ? 'is-linked' : ''}">
           <div class="google-doc-bar__info">
             <span class="google-doc-bar__icon">DOC</span>

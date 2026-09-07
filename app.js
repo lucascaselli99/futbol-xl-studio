@@ -3405,6 +3405,111 @@ if (localStorage.getItem('guestMode') === 'true') {
     renderSidebarAndTopbar();
   }
 
+  let lastRichScriptRange = null;
+
+  function richScriptEditorEl() {
+    return document.querySelector('[data-rich-script-editor]');
+  }
+
+  function rememberRichScriptSelection() {
+    const editor = richScriptEditorEl();
+    const selection = window.getSelection?.();
+    if (!editor || !selection || !selection.rangeCount) return;
+    const range = selection.getRangeAt(0);
+    if (!editor.contains(range.commonAncestorContainer)) return;
+    lastRichScriptRange = range.cloneRange();
+  }
+
+  function restoreRichScriptSelection() {
+    const editor = richScriptEditorEl();
+    const selection = window.getSelection?.();
+    if (!editor || !selection) return editor;
+    editor.focus();
+    if (lastRichScriptRange && editor.contains(lastRichScriptRange.commonAncestorContainer)) {
+      try {
+        selection.removeAllRanges();
+        selection.addRange(lastRichScriptRange);
+      } catch (_) {}
+    }
+    return editor;
+  }
+
+  function sanitizeRichScriptHtml(editor) {
+    if (!editor) return '';
+    const clone = editor.cloneNode(true);
+    const allowedTags = new Set(['DIV','P','BR','B','STRONG','I','EM','U','S','UL','OL','LI','H1','H2','H3','BLOCKQUOTE','SPAN','FONT']);
+    const nodes = [...clone.querySelectorAll('*')];
+    nodes.forEach((node) => {
+      if (!allowedTags.has(node.tagName)) {
+        const fragment = document.createDocumentFragment();
+        while (node.firstChild) fragment.appendChild(node.firstChild);
+        node.replaceWith(fragment);
+        return;
+      }
+      [...node.attributes].forEach((attr) => {
+        const name = attr.name.toLowerCase();
+        if (name === 'style') {
+          const safe = [];
+          const styles = String(attr.value || '').split(';');
+          styles.forEach((entry) => {
+            const [rawProp, ...rest] = entry.split(':');
+            const prop = String(rawProp || '').trim().toLowerCase();
+            const value = rest.join(':').trim();
+            if (['font-family','font-size','font-weight','font-style','text-decoration','text-align','color'].includes(prop) && !/url\s*\(|expression\s*\(/i.test(value)) {
+              safe.push(`${prop}:${value}`);
+            }
+          });
+          if (safe.length) node.setAttribute('style', safe.join(';'));
+          else node.removeAttribute('style');
+        } else if (node.tagName === 'FONT' && ['face','size','color'].includes(name)) {
+          // Permitido: execCommand puede producir etiquetas <font>.
+        } else {
+          node.removeAttribute(attr.name);
+        }
+      });
+    });
+    return clone.innerHTML;
+  }
+
+  function updateRichScriptMeta(editor) {
+    if (!editor) return;
+    const text = String(editor.innerText || '').replace(/\u00a0/g, ' ').trim();
+    const wordCount = text ? text.split(/\s+/).length : 0;
+    const countEl = document.querySelector('[data-script-word-count]');
+    if (countEl) countEl.textContent = String(wordCount);
+  }
+
+  function syncRichScriptEditor(editor, { saveNow = false } = {}) {
+    const video = currentVideo();
+    if (!video || !editor) return;
+    video.script = String(editor.innerText || '').replace(/\u00a0/g, ' ').replace(/\n{3,}/g, '\n\n');
+    video.scriptHtml = sanitizeRichScriptHtml(editor);
+    updateRichScriptMeta(editor);
+    markSaving();
+    if (saveNow) touchAndSaveNow(video);
+    else touchAndSaveDebounced(video);
+  }
+
+  function runRichScriptCommand(command, value = null) {
+    const editor = restoreRichScriptSelection();
+    if (!editor) return;
+    try { document.execCommand('styleWithCSS', false, true); } catch (_) {}
+    try { document.execCommand(command, false, value); } catch (_) {}
+    rememberRichScriptSelection();
+    syncRichScriptEditor(editor);
+  }
+
+  function setRichScriptBlock(tag) {
+    if (!tag) return;
+    const editor = restoreRichScriptSelection();
+    if (!editor) return;
+    try { document.execCommand('formatBlock', false, `<${tag}>`); } catch (_) {
+      try { document.execCommand('formatBlock', false, tag); } catch (_) {}
+    }
+    rememberRichScriptSelection();
+    syncRichScriptEditor(editor);
+  }
+
   /* ------------------------------------------------------------------ */
   /* Guardado (autosave con indicador)                                   */
   /* ------------------------------------------------------------------ */
@@ -3412,11 +3517,21 @@ if (localStorage.getItem('guestMode') === 'true') {
   function markSaving() {
     state.ui.saveState = 'saving';
     updateSaveIndicator();
+    const scriptState = document.querySelector('[data-script-autosave-state]');
+    if (scriptState) {
+      scriptState.dataset.state = 'saving';
+      scriptState.textContent = '● Guardando…';
+    }
   }
 
   function markSaved() {
     state.ui.saveState = 'saved';
     updateSaveIndicator();
+    const scriptState = document.querySelector('[data-script-autosave-state]');
+    if (scriptState) {
+      scriptState.dataset.state = 'saved';
+      scriptState.textContent = '● Guardado';
+    }
   }
 
   function updateSaveIndicator() {
@@ -3590,6 +3705,7 @@ if (localStorage.getItem('guestMode') === 'true') {
       idea: '',
       hook: '',
       script: '',
+      scriptHtml: '',
       researchNotes: '',
       editNotes: '',
       thumbnailNotes: '',
@@ -5219,6 +5335,17 @@ if (localStorage.getItem('guestMode') === 'true') {
     document.addEventListener('input', onGlobalInput);
     document.addEventListener('change', onGlobalChange);
     document.addEventListener('keydown', onGlobalKeydown);
+    document.addEventListener('selectionchange', rememberRichScriptSelection);
+    document.addEventListener('focusout', (event) => {
+      if (event.target?.matches?.('[data-rich-script-editor]')) syncRichScriptEditor(event.target, { saveNow: true });
+    });
+    document.addEventListener('paste', (event) => {
+      const editor = event.target?.closest?.('[data-rich-script-editor]');
+      if (!editor) return;
+      event.preventDefault();
+      const text = event.clipboardData?.getData('text/plain') || '';
+      try { document.execCommand('insertText', false, text); } catch (_) {}
+    });
     document.addEventListener('dragstart', onGlobalDragStart);
     document.addEventListener('dragover', onGlobalDragOver);
     document.addEventListener('drop', onGlobalDrop);
@@ -5501,6 +5628,10 @@ if (localStorage.getItem('guestMode') === 'true') {
         state.ui.editorTab = actionEl.dataset.tab;
         renderEditorBody();
         break;
+      case 'rich-script-command': {
+        runRichScriptCommand(actionEl.dataset.command);
+        break;
+      }
       case 'google-doc-create': {
         const video = currentVideo();
         if (video) await createGoogleDocFromVideo(video);
@@ -5561,9 +5692,12 @@ if (localStorage.getItem('guestMode') === 'true') {
         break;
       case 'copy-field': {
         const field = actionEl.dataset.field;
-        const el = document.querySelector(`[data-field="${field}"]`);
+        const el = field === 'script'
+          ? document.querySelector('[data-rich-script-editor]')
+          : document.querySelector(`[data-field="${field}"]`);
         if (el) {
-          const ok = await Utils.copyToClipboard(el.value);
+          const content = field === 'script' ? (el.innerText || '') : el.value;
+          const ok = await Utils.copyToClipboard(content);
           Utils.toast(ok ? 'Contenido copiado' : 'No se pudo copiar', ok ? 'success' : 'error');
         }
         break;
@@ -6132,6 +6266,11 @@ if (localStorage.getItem('guestMode') === 'true') {
       return;
     }
 
+    if (el.matches?.('[data-rich-script-editor]') && video) {
+      syncRichScriptEditor(el);
+      return;
+    }
+
     if (el.dataset.field && video && !['stateId', 'seriesId', 'formatId', 'contentTypeId', 'setId', 'priorityId', 'ownerId'].includes(el.dataset.field)) {
       video[el.dataset.field] = el.value;
       touchAndSaveDebounced(video);
@@ -6397,6 +6536,26 @@ if (localStorage.getItem('guestMode') === 'true') {
 
     if (video && el.hasAttribute('data-owner-toggle')) {
       await toggleVideoOwner(video, el.dataset.employeeId, el.checked);
+      return;
+    }
+
+    if (el.hasAttribute('data-script-block')) {
+      setRichScriptBlock(el.value);
+      el.value = '';
+      return;
+    }
+    if (el.hasAttribute('data-script-font')) {
+      if (el.value) runRichScriptCommand('fontName', el.value);
+      el.value = '';
+      return;
+    }
+    if (el.hasAttribute('data-script-size')) {
+      if (el.value) runRichScriptCommand('fontSize', el.value);
+      el.value = '';
+      return;
+    }
+    if (el.hasAttribute('data-script-color')) {
+      runRichScriptCommand('foreColor', el.value);
       return;
     }
 
