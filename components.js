@@ -106,6 +106,7 @@ const Components = (() => {
     { key: 'costs', label: 'Costos', icon: 'wallet', ready: true },
     { key: 'team', label: 'Equipo', icon: 'users', ready: true },
     { key: 'thumbnail-lab', label: 'Probador de miniaturas', icon: 'image', ready: true },
+    { key: 'website', label: 'Web Fútbol XL', icon: 'external', ready: true },
     { key: 'calendar-module', label: 'Calendario', icon: 'calendar', ready: false },
     { key: 'analytics', label: 'Analytics', icon: 'analytics', ready: false },
     { key: 'settings', label: 'Configuración', icon: 'settings', ready: true },
@@ -4206,6 +4207,42 @@ const Components = (() => {
       </div>`;
   }
 
+
+  function renderWebsiteEditor(ctx) {
+    const w = ctx.websiteConfig || {};
+    const formats = Array.isArray(w.formats) ? w.formats : [];
+    const esc = escapeHtml;
+    const field = (label, key, value='', type='text', hint='') => `
+      <label class="webcms-field"><span>${esc(label)}</span>
+        ${type === 'textarea' ? `<textarea data-web-field="${key}" rows="4">${esc(value || '')}</textarea>` : `<input type="${type}" data-web-field="${key}" value="${esc(value || '')}" />`}
+        ${hint ? `<small>${esc(hint)}</small>` : ''}
+      </label>`;
+    const formatCards = formats.map((item, i) => `
+      <article class="webcms-format-card">
+        <div class="webcms-format-card__head"><strong>Formato ${i + 1}</strong><button class="btn btn--ghost btn--sm" data-action="website-remove-format" data-index="${i}">Eliminar</button></div>
+        ${field('Nombre', `formats.${i}.name`, item.name)}
+        ${field('Bajada', `formats.${i}.description`, item.description, 'textarea')}
+        ${field('URL de imagen', `formats.${i}.image`, item.image, 'url')}
+        ${field('Enlace', `formats.${i}.url`, item.url, 'url')}
+      </article>`).join('');
+    return `
+      <div class="view webcms">
+        <div class="webcms-header">
+          <div><span class="eyebrow">Sitio público</span><h1>Web Fútbol XL</h1><p class="muted">Editá el contenido sin tocar código. Guardá y abrí la vista previa para revisar cómo queda.</p></div>
+          <div class="webcms-actions"><a class="btn btn--secondary" href="https://futbolxl.com" target="_blank" rel="noopener">Ver web pública ↗</a><button class="btn btn--primary" data-action="website-save">Publicar cambios</button></div>
+        </div>
+        <section class="webcms-panel"><h2>Portada</h2><div class="webcms-grid">
+          ${field('Título', 'heroTitle', w.heroTitle)}${field('Bajada', 'heroSubtitle', w.heroSubtitle, 'textarea')}
+          ${field('Imagen / fondo (URL)', 'heroImage', w.heroImage, 'url')}${field('Texto del botón principal', 'heroCtaLabel', w.heroCtaLabel)}
+        </div></section>
+        <section class="webcms-panel"><h2>Qué es Fútbol XL</h2>${field('Texto institucional', 'aboutText', w.aboutText, 'textarea')}</section>
+        <section class="webcms-panel"><div class="webcms-section-head"><div><h2>Formatos</h2><p class="muted">Podés agregar, borrar y reordenar más adelante. Esta primera versión ya permite administrar las tarjetas.</p></div><button class="btn btn--secondary" data-action="website-add-format">+ Agregar formato</button></div><div class="webcms-formats">${formatCards || '<p class="muted">Todavía no cargaste formatos.</p>'}</div></section>
+        <section class="webcms-panel"><h2>Libro</h2><div class="webcms-grid">${field('Título', 'bookTitle', w.bookTitle)}${field('Descripción', 'bookDescription', w.bookDescription, 'textarea')}${field('Portada (URL)', 'bookImage', w.bookImage, 'url')}${field('Enlace de compra', 'bookUrl', w.bookUrl, 'url')}</div></section>
+        <section class="webcms-panel"><h2>Enlaces</h2><div class="webcms-grid">${field('Canal de YouTube', 'youtubeUrl', w.youtubeUrl, 'url')}${field('Tienda de camisetas', 'storeUrl', w.storeUrl, 'url')}${field('Instagram', 'instagramUrl', w.instagramUrl, 'url')}${field('TikTok', 'tiktokUrl', w.tiktokUrl, 'url')}</div></section>
+        <div class="webcms-bottom"><button class="btn btn--primary" data-action="website-save">Publicar cambios</button></div>
+      </div>`;
+  }
+
   return {
     APP_VERSION,
     icon,
@@ -4218,6 +4255,7 @@ const Components = (() => {
     renderTopbar,
     renderDashboard,
     renderThumbnailLab,
+    renderWebsiteEditor,
     renderVideosToolbar,
     renderFilterPanel,
     renderKanban,

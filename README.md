@@ -349,3 +349,9 @@ Se listan explícitamente para no simular que algo funciona cuando no es así:
 | Interfaz, estilos, componentes, navegación y estructura del proyecto sin cambios | ✅ Verificado (solo se tocó `db.js`; `index.html` únicamente sumó 3 `<script>`) |
 
 Todo lo marcado como limitación en la sección 5 se deja explícito ahí para que no haya sorpresas. Ningún ítem de esta tabla se marca como "✅ Funciona" si solo está diseñado visualmente sin lógica real detrás.--
+
+## Módulo Web Fútbol XL
+
+Esta versión incorpora **Web Fútbol XL** en la barra lateral. El contenido se guarda en el documento `settings/website` de Supabase, por lo que no requiere crear tablas nuevas. Desde el módulo se pueden editar portada, texto institucional, formatos, libro y enlaces externos y publicar los cambios.
+
+La vista pública está en `site.html` y lee el contenido publicado directamente desde Supabase. Para probarla en el mismo deploy: `/site.html`. En producción puede usarse como base de una landing independiente o asignarse a un dominio propio.

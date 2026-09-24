@@ -49,6 +49,7 @@
     recordingTasks: [],
     seriesPlanner: [],
     notifications: [],
+    websiteConfig: {},
     authUser: null,
     currentEmployee: null,
     undo: [], // pila simple de acciones destructivas para Ctrl/Cmd+Z
@@ -295,6 +296,7 @@ if (localStorage.getItem('guestMode') === 'true') {
       employees,
       quickNotes,
       seriesPlanner,
+      websiteConfig,
       notifications,
     ] = await Promise.all([
       DB.getAll('videos'),
@@ -319,6 +321,7 @@ if (localStorage.getItem('guestMode') === 'true') {
       DB.getAll('employees'),
       DB.getAll('quickNotes'),
       DB.getAll('seriesPlanner'),
+      DB.get('settings', 'website').catch(() => undefined),
       DB.getAll('notifications').catch((error) => {
         console.warn('[Fútbol XL Studio] La tabla de notificaciones todavía no está disponible:', error.message);
         return [];
@@ -343,6 +346,7 @@ if (localStorage.getItem('guestMode') === 'true') {
     state.recipients = recipients;
     state.expenses = expenses;
     state.subscriptions = subscriptions;
+    state.websiteConfig = websiteConfig || defaultWebsiteConfig();
     state.employees = employees;
     // Las tareas de grabación reutilizan el store quickNotes para no requerir
     // una migración de base de datos. Se distinguen mediante kind='recording'.
@@ -1450,6 +1454,34 @@ if (localStorage.getItem('guestMode') === 'true') {
     }
   }
 
+  function defaultWebsiteConfig() {
+    return {
+      key: 'website',
+      heroTitle: 'Fútbol XL',
+      heroSubtitle: 'Historias de fútbol contadas desde otro lugar.',
+      heroImage: '', heroCtaLabel: 'Ver el canal',
+      aboutText: 'Fútbol XL es un proyecto dedicado a contar historias del fútbol a través de sus camisetas, protagonistas, cultura y memoria.',
+      formats: [
+        { name: 'Las camisetas de…', description: 'Una carrera contada a través de las camisetas que la acompañaron.', image: '', url: '' },
+        { name: 'El fútbol y el cine', description: 'Las historias donde la pelota y la pantalla se cruzan.', image: '', url: '' },
+        { name: 'Sponsors y sus camisetas', description: 'La historia detrás de las marcas que quedaron ligadas a una camiseta.', image: '', url: '' }
+      ],
+      bookTitle: 'El libro de Fútbol XL', bookDescription: '', bookImage: '', bookUrl: '', youtubeUrl: 'https://www.youtube.com/@futbolxl', storeUrl: '', instagramUrl: '', tiktokUrl: ''
+    };
+  }
+
+  function setWebsiteField(path, value) {
+    const parts = path.split('.'); let target = state.websiteConfig;
+    for (let i=0;i<parts.length-1;i++) { const k = /^\d+$/.test(parts[i]) ? Number(parts[i]) : parts[i]; target = target[k]; }
+    const last = /^\d+$/.test(parts.at(-1)) ? Number(parts.at(-1)) : parts.at(-1); target[last] = value;
+  }
+
+  async function saveWebsiteConfig() {
+    state.websiteConfig.key = 'website'; state.websiteConfig.updatedAt = Utils.nowISO();
+    await DB.put('settings', state.websiteConfig);
+    Utils.toast('Web publicada correctamente.', 'success');
+  }
+
   function renderRoute(ctx) {
     switch (state.ui.route) {
       case 'home':
@@ -1466,6 +1498,8 @@ if (localStorage.getItem('guestMode') === 'true') {
         return Components.renderTeam(ctx);
       case 'thumbnail-lab':
         return Components.renderThumbnailLab(ctx);
+      case 'website':
+        return Components.renderWebsiteEditor({ ...ctx, websiteConfig: state.websiteConfig });
       case 'calendar-module':
         return Components.renderComingSoon('Calendario avanzado', 'Un calendario completo con publicaciones, grabaciones, entrevistas, fechas límite y recordatorios llegará en una próxima versión.');
       case 'analytics':
@@ -5388,6 +5422,18 @@ if (localStorage.getItem('guestMode') === 'true') {
         if (state.ui.route === 'settings' && state.ui.settingsSection === 'backup') refreshUsage().then(renderMain);
         renderAll();
         break;
+      case 'website-save':
+        await saveWebsiteConfig();
+        break;
+      case 'website-add-format':
+        state.websiteConfig.formats ||= [];
+        state.websiteConfig.formats.push({ name: 'Nuevo formato', description: '', image: '', url: '' });
+        renderMain();
+        break;
+      case 'website-remove-format':
+        state.websiteConfig.formats.splice(Number(actionEl.dataset.index), 1);
+        renderMain();
+        break;
       case 'toggle-sidebar':
         state.ui.sidebarCollapsed = !state.ui.sidebarCollapsed;
         renderSidebarAndTopbar();
@@ -6171,6 +6217,11 @@ if (localStorage.getItem('guestMode') === 'true') {
 
   function onGlobalInput(e) {
     const el = e.target;
+
+    if (el.dataset.webField) {
+      setWebsiteField(el.dataset.webField, el.value);
+      return;
+    }
 
     if (el.dataset.plannerField) {
       const planner = currentSeriesPlanner();
