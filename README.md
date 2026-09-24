@@ -355,3 +355,6 @@ Todo lo marcado como limitación en la sección 5 se deja explícito ahí para q
 Esta versión incorpora **Web Fútbol XL** en la barra lateral. El contenido se guarda en el documento `settings/website` de Supabase, por lo que no requiere crear tablas nuevas. Desde el módulo se pueden editar portada, texto institucional, formatos, libro y enlaces externos y publicar los cambios.
 
 La vista pública está en `site.html` y lee el contenido publicado directamente desde Supabase. Para probarla en el mismo deploy: `/site.html`. En producción puede usarse como base de una landing independiente o asignarse a un dominio propio.
+
+### Imágenes de la Web Fútbol XL
+El módulo **Web Fútbol XL** permite subir imágenes directamente desde la computadora para el hero, los formatos y el libro. Las imágenes se guardan automáticamente en el bucket público `inserts` de Supabase Storage, dentro de la carpeta `website/`. No hace falta copiar URLs manualmente. El límite por imagen es 10 MB y se aceptan JPG, PNG y WebP.

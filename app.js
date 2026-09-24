@@ -1482,6 +1482,56 @@ if (localStorage.getItem('guestMode') === 'true') {
     Utils.toast('Web publicada correctamente.', 'success');
   }
 
+
+  const WEBSITE_IMAGES_BUCKET = 'inserts';
+
+  function websiteImagesStorage() {
+    if (typeof Supa === 'undefined' || !Supa.client) throw new Error('Supabase no está configurado.');
+    return Supa.client.storage.from(WEBSITE_IMAGES_BUCKET);
+  }
+
+  function openWebsiteImagePicker(fieldPath) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg,image/png,image/webp';
+    input.style.position = 'fixed';
+    input.style.left = '-9999px';
+    input.addEventListener('change', async () => {
+      const file = input.files?.[0];
+      try { if (file) await uploadWebsiteImage(fieldPath, file); }
+      finally { input.remove(); }
+    }, { once: true });
+    document.body.appendChild(input);
+    input.click();
+  }
+
+  async function uploadWebsiteImage(fieldPath, file) {
+    if (!file?.type?.startsWith('image/')) return Utils.toast('Elegí una imagen JPG, PNG o WebP.', 'error');
+    if (file.size > 10 * 1024 * 1024) return Utils.toast('La imagen no puede superar los 10 MB.', 'error');
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const safeName = (file.name.replace(/\.[^.]+$/, '').replace(/[^a-z0-9_-]+/gi, '-').slice(0, 50) || 'imagen');
+    const path = `website/${Date.now()}-${Utils.uuid()}-${safeName}.${ext}`;
+    try {
+      Utils.toast('Subiendo imagen…', 'info');
+      const storage = websiteImagesStorage();
+      const { error } = await storage.upload(path, file, { cacheControl: '3600', contentType: file.type, upsert: false });
+      if (error) throw error;
+      const { data } = storage.getPublicUrl(path);
+      if (!data?.publicUrl) throw new Error('Supabase no devolvió la URL pública.');
+      setWebsiteField(fieldPath, data.publicUrl);
+      renderMain();
+      Utils.toast('Imagen subida. Tocá “Publicar cambios” cuando termines.', 'success');
+    } catch (error) {
+      console.error('[Fútbol XL Studio] Error subiendo imagen web:', error);
+      Utils.toast(`No se pudo subir la imagen: ${error.message || 'error desconocido'}`, 'error');
+    }
+  }
+
+  function removeWebsiteImage(fieldPath) {
+    setWebsiteField(fieldPath, '');
+    renderMain();
+  }
+
   function renderRoute(ctx) {
     switch (state.ui.route) {
       case 'home':
@@ -5424,6 +5474,12 @@ if (localStorage.getItem('guestMode') === 'true') {
         break;
       case 'website-save':
         await saveWebsiteConfig();
+        break;
+      case 'website-pick-image':
+        openWebsiteImagePicker(actionEl.dataset.field);
+        break;
+      case 'website-remove-image':
+        removeWebsiteImage(actionEl.dataset.field);
         break;
       case 'website-add-format':
         state.websiteConfig.formats ||= [];

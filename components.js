@@ -4217,27 +4217,36 @@ const Components = (() => {
         ${type === 'textarea' ? `<textarea data-web-field="${key}" rows="4">${esc(value || '')}</textarea>` : `<input type="${type}" data-web-field="${key}" value="${esc(value || '')}" />`}
         ${hint ? `<small>${esc(hint)}</small>` : ''}
       </label>`;
+    const imageField = (label, key, value='', hint='JPG, PNG o WebP · máximo 10 MB') => `
+      <div class="webcms-image-field">
+        <div class="webcms-image-field__top"><span>${esc(label)}</span>${value ? `<button type="button" class="btn btn--ghost btn--sm" data-action="website-remove-image" data-field="${key}">Quitar</button>` : ''}</div>
+        <button type="button" class="webcms-image-drop ${value ? 'has-image' : ''}" data-action="website-pick-image" data-field="${key}">
+          ${value ? `<img src="${esc(value)}" alt="${esc(label)}"><span class="webcms-image-change">Cambiar imagen</span>` : `<span class="webcms-image-icon">＋</span><strong>Subir imagen</strong><small>Elegí una foto desde tu computadora</small>`}
+        </button>
+        <small class="webcms-image-hint">${esc(hint)}</small>
+      </div>`;
     const formatCards = formats.map((item, i) => `
       <article class="webcms-format-card">
         <div class="webcms-format-card__head"><strong>Formato ${i + 1}</strong><button class="btn btn--ghost btn--sm" data-action="website-remove-format" data-index="${i}">Eliminar</button></div>
+        ${imageField('Portada', `formats.${i}.image`, item.image)}
         ${field('Nombre', `formats.${i}.name`, item.name)}
         ${field('Bajada', `formats.${i}.description`, item.description, 'textarea')}
-        ${field('URL de imagen', `formats.${i}.image`, item.image, 'url')}
         ${field('Enlace', `formats.${i}.url`, item.url, 'url')}
       </article>`).join('');
     return `
       <div class="view webcms">
         <div class="webcms-header">
-          <div><span class="eyebrow">Sitio público</span><h1>Web Fútbol XL</h1><p class="muted">Editá el contenido sin tocar código. Guardá y abrí la vista previa para revisar cómo queda.</p></div>
+          <div><span class="eyebrow">Sitio público</span><h1>Web Fútbol XL</h1><p class="muted">Cambiá textos e imágenes desde acá. Las fotos se suben automáticamente al Storage de Fútbol XL Studio.</p></div>
           <div class="webcms-actions"><a class="btn btn--secondary" href="https://futbolxl.com" target="_blank" rel="noopener">Ver web pública ↗</a><button class="btn btn--primary" data-action="website-save">Publicar cambios</button></div>
         </div>
         <section class="webcms-panel"><h2>Portada</h2><div class="webcms-grid">
+          <div class="webcms-span-2">${imageField('Imagen principal', 'heroImage', w.heroImage, 'Recomendado: horizontal, 1920 × 1080 o superior')}</div>
           ${field('Título', 'heroTitle', w.heroTitle)}${field('Bajada', 'heroSubtitle', w.heroSubtitle, 'textarea')}
-          ${field('Imagen / fondo (URL)', 'heroImage', w.heroImage, 'url')}${field('Texto del botón principal', 'heroCtaLabel', w.heroCtaLabel)}
+          ${field('Texto del botón principal', 'heroCtaLabel', w.heroCtaLabel)}
         </div></section>
         <section class="webcms-panel"><h2>Qué es Fútbol XL</h2>${field('Texto institucional', 'aboutText', w.aboutText, 'textarea')}</section>
-        <section class="webcms-panel"><div class="webcms-section-head"><div><h2>Formatos</h2><p class="muted">Podés agregar, borrar y reordenar más adelante. Esta primera versión ya permite administrar las tarjetas.</p></div><button class="btn btn--secondary" data-action="website-add-format">+ Agregar formato</button></div><div class="webcms-formats">${formatCards || '<p class="muted">Todavía no cargaste formatos.</p>'}</div></section>
-        <section class="webcms-panel"><h2>Libro</h2><div class="webcms-grid">${field('Título', 'bookTitle', w.bookTitle)}${field('Descripción', 'bookDescription', w.bookDescription, 'textarea')}${field('Portada (URL)', 'bookImage', w.bookImage, 'url')}${field('Enlace de compra', 'bookUrl', w.bookUrl, 'url')}</div></section>
+        <section class="webcms-panel"><div class="webcms-section-head"><div><h2>Formatos</h2><p class="muted">Cada formato puede tener su propia portada, descripción y enlace.</p></div><button class="btn btn--secondary" data-action="website-add-format">+ Agregar formato</button></div><div class="webcms-formats">${formatCards || '<p class="muted">Todavía no cargaste formatos.</p>'}</div></section>
+        <section class="webcms-panel"><h2>Libro</h2><div class="webcms-grid"><div>${imageField('Portada del libro', 'bookImage', w.bookImage, 'Recomendado: imagen vertical de buena calidad')}</div><div>${field('Título', 'bookTitle', w.bookTitle)}${field('Descripción', 'bookDescription', w.bookDescription, 'textarea')}${field('Enlace de compra', 'bookUrl', w.bookUrl, 'url')}</div></div></section>
         <section class="webcms-panel"><h2>Enlaces</h2><div class="webcms-grid">${field('Canal de YouTube', 'youtubeUrl', w.youtubeUrl, 'url')}${field('Tienda de camisetas', 'storeUrl', w.storeUrl, 'url')}${field('Instagram', 'instagramUrl', w.instagramUrl, 'url')}${field('TikTok', 'tiktokUrl', w.tiktokUrl, 'url')}</div></section>
         <div class="webcms-bottom"><button class="btn btn--primary" data-action="website-save">Publicar cambios</button></div>
       </div>`;
