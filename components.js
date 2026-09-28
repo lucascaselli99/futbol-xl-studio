@@ -22,6 +22,7 @@ const Components = (() => {
     home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>',
     video: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="6" width="13" height="12" rx="2"/><path d="m21 8-5.5 4L21 16Z"/></svg>',
     library: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h4v16H4zM10.5 4h4v16h-4zM17.5 5l3.5 15-3.9.9L14 5.9Z"/></svg>',
+    cloud: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6.5 19h11a4.5 4.5 0 0 0 .6-8.96A6.5 6.5 0 0 0 5.7 8.1 5.5 5.5 0 0 0 6.5 19Z"/></svg>',
     calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>',
     analytics: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>',
     settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg>',
@@ -103,6 +104,7 @@ const Components = (() => {
     { key: 'videos', label: 'Videos', icon: 'video', ready: true },
     { key: 'series-planner', label: 'Formatos', icon: 'repeat', ready: true },
     { key: 'library', label: 'Biblioteca', icon: 'library', ready: false },
+    { key: 'drive-browser', label: 'Drive', icon: 'cloud', ready: true },
     { key: 'costs', label: 'Costos', icon: 'wallet', ready: true },
     { key: 'team', label: 'Equipo', icon: 'users', ready: true },
     { key: 'thumbnail-lab', label: 'Probador de miniaturas', icon: 'image', ready: true },
@@ -184,6 +186,7 @@ const Components = (() => {
       videos: 'Videos',
       'series-planner': 'Formatos',
       library: 'Biblioteca',
+      'drive-browser': 'Drive',
       costs: 'Costos',
       team: 'Equipo',
       'thumbnail-lab': 'Probador de miniaturas',
@@ -707,6 +710,133 @@ const Components = (() => {
           </section>
         </div>
       </div>`;
+  }
+
+  function renderDriveBrowser(ctx) {
+    const explorer = ctx.driveExplorer || {};
+    const files = Array.isArray(explorer.files) ? explorer.files : [];
+    const libraryAuthorized = Boolean(ctx.googleDriveLibraryConnected || ctx.googleDriveLibraryAuthorized);
+    const folderMime = 'application/vnd.google-apps.folder';
+
+    const matchesFilter = (file) => {
+      const mime = String(file.mimeType || '');
+      switch (explorer.filter) {
+        case 'folders': return mime === folderMime;
+        case 'videos': return mime.startsWith('video/');
+        case 'images': return mime.startsWith('image/');
+        case 'audio': return mime.startsWith('audio/');
+        case 'docs': return mime.startsWith('application/vnd.google-apps.') || mime === 'application/pdf' || mime.startsWith('text/');
+        default: return true;
+      }
+    };
+    const visible = files.filter(matchesFilter);
+
+    const formatDuration = (file) => {
+      const ms = Number(file?.videoMediaMetadata?.durationMillis || 0);
+      if (!ms) return '';
+      const total = Math.floor(ms / 1000);
+      const h = Math.floor(total / 3600);
+      const m = Math.floor((total % 3600) / 60);
+      const s = total % 60;
+      return h ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
+    };
+    const fileMeta = (file) => {
+      const mime = String(file.mimeType || '');
+      if (mime === folderMime) return 'Carpeta';
+      if (mime.startsWith('video/')) return ['Video', formatDuration(file)].filter(Boolean).join(' · ');
+      if (mime.startsWith('image/')) return 'Imagen';
+      if (mime.startsWith('audio/')) return 'Audio';
+      if (mime === 'application/pdf') return 'PDF';
+      if (mime === 'application/vnd.google-apps.document') return 'Google Docs';
+      if (mime === 'application/vnd.google-apps.spreadsheet') return 'Google Sheets';
+      if (mime === 'application/vnd.google-apps.presentation') return 'Google Slides';
+      return mime.split('/').pop()?.replace('vnd.google-apps.', '') || 'Archivo';
+    };
+    const previewUrl = (file) => {
+      const id = encodeURIComponent(file?.id || '');
+      const mime = String(file?.mimeType || '');
+      if (mime === 'application/vnd.google-apps.document') return `https://docs.google.com/document/d/${id}/preview`;
+      if (mime === 'application/vnd.google-apps.spreadsheet') return `https://docs.google.com/spreadsheets/d/${id}/preview`;
+      if (mime === 'application/vnd.google-apps.presentation') return `https://docs.google.com/presentation/d/${id}/preview`;
+      return `https://drive.google.com/file/d/${id}/preview`;
+    };
+
+    const breadcrumbs = (explorer.breadcrumbs || [{ id: 'root', name: 'Mi unidad' }]).map((crumb, index, arr) => `
+      <button class="drive-browser-crumb ${index === arr.length - 1 ? 'is-current' : ''}" data-action="drive-explorer-breadcrumb" data-index="${index}" type="button" ${index === arr.length - 1 ? 'disabled' : ''}>${escapeHtml(crumb.name || 'Carpeta')}</button>
+      ${index < arr.length - 1 ? '<span class="drive-browser-crumb-sep">›</span>' : ''}
+    `).join('');
+
+    const filters = [
+      ['all', 'Todo'], ['folders', 'Carpetas'], ['videos', 'Videos'], ['images', 'Imágenes'], ['audio', 'Audio'], ['docs', 'Docs'],
+    ].map(([key, label]) => `<button class="drive-browser-filter ${explorer.filter === key ? 'is-active' : ''}" data-action="drive-explorer-filter" data-filter="${key}" type="button">${label}</button>`).join('');
+
+    const cards = visible.map((file) => {
+      const isFolder = file.mimeType === folderMime;
+      const visual = file.thumbnailLink
+        ? `<img alt="" data-drive-thumb-id="${escapeHtml(file.id)}" data-drive-thumb-link="${escapeHtml(file.thumbnailLink)}" />`
+        : file.iconLink
+          ? `<img class="drive-browser-card__icon-image" src="${escapeHtml(file.iconLink)}" alt="" />`
+          : `<span class="drive-browser-card__fallback">${isFolder ? '📁' : file.mimeType?.startsWith('video/') ? '▶' : file.mimeType?.startsWith('image/') ? '🖼' : file.mimeType?.startsWith('audio/') ? '♪' : '📄'}</span>`;
+      return `<article class="drive-browser-card ${isFolder ? 'is-folder' : ''}">
+        <button class="drive-browser-card__open" data-action="${isFolder ? 'drive-explorer-open-folder' : 'drive-explorer-preview'}" data-id="${escapeHtml(file.id)}" type="button" aria-label="${isFolder ? 'Abrir carpeta' : 'Previsualizar'} ${escapeHtml(file.name || 'archivo')}">
+          <div class="drive-browser-card__visual">${visual}${file.mimeType?.startsWith('video/') ? '<span class="drive-browser-card__play">▶</span>' : ''}</div>
+          <div class="drive-browser-card__body">
+            <strong title="${escapeHtml(file.name || '')}">${escapeHtml(file.name || 'Sin nombre')}</strong>
+            <span>${escapeHtml(fileMeta(file))}</span>
+          </div>
+        </button>
+      </article>`;
+    }).join('');
+
+    const preview = explorer.previewFile ? `
+      <div class="drive-preview-backdrop" data-action="drive-explorer-close-preview">
+        <section class="drive-preview-modal" data-action="noop" role="dialog" aria-modal="true" aria-label="Vista previa de ${escapeHtml(explorer.previewFile.name || 'archivo')}">
+          <header class="drive-preview-modal__header">
+            <div><strong>${escapeHtml(explorer.previewFile.name || 'Archivo')}</strong><span>${escapeHtml(fileMeta(explorer.previewFile))}</span></div>
+            <button class="icon-btn" data-action="drive-explorer-close-preview" type="button" aria-label="Cerrar">${icon('close')}</button>
+          </header>
+          <div class="drive-preview-modal__frame"><iframe src="${previewUrl(explorer.previewFile)}" title="${escapeHtml(explorer.previewFile.name || 'Vista previa')}" allow="autoplay" loading="eager"></iframe></div>
+        </section>
+      </div>` : '';
+
+    if (!isGoogleDriveConfigComplete(ctx.googleDriveConfig || {})) {
+      return `<div class="view drive-browser-view"><div class="home-header"><div><h2>Drive</h2><p class="muted">Visualizá tus archivos sin salir de Fútbol XL Studio.</p></div></div><section class="panel drive-browser-gate"><div class="drive-browser-gate__icon">☁️</div><h3>Falta configurar Google Drive</h3><p class="muted">Completá la configuración de Google Drive antes de usar esta biblioteca.</p><button class="btn btn--primary" data-action="settings-section" data-section="googleDrive" type="button">Ir a Configuración</button></section></div>`;
+    }
+
+    if (!libraryAuthorized && !explorer.loadedOnce) {
+      return `<div class="view drive-browser-view">
+        <div class="home-header"><div><span class="eyebrow">Google Drive</span><h2>Tu Drive dentro de Studio</h2><p class="muted">Carpetas, videos, imágenes, audios y documentos en una sola vista.</p></div></div>
+        <section class="panel drive-browser-gate">
+          <div class="drive-browser-gate__icon">☁️</div>
+          <h3>Habilitar Biblioteca de Drive</h3>
+          <p class="muted">Para mostrar todo tu Drive, Google pide un permiso adicional de <strong>solo lectura</strong>. Fútbol XL Studio no podrá borrar ni modificar archivos con este permiso.</p>
+          <button class="btn btn--primary btn--lg" data-action="drive-explorer-connect" type="button">${icon('cloud')} Habilitar biblioteca</button>
+          <small class="muted">Google te va a pedir autorización una sola vez para este alcance.</small>
+        </section>
+      </div>`;
+    }
+
+    return `<div class="view drive-browser-view">
+      <div class="drive-browser-header">
+        <div><span class="eyebrow">Google Drive</span><h2>Biblioteca Drive</h2><p class="muted">Reproducí videos y visualizá archivos sin salir de Fútbol XL Studio.</p></div>
+        <div class="drive-browser-header__actions"><button class="icon-btn" data-action="drive-explorer-refresh" type="button" title="Actualizar">${icon('repeat')}</button><button class="btn btn--ghost btn--sm" data-action="drive-explorer-disconnect" type="button">Desconectar biblioteca</button></div>
+      </div>
+      <div class="drive-browser-toolbar">
+        <div class="drive-browser-search"><span>${icon('search')}</span><input id="drive-explorer-search" type="search" value="${escapeHtml(explorer.search || '')}" placeholder="Buscar en todo Drive…" autocomplete="off" /><button class="btn btn--secondary btn--sm" data-action="drive-explorer-search" type="button">Buscar</button>${explorer.search ? '<button class="icon-btn" data-action="drive-explorer-clear-search" type="button" title="Limpiar búsqueda">'+icon('close')+'</button>' : ''}</div>
+        <div class="drive-browser-filters">${filters}</div>
+      </div>
+      <div class="drive-browser-breadcrumbs">${explorer.search ? `<span class="drive-browser-search-label">Resultados para “${escapeHtml(explorer.search)}”</span>` : breadcrumbs}</div>
+      ${explorer.error ? `<div class="drive-browser-error"><strong>No se pudo cargar Drive.</strong><span>${escapeHtml(explorer.error)}</span><button class="btn btn--secondary btn--sm" data-action="drive-explorer-connect" type="button">Volver a autorizar</button></div>` : ''}
+      ${explorer.loading && !files.length ? `<div class="drive-browser-loading"><span class="football-today__spinner"></span><span>Cargando Drive…</span></div>` : ''}
+      ${!explorer.loading && !visible.length && !explorer.error ? `<div class="drive-browser-empty"><span>☁️</span><strong>${explorer.search ? 'No encontramos resultados' : 'Esta carpeta está vacía'}</strong><small class="muted">${explorer.search ? 'Probá con otro nombre o quitá los filtros.' : 'No hay archivos para mostrar acá.'}</small></div>` : ''}
+      ${visible.length ? `<div class="drive-browser-grid">${cards}</div>` : ''}
+      ${explorer.nextPageToken ? `<div class="drive-browser-more"><button class="btn btn--secondary" data-action="drive-explorer-load-more" type="button" ${explorer.loading ? 'disabled' : ''}>${explorer.loading ? 'Cargando…' : 'Cargar más'}</button></div>` : ''}
+      ${preview}
+    </div>`;
+  }
+
+  function isGoogleDriveConfigComplete(config) {
+    return Boolean(config?.clientId && config?.apiKey && config?.appId);
   }
 
   function renderThumbnailLab(ctx) {
@@ -4263,6 +4393,7 @@ const Components = (() => {
     renderMobileNav,
     renderTopbar,
     renderDashboard,
+    renderDriveBrowser,
     renderThumbnailLab,
     renderWebsiteEditor,
     renderVideosToolbar,

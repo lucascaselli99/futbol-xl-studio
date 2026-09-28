@@ -96,6 +96,19 @@
       thumbnailLab: { title: '', image: '', device: 'desktop' },
       selectedSeriesPlannerId: null,
       weeklyWeekOffset: 0,
+      // --- Explorador visual de Google Drive ---
+      driveExplorer: {
+        currentFolderId: 'root',
+        breadcrumbs: [{ id: 'root', name: 'Mi unidad' }],
+        files: [],
+        loading: false,
+        error: '',
+        search: '',
+        filter: 'all',
+        nextPageToken: null,
+        previewFile: null,
+        loadedOnce: false,
+      },
       // Estado visual por sesión: temporadas desplegadas en el módulo Formatos.
       plannerExpandedSeasons: {},
     },
@@ -112,6 +125,12 @@
   let googleDriveAccessToken = null;
   let googleDriveTokenExpiresAt = 0;
   let googleDriveTokenClient = null;
+  // Token separado para la Biblioteca completa. Pide Drive en solo lectura
+  // además de drive.file, sin ampliar silenciosamente los permisos del Picker.
+  let googleDriveLibraryAccessToken = null;
+  let googleDriveLibraryTokenExpiresAt = 0;
+  let googleDriveLibraryTokenClient = null;
+  const googleDriveThumbnailCache = new Map();
   let googlePickerLoadPromise = null;
   let googleIdentityLoadPromise = null;
 
@@ -1160,8 +1179,11 @@ if (localStorage.getItem('guestMode') === 'true') {
       sidebarCollapsed: state.ui.sidebarCollapsed,
       mobileSidebarOpen: state.ui.mobileSidebarOpen,
       weeklyWeekOffset: state.ui.weeklyWeekOffset,
+      driveExplorer: state.ui.driveExplorer,
       googleDriveConfig: getGoogleDriveConfig(),
       googleDriveConnected: Boolean(googleDriveAccessToken && Date.now() < googleDriveTokenExpiresAt),
+      googleDriveLibraryConnected: Boolean(googleDriveLibraryAccessToken && Date.now() < googleDriveLibraryTokenExpiresAt),
+      googleDriveLibraryAuthorized: localStorage.getItem('fxlGoogleDriveLibraryAuthorized') === 'true',
     };
   }
 
@@ -1296,6 +1318,12 @@ if (localStorage.getItem('guestMode') === 'true') {
       queueMicrotask(() => {
         loadFootballToday();
         loadYoutubeStats();
+      });
+    }
+    if (state.ui.route === 'drive-browser') {
+      queueMicrotask(() => {
+        maybeLoadDriveExplorer();
+        hydrateDriveExplorerThumbnails();
       });
     }
   }
@@ -1540,6 +1568,8 @@ if (localStorage.getItem('guestMode') === 'true') {
         return renderVideosRoute(ctx);
       case 'library':
         return renderLibraryRoute(ctx);
+      case 'drive-browser':
+        return Components.renderDriveBrowser(ctx);
       case 'costs':
         return renderCostsRoute(ctx);
       case 'series-planner':
@@ -4409,13 +4439,251 @@ if (localStorage.getItem('guestMode') === 'true') {
 
   function disconnectGoogleDrive() {
     const token = googleDriveAccessToken;
+    const libraryToken = googleDriveLibraryAccessToken;
     googleDriveAccessToken = null;
     googleDriveTokenExpiresAt = 0;
+    googleDriveLibraryAccessToken = null;
+    googleDriveLibraryTokenExpiresAt = 0;
+    localStorage.removeItem('fxlGoogleDriveAuthorized');
+    localStorage.removeItem('fxlGoogleDriveLibraryAuthorized');
+    resetDriveExplorerToRoot();
     if (token && window.google?.accounts?.oauth2?.revoke) {
       window.google.accounts.oauth2.revoke(token, () => {});
     }
+    if (libraryToken && libraryToken !== token && window.google?.accounts?.oauth2?.revoke) {
+      window.google.accounts.oauth2.revoke(libraryToken, () => {});
+    }
     Utils.toast('Google Drive desconectado de esta sesión.', 'success');
     renderMain();
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Biblioteca visual de Google Drive                                   */
+  /* ------------------------------------------------------------------ */
+
+  async function requestGoogleDriveLibraryToken(forceConsent = false) {
+    await ensureGoogleDriveLibraries();
+    const config = getGoogleDriveConfig();
+
+    if (googleDriveLibraryAccessToken && Date.now() < googleDriveLibraryTokenExpiresAt - 60000) {
+      return googleDriveLibraryAccessToken;
+    }
+
+    if (!googleDriveLibraryTokenClient) {
+      googleDriveLibraryTokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: config.clientId,
+        scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly',
+        callback: () => {},
+        error_callback: () => {},
+      });
+    }
+
+    return new Promise((resolve, reject) => {
+      googleDriveLibraryTokenClient.callback = (response) => {
+        if (response?.error || !response?.access_token) {
+          reject(new Error(response?.error_description || response?.error || 'Google no devolvió un token de acceso.'));
+          return;
+        }
+        googleDriveLibraryAccessToken = response.access_token;
+        const expiresIn = Number(response.expires_in || 3600);
+        googleDriveLibraryTokenExpiresAt = Date.now() + expiresIn * 1000;
+        localStorage.setItem('fxlGoogleDriveLibraryAuthorized', 'true');
+        resolve(googleDriveLibraryAccessToken);
+      };
+      googleDriveLibraryTokenClient.error_callback = (error) => {
+        reject(new Error(error?.message || error?.type || 'No se pudo abrir la autorización de Google.'));
+      };
+      const hadAuthorization = localStorage.getItem('fxlGoogleDriveLibraryAuthorized') === 'true';
+      googleDriveLibraryTokenClient.requestAccessToken({ prompt: forceConsent || !hadAuthorization ? 'consent' : '' });
+    });
+  }
+
+  async function googleDriveLibraryFetch(url, options = {}) {
+    const token = await requestGoogleDriveLibraryToken(false);
+    const headers = new Headers(options.headers || {});
+    headers.set('Authorization', `Bearer ${token}`);
+    const response = await fetch(url, { ...options, headers });
+    const text = await response.text();
+    let payload = null;
+    if (text) {
+      try { payload = JSON.parse(text); } catch (_) { payload = { raw: text }; }
+    }
+    if (!response.ok) {
+      const message = payload?.error?.message || `Google Drive respondió con error ${response.status}.`;
+      const error = new Error(message);
+      error.status = response.status;
+      error.payload = payload;
+      throw error;
+    }
+    return payload || {};
+  }
+
+  function driveQueryEscape(value) {
+    return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  }
+
+  function driveListUrl({ folderId = 'root', search = '', pageToken = null } = {}) {
+    const params = new URLSearchParams();
+    const q = search
+      ? `name contains '${driveQueryEscape(search)}' and trashed = false`
+      : `'${driveQueryEscape(folderId || 'root')}' in parents and trashed = false`;
+    params.set('q', q);
+    params.set('spaces', 'drive');
+    params.set('corpora', 'user');
+    params.set('pageSize', '100');
+    params.set('orderBy', 'folder,name_natural');
+    params.set('supportsAllDrives', 'true');
+    params.set('includeItemsFromAllDrives', 'true');
+    params.set('fields', 'nextPageToken,files(id,name,mimeType,thumbnailLink,iconLink,modifiedTime,size,videoMediaMetadata(durationMillis,width,height),imageMediaMetadata(width,height),webViewLink,parents,starred,shared)');
+    if (pageToken) params.set('pageToken', pageToken);
+    return `https://www.googleapis.com/drive/v3/files?${params.toString()}`;
+  }
+
+  async function loadDriveExplorer({ append = false, forceConsent = false } = {}) {
+    const explorer = state.ui.driveExplorer;
+    if (!isGoogleDriveConfigured()) {
+      explorer.error = 'Google Drive todavía no está configurado.';
+      explorer.loading = false;
+      renderMain();
+      return;
+    }
+    if (explorer.loading) return;
+
+    explorer.loading = true;
+    explorer.error = '';
+    renderMain();
+
+    try {
+      if (forceConsent) await requestGoogleDriveLibraryToken(true);
+      const payload = await googleDriveLibraryFetch(driveListUrl({
+        folderId: explorer.currentFolderId || 'root',
+        search: explorer.search,
+        pageToken: append ? explorer.nextPageToken : null,
+      }));
+      const incoming = Array.isArray(payload.files) ? payload.files : [];
+      explorer.files = append ? explorer.files.concat(incoming) : incoming;
+      explorer.nextPageToken = payload.nextPageToken || null;
+      explorer.loadedOnce = true;
+      explorer.loading = false;
+      explorer.error = '';
+      renderMain();
+    } catch (error) {
+      console.error('[Fútbol XL Studio] Biblioteca de Drive:', error);
+      explorer.loading = false;
+      if (error?.status === 403) {
+        explorer.error = 'Google no autorizó la lectura completa de Drive. Volvé a habilitar la Biblioteca de Drive y aceptá el permiso de solo lectura.';
+      } else {
+        explorer.error = error?.message || 'No se pudo cargar Google Drive.';
+      }
+      renderMain();
+    }
+  }
+
+  function maybeLoadDriveExplorer() {
+    if (state.ui.route !== 'drive-browser') return;
+    const explorer = state.ui.driveExplorer;
+    if (explorer.loading || explorer.loadedOnce) return;
+    const authorized = localStorage.getItem('fxlGoogleDriveLibraryAuthorized') === 'true';
+    if (!authorized) return;
+    loadDriveExplorer().catch(() => {});
+  }
+
+  function resetDriveExplorerToRoot() {
+    const explorer = state.ui.driveExplorer;
+    explorer.currentFolderId = 'root';
+    explorer.breadcrumbs = [{ id: 'root', name: 'Mi unidad' }];
+    explorer.search = '';
+    explorer.files = [];
+    explorer.nextPageToken = null;
+    explorer.error = '';
+    explorer.loadedOnce = false;
+  }
+
+  async function openDriveExplorerFolder(file) {
+    if (!file?.id) return;
+    const explorer = state.ui.driveExplorer;
+    explorer.currentFolderId = file.id;
+    explorer.breadcrumbs = [...explorer.breadcrumbs, { id: file.id, name: file.name || 'Carpeta' }];
+    explorer.search = '';
+    explorer.files = [];
+    explorer.nextPageToken = null;
+    explorer.loadedOnce = false;
+    await loadDriveExplorer();
+  }
+
+  async function navigateDriveExplorerBreadcrumb(index) {
+    const explorer = state.ui.driveExplorer;
+    const safeIndex = Math.max(0, Math.min(Number(index) || 0, explorer.breadcrumbs.length - 1));
+    explorer.breadcrumbs = explorer.breadcrumbs.slice(0, safeIndex + 1);
+    explorer.currentFolderId = explorer.breadcrumbs[safeIndex]?.id || 'root';
+    explorer.search = '';
+    explorer.files = [];
+    explorer.nextPageToken = null;
+    explorer.loadedOnce = false;
+    await loadDriveExplorer();
+  }
+
+  async function searchDriveExplorer() {
+    const explorer = state.ui.driveExplorer;
+    const input = document.getElementById('drive-explorer-search');
+    explorer.search = String(input?.value || '').trim();
+    explorer.files = [];
+    explorer.nextPageToken = null;
+    explorer.loadedOnce = false;
+    await loadDriveExplorer();
+  }
+
+  async function clearDriveExplorerSearch() {
+    const explorer = state.ui.driveExplorer;
+    explorer.search = '';
+    explorer.files = [];
+    explorer.nextPageToken = null;
+    explorer.loadedOnce = false;
+    await loadDriveExplorer();
+  }
+
+  async function fetchDriveThumbnail(fileId, thumbnailLink) {
+    if (!fileId || !thumbnailLink) return null;
+    if (googleDriveThumbnailCache.has(fileId)) return googleDriveThumbnailCache.get(fileId);
+    try {
+      const token = await requestGoogleDriveLibraryToken(false);
+      const response = await fetch(thumbnailLink, { headers: { Authorization: `Bearer ${token}` } });
+      if (!response.ok) return null;
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      googleDriveThumbnailCache.set(fileId, objectUrl);
+      return objectUrl;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  async function hydrateDriveExplorerThumbnails() {
+    if (state.ui.route !== 'drive-browser') return;
+    const nodes = Array.from(document.querySelectorAll('[data-drive-thumb-id][data-drive-thumb-link]'));
+    await Promise.all(nodes.slice(0, 48).map(async (node) => {
+      const id = node.dataset.driveThumbId;
+      const link = node.dataset.driveThumbLink;
+      if (!id || !link || node.dataset.driveThumbLoaded === 'true') return;
+      const src = await fetchDriveThumbnail(id, link);
+      if (!src || !document.body.contains(node)) return;
+      node.src = src;
+      node.dataset.driveThumbLoaded = 'true';
+      node.closest('.drive-browser-card__visual')?.classList.add('has-image');
+    }));
+  }
+
+  function disconnectGoogleDriveLibrary() {
+    const token = googleDriveLibraryAccessToken;
+    googleDriveLibraryAccessToken = null;
+    googleDriveLibraryTokenExpiresAt = 0;
+    localStorage.removeItem('fxlGoogleDriveLibraryAuthorized');
+    resetDriveExplorerToRoot();
+    if (token && window.google?.accounts?.oauth2?.revoke) {
+      window.google.accounts.oauth2.revoke(token, () => {});
+    }
+    renderMain();
+    Utils.toast('Biblioteca completa de Drive desconectada.', 'success');
   }
 
   /* ------------------------------------------------------------------ */
@@ -5472,6 +5740,56 @@ if (localStorage.getItem('guestMode') === 'true') {
         if (state.ui.route === 'settings' && state.ui.settingsSection === 'backup') refreshUsage().then(renderMain);
         renderAll();
         break;
+      case 'drive-explorer-connect':
+        try {
+          await requestGoogleDriveLibraryToken(true);
+          state.ui.driveExplorer.loadedOnce = false;
+          await loadDriveExplorer();
+          Utils.toast('Biblioteca de Drive habilitada.', 'success');
+        } catch (error) {
+          console.error('[Fútbol XL Studio] Permiso Biblioteca Drive:', error);
+          Utils.toast(error.message || 'No se pudo habilitar la Biblioteca de Drive.', 'error');
+        }
+        break;
+      case 'drive-explorer-disconnect':
+        disconnectGoogleDriveLibrary();
+        break;
+      case 'drive-explorer-refresh':
+        state.ui.driveExplorer.files = [];
+        state.ui.driveExplorer.nextPageToken = null;
+        state.ui.driveExplorer.loadedOnce = false;
+        await loadDriveExplorer();
+        break;
+      case 'drive-explorer-open-folder': {
+        const file = state.ui.driveExplorer.files.find((item) => item.id === id);
+        if (file) await openDriveExplorerFolder(file);
+        break;
+      }
+      case 'drive-explorer-breadcrumb':
+        await navigateDriveExplorerBreadcrumb(actionEl.dataset.index);
+        break;
+      case 'drive-explorer-search':
+        await searchDriveExplorer();
+        break;
+      case 'drive-explorer-clear-search':
+        await clearDriveExplorerSearch();
+        break;
+      case 'drive-explorer-filter':
+        state.ui.driveExplorer.filter = actionEl.dataset.filter || 'all';
+        renderMain();
+        break;
+      case 'drive-explorer-preview': {
+        const file = state.ui.driveExplorer.files.find((item) => item.id === id);
+        if (file) { state.ui.driveExplorer.previewFile = file; renderMain(); }
+        break;
+      }
+      case 'drive-explorer-close-preview':
+        state.ui.driveExplorer.previewFile = null;
+        renderMain();
+        break;
+      case 'drive-explorer-load-more':
+        await loadDriveExplorer({ append: true });
+        break;
       case 'website-save':
         await saveWebsiteConfig();
         break;
@@ -5853,9 +6171,10 @@ if (localStorage.getItem('guestMode') === 'true') {
         if (currentVideo()) removeComment(currentVideo(), id);
         break;
       case 'settings-section':
+        state.ui.route = 'settings';
         state.ui.settingsSection = actionEl.dataset.section;
         if (state.ui.settingsSection === 'backup') refreshUsage().then(renderMain);
-        else renderMain();
+        else renderAll();
         break;
       case 'reset-app-name':
         resetAppName();
@@ -6768,6 +7087,16 @@ if (localStorage.getItem('guestMode') === 'true') {
   /* ---- teclado ---- */
 
   function onGlobalKeydown(e) {
+    if (e.key === 'Enter' && e.target?.id === 'drive-explorer-search') {
+      e.preventDefault();
+      searchDriveExplorer();
+      return;
+    }
+    if (e.key === 'Escape' && state.ui.route === 'drive-browser' && state.ui.driveExplorer.previewFile) {
+      state.ui.driveExplorer.previewFile = null;
+      renderMain();
+      return;
+    }
     if (e.target?.id === 'quick-note-input' && e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       addQuickNote();
