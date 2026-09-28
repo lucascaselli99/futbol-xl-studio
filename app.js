@@ -4534,7 +4534,7 @@ if (localStorage.getItem('guestMode') === 'true') {
     params.set('orderBy', 'folder,name_natural');
     params.set('supportsAllDrives', 'true');
     params.set('includeItemsFromAllDrives', 'true');
-    params.set('fields', 'nextPageToken,files(id,name,mimeType,thumbnailLink,iconLink,modifiedTime,size,videoMediaMetadata(durationMillis,width,height),imageMediaMetadata(width,height),webViewLink,parents,starred,shared)');
+    params.set('fields', 'nextPageToken,files(id,name,mimeType,thumbnailLink,iconLink,modifiedTime,size,videoMediaMetadata(durationMillis,width,height),imageMediaMetadata(width,height),webViewLink,webContentLink,parents,starred,shared)');
     if (pageToken) params.set('pageToken', pageToken);
     return `https://www.googleapis.com/drive/v3/files?${params.toString()}`;
   }
@@ -4733,6 +4733,20 @@ if (localStorage.getItem('guestMode') === 'true') {
       if (node.complete && node.naturalWidth > 0) markLoaded();
       else node.addEventListener('load', markLoaded, { once: true });
     }));
+  }
+
+  function downloadDriveExplorerFile(file) {
+    if (!file?.id) return;
+    const mime = String(file.mimeType || '');
+    if (mime.startsWith('application/vnd.google-apps.')) {
+      Utils.toast('Este archivo de Google se abre desde Docs/Sheets/Slides para exportarlo.', 'info');
+      return;
+    }
+    const directUrl = file.webContentLink || `https://drive.google.com/uc?export=download&id=${encodeURIComponent(file.id)}`;
+    const opened = window.open(directUrl, '_blank', 'noopener,noreferrer');
+    if (!opened) {
+      window.location.href = directUrl;
+    }
   }
 
   function disconnectGoogleDriveLibrary() {
@@ -5843,6 +5857,12 @@ if (localStorage.getItem('guestMode') === 'true') {
       case 'drive-explorer-preview': {
         const file = state.ui.driveExplorer.files.find((item) => item.id === id);
         if (file) { state.ui.driveExplorer.previewFile = file; renderMain(); }
+        break;
+      }
+      case 'drive-explorer-download': {
+        const file = state.ui.driveExplorer.files.find((item) => item.id === id)
+          || (state.ui.driveExplorer.previewFile?.id === id ? state.ui.driveExplorer.previewFile : null);
+        if (file) downloadDriveExplorerFile(file);
         break;
       }
       case 'drive-explorer-close-preview':

@@ -812,6 +812,7 @@ const Components = (() => {
             <span>Video${duration ? ` · ${escapeHtml(duration)}` : ''}</span>
           </div>
         </button>
+        <button class="drive-file-download" data-action="drive-explorer-download" data-id="${escapeHtml(file.id)}" type="button" title="Descargar ${escapeHtml(file.name || 'video')}" aria-label="Descargar ${escapeHtml(file.name || 'video')}">↓</button>
       </article>`;
     }).join('');
 
@@ -836,12 +837,16 @@ const Components = (() => {
     const previewFile = explorer.previewFile;
     const previewMime = String(previewFile?.mimeType || '');
     const previewClass = previewMime.startsWith('video/') ? 'is-video' : previewMime.startsWith('image/') ? 'is-image' : 'is-document';
+    const previewDownloadable = previewFile && !String(previewFile.mimeType || '').startsWith('application/vnd.google-apps.');
     const preview = previewFile ? `
       <div class="drive-preview-backdrop" data-action="drive-explorer-close-preview">
         <section class="drive-preview-modal ${previewClass}" data-action="noop" role="dialog" aria-modal="true" aria-label="Vista previa de ${escapeHtml(previewFile.name || 'archivo')}">
           <header class="drive-preview-modal__header">
             <div><strong>${escapeHtml(previewFile.name || 'Archivo')}</strong><span>${escapeHtml(fileMeta(previewFile))}</span></div>
-            <button class="icon-btn" data-action="drive-explorer-close-preview" type="button" aria-label="Cerrar">${icon('close')}</button>
+            <div class="drive-preview-modal__actions">
+              ${previewDownloadable ? `<button class="btn btn--secondary btn--sm" data-action="drive-explorer-download" data-id="${escapeHtml(previewFile.id)}" type="button">↓ Descargar</button>` : ''}
+              <button class="icon-btn" data-action="drive-explorer-close-preview" type="button" aria-label="Cerrar">${icon('close')}</button>
+            </div>
           </header>
           <div class="drive-preview-modal__frame"><iframe src="${previewUrl(previewFile)}" title="${escapeHtml(previewFile.name || 'Vista previa')}" allow="autoplay; fullscreen" loading="eager"></iframe></div>
         </section>
