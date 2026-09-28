@@ -774,11 +774,18 @@ const Components = (() => {
       ['all', 'Todo'], ['folders', 'Carpetas'], ['videos', 'Videos'], ['images', 'Imágenes'], ['audio', 'Audio'], ['docs', 'Docs'],
     ].map(([key, label]) => `<button class="drive-browser-filter ${explorer.filter === key ? 'is-active' : ''}" data-action="drive-explorer-filter" data-filter="${key}" type="button">${label}</button>`).join('');
 
-    const thumb = (file, extraClass = '') => (file.thumbnailLink || String(file.mimeType || '').startsWith('image/') || String(file.mimeType || '').startsWith('video/'))
-      ? `<img class="${extraClass}" alt="" loading="lazy" data-drive-thumb-id="${escapeHtml(file.id)}" data-drive-thumb-link="${escapeHtml(file.thumbnailLink || '')}" data-drive-thumb-mime="${escapeHtml(file.mimeType || '')}" />`
-      : file.iconLink
+    const thumb = (file, extraClass = '') => {
+      const mime = String(file.mimeType || '');
+      const directThumb = file.thumbnailLink
+        ? String(file.thumbnailLink).replace(/=s\d+(?:-[^&]+)?$/, '=w1200')
+        : (mime.startsWith('video/') ? `https://drive.google.com/thumbnail?id=${encodeURIComponent(file.id || '')}&sz=w1200` : '');
+      if (directThumb || mime.startsWith('image/')) {
+        return `<img class="${extraClass}" src="${escapeHtml(directThumb)}" alt="Miniatura de ${escapeHtml(file.name || 'archivo')}" loading="lazy" referrerpolicy="no-referrer" data-drive-thumb-id="${escapeHtml(file.id)}" data-drive-thumb-link="${escapeHtml(file.thumbnailLink || '')}" data-drive-thumb-mime="${escapeHtml(mime)}" />`;
+      }
+      return file.iconLink
         ? `<img class="drive-browser-card__icon-image ${extraClass}" src="${escapeHtml(file.iconLink)}" alt="" />`
-        : `<span class="drive-browser-card__fallback">${file.mimeType?.startsWith('video/') ? '▶' : file.mimeType?.startsWith('image/') ? '🖼' : file.mimeType?.startsWith('audio/') ? '♪' : '📄'}</span>`;
+        : `<span class="drive-browser-card__fallback">${mime.startsWith('video/') ? '▶' : mime.startsWith('image/') ? '🖼' : mime.startsWith('audio/') ? '♪' : '📄'}</span>`;
+    };
 
     const folders = visible.filter((file) => file.mimeType === folderMime);
     const videos = visible.filter((file) => String(file.mimeType || '').startsWith('video/'));

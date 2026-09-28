@@ -4693,11 +4693,45 @@ if (localStorage.getItem('guestMode') === 'true') {
       const link = node.dataset.driveThumbLink || '';
       const mime = node.dataset.driveThumbMime || '';
       if (!id || node.dataset.driveThumbLoaded === 'true') return;
+
+      const markLoaded = () => {
+        if (!document.body.contains(node)) return;
+        node.dataset.driveThumbLoaded = 'true';
+        node.closest('.drive-browser-card__visual')?.classList.add('has-image');
+      };
+
+      if (node.complete && node.naturalWidth > 0) {
+        markLoaded();
+        return;
+      }
+
+      if (node.getAttribute('src')) {
+        const directLoaded = await new Promise((resolve) => {
+          let settled = false;
+          const finish = (value) => {
+            if (settled) return;
+            settled = true;
+            node.removeEventListener('load', onLoad);
+            node.removeEventListener('error', onError);
+            resolve(value);
+          };
+          const onLoad = () => finish(node.naturalWidth > 0);
+          const onError = () => finish(false);
+          node.addEventListener('load', onLoad, { once: true });
+          node.addEventListener('error', onError, { once: true });
+          setTimeout(() => finish(node.complete && node.naturalWidth > 0), 1800);
+        });
+        if (directLoaded) {
+          markLoaded();
+          return;
+        }
+      }
+
       const src = await fetchDriveThumbnail(id, link, mime);
       if (!src || !document.body.contains(node)) return;
       node.src = src;
-      node.dataset.driveThumbLoaded = 'true';
-      node.closest('.drive-browser-card__visual')?.classList.add('has-image');
+      if (node.complete && node.naturalWidth > 0) markLoaded();
+      else node.addEventListener('load', markLoaded, { once: true });
     }));
   }
 
