@@ -774,8 +774,8 @@ const Components = (() => {
       ['all', 'Todo'], ['folders', 'Carpetas'], ['videos', 'Videos'], ['images', 'Imágenes'], ['audio', 'Audio'], ['docs', 'Docs'],
     ].map(([key, label]) => `<button class="drive-browser-filter ${explorer.filter === key ? 'is-active' : ''}" data-action="drive-explorer-filter" data-filter="${key}" type="button">${label}</button>`).join('');
 
-    const thumb = (file, extraClass = '') => file.thumbnailLink
-      ? `<img class="${extraClass}" alt="" data-drive-thumb-id="${escapeHtml(file.id)}" data-drive-thumb-link="${escapeHtml(file.thumbnailLink)}" />`
+    const thumb = (file, extraClass = '') => (file.thumbnailLink || String(file.mimeType || '').startsWith('image/') || String(file.mimeType || '').startsWith('video/'))
+      ? `<img class="${extraClass}" alt="" loading="lazy" data-drive-thumb-id="${escapeHtml(file.id)}" data-drive-thumb-link="${escapeHtml(file.thumbnailLink || '')}" data-drive-thumb-mime="${escapeHtml(file.mimeType || '')}" />`
       : file.iconLink
         ? `<img class="drive-browser-card__icon-image ${extraClass}" src="${escapeHtml(file.iconLink)}" alt="" />`
         : `<span class="drive-browser-card__fallback">${file.mimeType?.startsWith('video/') ? '▶' : file.mimeType?.startsWith('image/') ? '🖼' : file.mimeType?.startsWith('audio/') ? '♪' : '📄'}</span>`;

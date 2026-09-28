@@ -4642,15 +4642,42 @@ if (localStorage.getItem('guestMode') === 'true') {
     await loadDriveExplorer();
   }
 
-  async function fetchDriveThumbnail(fileId, thumbnailLink) {
-    if (!fileId || !thumbnailLink) return null;
+  async function fetchDriveAuthenticatedBlobUrl(url, token) {
+    if (!url || !token) return null;
+    try {
+      const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!response.ok) return null;
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  async function fetchDriveThumbnail(fileId, thumbnailLink, mimeType = '') {
+    if (!fileId) return null;
     if (googleDriveThumbnailCache.has(fileId)) return googleDriveThumbnailCache.get(fileId);
     try {
       const token = await requestGoogleDriveLibraryToken(false);
-      const response = await fetch(thumbnailLink, { headers: { Authorization: `Bearer ${token}` } });
-      if (!response.ok) return null;
-      const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
+      const mime = String(mimeType || '');
+      let objectUrl = null;
+
+      if (mime.startsWith('image/')) {
+        const mediaUrl = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`;
+        objectUrl = await fetchDriveAuthenticatedBlobUrl(mediaUrl, token);
+      }
+
+      if (!objectUrl && thumbnailLink) {
+        const normalizedThumb = thumbnailLink.replace(/=s\d+(?:-\w+)?$/, '=s1200');
+        objectUrl = await fetchDriveAuthenticatedBlobUrl(normalizedThumb, token);
+      }
+
+      if (!objectUrl && mime.startsWith('video/')) {
+        const fallbackThumb = `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w1200`;
+        objectUrl = await fetchDriveAuthenticatedBlobUrl(fallbackThumb, token);
+      }
+
+      if (!objectUrl) return null;
       googleDriveThumbnailCache.set(fileId, objectUrl);
       return objectUrl;
     } catch (_) {
@@ -4660,12 +4687,13 @@ if (localStorage.getItem('guestMode') === 'true') {
 
   async function hydrateDriveExplorerThumbnails() {
     if (state.ui.route !== 'drive-browser') return;
-    const nodes = Array.from(document.querySelectorAll('[data-drive-thumb-id][data-drive-thumb-link]'));
+    const nodes = Array.from(document.querySelectorAll('[data-drive-thumb-id]'));
     await Promise.all(nodes.slice(0, 48).map(async (node) => {
       const id = node.dataset.driveThumbId;
-      const link = node.dataset.driveThumbLink;
-      if (!id || !link || node.dataset.driveThumbLoaded === 'true') return;
-      const src = await fetchDriveThumbnail(id, link);
+      const link = node.dataset.driveThumbLink || '';
+      const mime = node.dataset.driveThumbMime || '';
+      if (!id || node.dataset.driveThumbLoaded === 'true') return;
+      const src = await fetchDriveThumbnail(id, link, mime);
       if (!src || !document.body.contains(node)) return;
       node.src = src;
       node.dataset.driveThumbLoaded = 'true';
