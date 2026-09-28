@@ -740,6 +740,7 @@ const Components = (() => {
       const s = total % 60;
       return h ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
     };
+
     const fileMeta = (file) => {
       const mime = String(file.mimeType || '');
       if (mime === folderMime) return 'Carpeta';
@@ -752,6 +753,7 @@ const Components = (() => {
       if (mime === 'application/vnd.google-apps.presentation') return 'Google Slides';
       return mime.split('/').pop()?.replace('vnd.google-apps.', '') || 'Archivo';
     };
+
     const previewUrl = (file) => {
       const id = encodeURIComponent(file?.id || '');
       const mime = String(file?.mimeType || '');
@@ -761,7 +763,9 @@ const Components = (() => {
       return `https://drive.google.com/file/d/${id}/preview`;
     };
 
-    const breadcrumbs = (explorer.breadcrumbs || [{ id: 'root', name: 'Mi unidad' }]).map((crumb, index, arr) => `
+    const breadcrumbsList = explorer.breadcrumbs || [{ id: 'root', name: 'Mi unidad' }];
+    const currentFolderName = explorer.search ? 'Resultados de búsqueda' : (breadcrumbsList[breadcrumbsList.length - 1]?.name || 'Mi unidad');
+    const breadcrumbs = breadcrumbsList.map((crumb, index, arr) => `
       <button class="drive-browser-crumb ${index === arr.length - 1 ? 'is-current' : ''}" data-action="drive-explorer-breadcrumb" data-index="${index}" type="button" ${index === arr.length - 1 ? 'disabled' : ''}>${escapeHtml(crumb.name || 'Carpeta')}</button>
       ${index < arr.length - 1 ? '<span class="drive-browser-crumb-sep">›</span>' : ''}
     `).join('');
@@ -770,32 +774,69 @@ const Components = (() => {
       ['all', 'Todo'], ['folders', 'Carpetas'], ['videos', 'Videos'], ['images', 'Imágenes'], ['audio', 'Audio'], ['docs', 'Docs'],
     ].map(([key, label]) => `<button class="drive-browser-filter ${explorer.filter === key ? 'is-active' : ''}" data-action="drive-explorer-filter" data-filter="${key}" type="button">${label}</button>`).join('');
 
-    const cards = visible.map((file) => {
-      const isFolder = file.mimeType === folderMime;
-      const visual = file.thumbnailLink
-        ? `<img alt="" data-drive-thumb-id="${escapeHtml(file.id)}" data-drive-thumb-link="${escapeHtml(file.thumbnailLink)}" />`
-        : file.iconLink
-          ? `<img class="drive-browser-card__icon-image" src="${escapeHtml(file.iconLink)}" alt="" />`
-          : `<span class="drive-browser-card__fallback">${isFolder ? '📁' : file.mimeType?.startsWith('video/') ? '▶' : file.mimeType?.startsWith('image/') ? '🖼' : file.mimeType?.startsWith('audio/') ? '♪' : '📄'}</span>`;
-      return `<article class="drive-browser-card ${isFolder ? 'is-folder' : ''}">
-        <button class="drive-browser-card__open" data-action="${isFolder ? 'drive-explorer-open-folder' : 'drive-explorer-preview'}" data-id="${escapeHtml(file.id)}" type="button" aria-label="${isFolder ? 'Abrir carpeta' : 'Previsualizar'} ${escapeHtml(file.name || 'archivo')}">
-          <div class="drive-browser-card__visual">${visual}${file.mimeType?.startsWith('video/') ? '<span class="drive-browser-card__play">▶</span>' : ''}</div>
-          <div class="drive-browser-card__body">
+    const thumb = (file, extraClass = '') => file.thumbnailLink
+      ? `<img class="${extraClass}" alt="" data-drive-thumb-id="${escapeHtml(file.id)}" data-drive-thumb-link="${escapeHtml(file.thumbnailLink)}" />`
+      : file.iconLink
+        ? `<img class="drive-browser-card__icon-image ${extraClass}" src="${escapeHtml(file.iconLink)}" alt="" />`
+        : `<span class="drive-browser-card__fallback">${file.mimeType?.startsWith('video/') ? '▶' : file.mimeType?.startsWith('image/') ? '🖼' : file.mimeType?.startsWith('audio/') ? '♪' : '📄'}</span>`;
+
+    const folders = visible.filter((file) => file.mimeType === folderMime);
+    const videos = visible.filter((file) => String(file.mimeType || '').startsWith('video/'));
+    const imagesAndAudio = visible.filter((file) => String(file.mimeType || '').startsWith('image/') || String(file.mimeType || '').startsWith('audio/'));
+    const documents = visible.filter((file) => file.mimeType !== folderMime && !String(file.mimeType || '').startsWith('video/') && !String(file.mimeType || '').startsWith('image/') && !String(file.mimeType || '').startsWith('audio/'));
+
+    const folderCards = folders.map((file) => `<button class="drive-folder-card" data-action="drive-explorer-open-folder" data-id="${escapeHtml(file.id)}" type="button" title="Abrir ${escapeHtml(file.name || 'carpeta')}">
+      <span class="drive-folder-card__icon">${icon('folder')}</span>
+      <span class="drive-folder-card__text"><strong>${escapeHtml(file.name || 'Sin nombre')}</strong><small>Carpeta</small></span>
+      <span class="drive-folder-card__arrow">›</span>
+    </button>`).join('');
+
+    const videoCards = videos.map((file) => {
+      const duration = formatDuration(file);
+      return `<article class="drive-video-card">
+        <button class="drive-video-card__open" data-action="drive-explorer-preview" data-id="${escapeHtml(file.id)}" type="button" aria-label="Reproducir ${escapeHtml(file.name || 'video')}">
+          <div class="drive-browser-card__visual drive-video-card__visual">
+            ${thumb(file)}
+            <span class="drive-video-card__play">▶</span>
+            ${duration ? `<span class="drive-video-card__duration">${escapeHtml(duration)}</span>` : ''}
+          </div>
+          <div class="drive-video-card__body">
             <strong title="${escapeHtml(file.name || '')}">${escapeHtml(file.name || 'Sin nombre')}</strong>
-            <span>${escapeHtml(fileMeta(file))}</span>
+            <span>Video${duration ? ` · ${escapeHtml(duration)}` : ''}</span>
           </div>
         </button>
       </article>`;
     }).join('');
 
-    const preview = explorer.previewFile ? `
+    const mediaCards = imagesAndAudio.map((file) => `<article class="drive-media-card">
+      <button class="drive-media-card__open" data-action="drive-explorer-preview" data-id="${escapeHtml(file.id)}" type="button" aria-label="Previsualizar ${escapeHtml(file.name || 'archivo')}">
+        <div class="drive-browser-card__visual drive-media-card__visual">${thumb(file)}</div>
+        <div class="drive-media-card__body"><strong title="${escapeHtml(file.name || '')}">${escapeHtml(file.name || 'Sin nombre')}</strong><span>${escapeHtml(fileMeta(file))}</span></div>
+      </button>
+    </article>`).join('');
+
+    const documentCards = documents.map((file) => `<button class="drive-document-card" data-action="drive-explorer-preview" data-id="${escapeHtml(file.id)}" type="button">
+      <span class="drive-document-card__icon">${file.mimeType === 'application/vnd.google-apps.document' ? '📘' : file.mimeType === 'application/vnd.google-apps.spreadsheet' ? '📗' : file.mimeType === 'application/vnd.google-apps.presentation' ? '📙' : file.mimeType === 'application/pdf' ? '📕' : '📄'}</span>
+      <span class="drive-document-card__text"><strong title="${escapeHtml(file.name || '')}">${escapeHtml(file.name || 'Sin nombre')}</strong><small>${escapeHtml(fileMeta(file))}</small></span>
+      <span class="drive-document-card__arrow">›</span>
+    </button>`).join('');
+
+    const renderSection = (title, count, content, className, hint = '') => count ? `<section class="drive-content-section">
+      <div class="drive-content-section__header"><div><span class="drive-content-section__eyebrow">${escapeHtml(hint)}</span><h3>${escapeHtml(title)} <small>(${count})</small></h3></div></div>
+      <div class="${className}">${content}</div>
+    </section>` : '';
+
+    const previewFile = explorer.previewFile;
+    const previewMime = String(previewFile?.mimeType || '');
+    const previewClass = previewMime.startsWith('video/') ? 'is-video' : previewMime.startsWith('image/') ? 'is-image' : 'is-document';
+    const preview = previewFile ? `
       <div class="drive-preview-backdrop" data-action="drive-explorer-close-preview">
-        <section class="drive-preview-modal" data-action="noop" role="dialog" aria-modal="true" aria-label="Vista previa de ${escapeHtml(explorer.previewFile.name || 'archivo')}">
+        <section class="drive-preview-modal ${previewClass}" data-action="noop" role="dialog" aria-modal="true" aria-label="Vista previa de ${escapeHtml(previewFile.name || 'archivo')}">
           <header class="drive-preview-modal__header">
-            <div><strong>${escapeHtml(explorer.previewFile.name || 'Archivo')}</strong><span>${escapeHtml(fileMeta(explorer.previewFile))}</span></div>
+            <div><strong>${escapeHtml(previewFile.name || 'Archivo')}</strong><span>${escapeHtml(fileMeta(previewFile))}</span></div>
             <button class="icon-btn" data-action="drive-explorer-close-preview" type="button" aria-label="Cerrar">${icon('close')}</button>
           </header>
-          <div class="drive-preview-modal__frame"><iframe src="${previewUrl(explorer.previewFile)}" title="${escapeHtml(explorer.previewFile.name || 'Vista previa')}" allow="autoplay" loading="eager"></iframe></div>
+          <div class="drive-preview-modal__frame"><iframe src="${previewUrl(previewFile)}" title="${escapeHtml(previewFile.name || 'Vista previa')}" allow="autoplay; fullscreen" loading="eager"></iframe></div>
         </section>
       </div>` : '';
 
@@ -817,19 +858,30 @@ const Components = (() => {
     }
 
     return `<div class="view drive-browser-view">
-      <div class="drive-browser-header">
-        <div><span class="eyebrow">Google Drive</span><h2>Biblioteca Drive</h2><p class="muted">Reproducí videos y visualizá archivos sin salir de Fútbol XL Studio.</p></div>
-        <div class="drive-browser-header__actions"><button class="icon-btn" data-action="drive-explorer-refresh" type="button" title="Actualizar">${icon('repeat')}</button><button class="btn btn--ghost btn--sm" data-action="drive-explorer-disconnect" type="button">Desconectar biblioteca</button></div>
+      <div class="drive-browser-topline">
+        <div class="drive-browser-breadcrumbs">${explorer.search ? `<button class="drive-browser-crumb" data-action="drive-explorer-clear-search" type="button">Mi unidad</button><span class="drive-browser-crumb-sep">›</span><span class="drive-browser-search-label">Resultados de búsqueda</span>` : breadcrumbs}</div>
+        <div class="drive-browser-header__actions"><button class="icon-btn" data-action="drive-explorer-refresh" type="button" title="Actualizar">${icon('repeat')}</button><button class="btn btn--ghost btn--sm" data-action="drive-explorer-disconnect" type="button">Desconectar</button></div>
       </div>
+
+      <div class="drive-browser-title-row">
+        <div class="drive-browser-title-icon">${icon('folder')}</div>
+        <div><span class="eyebrow">Google Drive</span><h2>${escapeHtml(currentFolderName)}</h2><p class="muted">Explorá y reproducí tus archivos sin salir de Fútbol XL Studio.</p></div>
+      </div>
+
       <div class="drive-browser-toolbar">
-        <div class="drive-browser-search"><span>${icon('search')}</span><input id="drive-explorer-search" type="search" value="${escapeHtml(explorer.search || '')}" placeholder="Buscar en todo Drive…" autocomplete="off" /><button class="btn btn--secondary btn--sm" data-action="drive-explorer-search" type="button">Buscar</button>${explorer.search ? '<button class="icon-btn" data-action="drive-explorer-clear-search" type="button" title="Limpiar búsqueda">'+icon('close')+'</button>' : ''}</div>
+        <div class="drive-browser-search"><span>${icon('search')}</span><input id="drive-explorer-search" type="search" value="${escapeHtml(explorer.search || '')}" placeholder="Buscar carpetas o videos en Drive…" autocomplete="off" /><button class="btn btn--secondary btn--sm" data-action="drive-explorer-search" type="button">Buscar</button>${explorer.search ? '<button class="icon-btn" data-action="drive-explorer-clear-search" type="button" title="Limpiar búsqueda">'+icon('close')+'</button>' : ''}</div>
         <div class="drive-browser-filters">${filters}</div>
       </div>
-      <div class="drive-browser-breadcrumbs">${explorer.search ? `<span class="drive-browser-search-label">Resultados para “${escapeHtml(explorer.search)}”</span>` : breadcrumbs}</div>
+
       ${explorer.error ? `<div class="drive-browser-error"><strong>No se pudo cargar Drive.</strong><span>${escapeHtml(explorer.error)}</span><button class="btn btn--secondary btn--sm" data-action="drive-explorer-connect" type="button">Volver a autorizar</button></div>` : ''}
       ${explorer.loading && !files.length ? `<div class="drive-browser-loading"><span class="football-today__spinner"></span><span>Cargando Drive…</span></div>` : ''}
       ${!explorer.loading && !visible.length && !explorer.error ? `<div class="drive-browser-empty"><span>☁️</span><strong>${explorer.search ? 'No encontramos resultados' : 'Esta carpeta está vacía'}</strong><small class="muted">${explorer.search ? 'Probá con otro nombre o quitá los filtros.' : 'No hay archivos para mostrar acá.'}</small></div>` : ''}
-      ${visible.length ? `<div class="drive-browser-grid">${cards}</div>` : ''}
+
+      ${renderSection('Carpetas', folders.length, folderCards, 'drive-folder-grid', 'ORGANIZACIÓN')}
+      ${renderSection('Videos', videos.length, videoCards, 'drive-video-grid', 'MULTIMEDIA')}
+      ${renderSection('Imágenes y audio', imagesAndAudio.length, mediaCards, 'drive-media-grid', 'RECURSOS')}
+      ${renderSection('Documentos', documents.length, documentCards, 'drive-document-grid', 'ARCHIVOS')}
+
       ${explorer.nextPageToken ? `<div class="drive-browser-more"><button class="btn btn--secondary" data-action="drive-explorer-load-more" type="button" ${explorer.loading ? 'disabled' : ''}>${explorer.loading ? 'Cargando…' : 'Cargar más'}</button></div>` : ''}
       ${preview}
     </div>`;
